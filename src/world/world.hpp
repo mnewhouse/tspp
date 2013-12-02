@@ -25,6 +25,8 @@
 #include "resources/track.hpp"
 #include "resources/terrain_map.hpp"
 
+#include "car.hpp"
+
 #include <memory>
 #include <vector>
 
@@ -39,7 +41,6 @@ namespace ts
     namespace world
     {
         class Entity_listener;
-        class Car;
 
         class World
         {

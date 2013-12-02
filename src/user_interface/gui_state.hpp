@@ -36,7 +36,7 @@ namespace ts
             : public core::Game_state
         {
         public:
-            State(const Handle<State_machine>& state_machine, const Handle<Context>& context);
+            State(const Handle<state_machine_type>& state_machine, const Handle<Context>& context);
 
             void set_background(const graphics::Background& background);
             const graphics::Background& background() const;

@@ -46,7 +46,7 @@ namespace ts
             : public Cup_state
         {
         public:
-            Local_cup_state(const Handle<State_machine>& state_machine,
+            Local_cup_state(const Handle<state_machine_type>& state_machine,
                             const Handle<gui::Context>& context);
 
             virtual void render(graphics::Render_target& render_target) override;

@@ -20,8 +20,7 @@
 #include "pattern.hpp"
 
 extern "C" {
-#include "png/png.h"
-#include "png/pngstruct.h"
+#include <png.h>
 }
 
 #include <cstdio>

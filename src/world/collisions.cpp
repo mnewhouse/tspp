@@ -243,11 +243,11 @@ ts::world::Collision_result ts::world::detect_collision(const Entity& entity, Ve
 
     const auto& pattern = *collision_mask.pattern;
 
-    auto old_cos = long(std::cos(old_rotation.radians()) * 65536.0 + 0.5);
-    auto old_sin = long(std::sin(old_rotation.radians()) * 65536.0 + 0.5);
+    auto old_cos = int(std::cos(old_rotation.radians()) * 65536.0 + 0.5);
+    auto old_sin = int(std::sin(old_rotation.radians()) * 65536.0 + 0.5);
 
-    auto new_cos = long(std::cos(new_rotation.radians()) * 65536.0 + 0.5);
-    auto new_sin = long(std::sin(new_rotation.radians()) * 65536.0 + 0.5);
+    auto new_cos = int(std::cos(new_rotation.radians()) * 65536.0 + 0.5);
+    auto new_sin = int(std::sin(new_rotation.radians()) * 65536.0 + 0.5);
 
     auto offset = new_position - old_position;
 

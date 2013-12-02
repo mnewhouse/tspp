@@ -139,7 +139,7 @@ void ts::states::Action_scene::render(graphics::Render_target& render_target)
 }
 
 ts::states::Action_state::Action_state(resources::Track&& track, const cup::Stage_data& stage_data, 
-                                       const Handle<State_machine>& state_machine, const Handle<gui::Context>& context)
+                                       const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context)
     : gui::State(state_machine, context), 
       action_scene_(track, stage_data), 
       world_(std::move(track)),

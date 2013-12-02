@@ -25,6 +25,7 @@
 
 #include "graphics/track_builder.hpp"
 #include "graphics/camera.hpp"
+#include "graphics/drawable_entity.hpp"
 
 #include "world/world.hpp"
 #include "world/entity_listener.hpp"
@@ -37,10 +38,6 @@
 
 namespace ts
 {
-    namespace graphics
-    {
-        class Drawable_entity;
-    }
 
     namespace cup
     {
@@ -85,7 +82,7 @@ namespace ts
         {
         public:
             Action_state(resources::Track&& track, const cup::Stage_data& stage_data, 
-                         const Handle<State_machine>& state_machine, const Handle<gui::Context>& context);
+                         const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context);
 
             virtual void render(graphics::Render_target& render_target) override;
             virtual void handle_event(const sf::Event& event) override;

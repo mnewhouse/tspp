@@ -24,6 +24,8 @@
 #include "resources/track.hpp"
 #include "resources/pattern.hpp"
 
+#include "core/utility.hpp"
+
 #include "collisions.hpp"
 
 #include <algorithm>
@@ -37,7 +39,7 @@ ts::world::World::World(resources::Track&& track)
 
 ts::world::Car* ts::world::World::create_car(const resources::Car_definition& car_def)
 {
-    car_list_.push_back(std::make_unique<Car>(this, car_def));
+    car_list_.push_back(make_unique<Car>(this, car_def));
 
     auto& car = *car_list_.back();
     std::for_each(entity_listeners_.begin(), entity_listeners_.end(), 

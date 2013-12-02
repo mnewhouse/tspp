@@ -37,7 +37,7 @@ namespace ts
 
         template <typename T1, typename T2>
         Rect(Vector2<T1> point, Vector2<T2> size)
-            : left(a.left), top(a.top), width(size.x), height(size.y)
+            : left(point.left), top(point.top), width(size.x), height(size.y)
         {}
 
         Rect(T left, T top, T width, T height)

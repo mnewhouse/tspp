@@ -48,7 +48,7 @@ namespace ts
             : public gui::State
         {
         public:
-            Loading_state(const Handle<State_machine>& state_machine, const Handle<gui::Context>& context);
+            Loading_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context);
             virtual ~Loading_state();
 
             virtual void render(graphics::Render_target&) override;

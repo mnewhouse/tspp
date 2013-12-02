@@ -20,10 +20,11 @@
 #include "cup_state.hpp"
 #include "action_state.hpp"
 
+#include "core/utility.hpp"
 #include "resources/track.hpp"
 
 
-ts::states::Cup_state::Cup_state(const Handle<State_machine>& state_machine,
+ts::states::Cup_state::Cup_state(const Handle<state_machine_type>& state_machine,
                                  const Handle<gui::Context>& context)
                                  : gui::State(state_machine, context)
 {
@@ -42,7 +43,7 @@ void ts::states::Cup_state::async_load()
     {
         resources::Track track(track_handle);
 
-        return std::make_unique<Action_state>(std::move(track), stg_data, state_machine_handle, context_handle);
+        return make_unique<Action_state>(std::move(track), stg_data, state_machine_handle, context_handle);
     };
 
     future_state_ = std::async(loader);

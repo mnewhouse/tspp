@@ -37,7 +37,7 @@ namespace ts
             : public gui::State, public cup::Cup
         {
         public:
-            Cup_state(const Handle<State_machine>& state_machine,
+            Cup_state(const Handle<state_machine_type>& state_machine,
                       const Handle<gui::Context>& context);
 
             void async_load();

@@ -21,7 +21,8 @@
 #define CORE_ROTATION_HPP
 
 #include <iostream>
-
+#include <cmath>
+ 
 namespace ts
 {
 

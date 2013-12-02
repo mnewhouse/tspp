@@ -36,7 +36,7 @@ namespace ts
         {
         public:
 
-            typedef core::State_machine<core::Game_state> State_machine;
+            using state_machine_type = gui::State::state_machine_type;
 
             Main_menu_scene(Main_menu* main_menu, const Handle<gui::Context>& context)
                 : gui::Scene(context), main_menu_(main_menu)
@@ -52,7 +52,7 @@ namespace ts
             : public gui::State
         {
         public:
-            Main_menu(const Handle<State_machine>& state_machine, const Handle<gui::Context>& gui_context);
+            Main_menu(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& gui_context);
 
             virtual void render(graphics::Render_target& render_target) override;
             virtual void update(std::size_t frame_duration) override;

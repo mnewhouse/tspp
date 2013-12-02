@@ -44,15 +44,15 @@ namespace ts
         class Game_state
         {
         public:
-            using State_machine = State_machine<Game_state>;
+            using state_machine_type = State_machine<Game_state>;
 
-            Game_state(const Handle<State_machine>& state_machine)
+            Game_state(const Handle<state_machine_type>& state_machine)
                 : state_machine_(state_machine)
             {}
 
             virtual ~Game_state() {}
 
-            const Handle<State_machine>& state_machine() const { return state_machine_; }
+            const Handle<state_machine_type>& state_machine() const { return state_machine_; }
 
             virtual void render(graphics::Render_target& render_target) = 0;
 
@@ -60,7 +60,7 @@ namespace ts
             virtual void handle_event(const sf::Event& event) {}
 
         private:
-            Handle<State_machine> state_machine_;
+            Handle<state_machine_type> state_machine_;
         };
 
     }
