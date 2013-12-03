@@ -26,6 +26,7 @@
 
 #include <sstream>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 
 std::istream& ts::resources::operator>>(std::istream& stream, Car_definition& car_def)
 {
@@ -95,6 +96,8 @@ std::vector<ts::resources::Car_definition> ts::resources::load_car_definitions(s
         if (directive == "car" && std::getline(stream, line)) 
         {
             Car_definition car_def;
+
+            boost::trim(line);
             car_def.car_name = line;
 
             try {

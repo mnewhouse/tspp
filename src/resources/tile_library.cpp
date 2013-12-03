@@ -18,6 +18,7 @@
  */
 
 #include "tile_library.hpp"
+#include <iostream>
 
 void ts::resources::Tile_library::define_tile(const Tile_definition& tile_def)
 {

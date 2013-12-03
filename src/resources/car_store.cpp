@@ -23,6 +23,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 #include <fstream>
+#include <iostream>
 
 #include "pattern.hpp"
 
@@ -31,10 +32,17 @@ ts::resources::impl::Car_store ts::resources::Car_store::car_store_;
 void ts::resources::impl::Car_store::scan_directory(const std::string& directory)
 {
     boost::filesystem::path dir_path(directory);
-    for (boost::filesystem::directory_iterator it(dir_path), end; it != end; ++it) {
-        if (it->path().extension() != ".car") continue;
+    try {
+        for (boost::filesystem::directory_iterator it(dir_path), end; it != end; ++it) {
+            if (it->path().extension() != ".car") continue;
 
-        load_car_file(it->path().string());
+            load_car_file(it->path().string());
+        }
+    }
+    
+    catch (const boost::filesystem::filesystem_error&)
+    {
+        // Silently ignore errors, as if the directory were empty.
     }
 }
 

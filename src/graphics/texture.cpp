@@ -1,5 +1,6 @@
 #include "texture.hpp"
 
+#include <iostream>
 #include <algorithm>
 
 ts::graphics::Texture::Texture(const sf::Image& image, Rect<int> rect)
@@ -58,7 +59,7 @@ void ts::graphics::Texture::load_from_file(const std::string& file_name, Rect<in
     if (!image.loadFromFile(file_name)) {
         throw std::runtime_error("could not open image file \"" + file_name + "\"");
     }
-        
+            
     load_from_image(image);
 }
 

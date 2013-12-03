@@ -1,9 +1,17 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(tspp)
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(TSPP_OS_WINDOWS 1)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    set(TSPP_OS_LINUX 1)
+endif()
+
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules" ${CMAKE_MODULE_PATH})
 
 add_definitions(-std=c++11)
+add_definitions(-g)
+add_definitions(-Wall)
 
 set(EXECUTABLE_NAME "tspp")
 
@@ -82,6 +90,13 @@ if(PNG_FOUND)
   include_directories(${PNG_INCLUDE_DIR})
 endif()
 
+if(TSPP_OS_LINUX)
+  find_package(X11 REQUIRED)
+  if(X11_FOUND)
+    target_link_libraries(${EXECUTABLE_NAME} ${X11_LIBRARIES})
+    include_directories(${X11_INCLUDE_DIR})
+  endif()
+endif()
 
 
 find_package(SFML 2 REQUIRED system window graphics network audio)

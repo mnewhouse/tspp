@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+ #include <iostream>
+
 #include "loading_screen.hpp"
 #include "main_menu.hpp"
 
@@ -56,7 +58,7 @@ ts::states::Loading_state::Loading_state(const Handle<state_machine_type>& state
 
 ts::states::Loading_state::~Loading_state()
 {
-    if (future_.valid()) future_.get();
+    if (future_.valid()) future_.wait();
 }
 
 void ts::states::Loading_state::render(graphics::Render_target& render_target)
@@ -88,7 +90,7 @@ std::future<void> ts::states::Loading_state::async_load_resources()
         car_store.load(config::car_directory);
     };
 
-    return std::async(loader);
+    return std::async(std::launch::async, loader);
 }
 
 bool ts::states::Loading_state::is_loading_finished() const

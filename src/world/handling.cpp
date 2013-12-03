@@ -31,7 +31,7 @@
 ts::world::Handling_properties::Handling_properties()
 : power(0.0),
   reverse_power(0.0),
-  mass(0.0),
+  mass(1.0),
   grip(0.0),
   steering(0.0),
   grip_reduction(0.0),
@@ -55,6 +55,7 @@ std::istream& ts::world::operator>>(std::istream& stream, Handling_properties& p
 
         if (directive == "mass") {
             line_stream >> properties.mass;
+            properties.mass = std::max(1.0, properties.mass);
         }
 
         else if (directive == "dragcoefficient") {

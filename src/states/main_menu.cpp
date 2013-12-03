@@ -99,7 +99,7 @@ void ts::states::Main_menu_scene::render(graphics::Render_target& render_target)
             cup_state->add_track(track_store->get_track_by_name("clockwise"));
         }
 
-        auto car = car_store->get_car_by_name("tspptest");
+        auto car = car_store->get_car_by_name("slider");
         if (car) {
             cup_state->set_car(*car);
             state_machine->change_state(std::move(cup_state));

@@ -118,6 +118,7 @@ bool read_placed_tile(std::istream& stream, const std::string& directive, Func p
 void ts::resources::Track::include(std::istream& stream, std::size_t recursion_depth)
 {
     for (std::string line, directive; directive != "end" && std::getline(stream, line); ) {
+        boost::trim(line);
         std::istringstream line_stream(line);
 
         if (!read_directive(line_stream, directive)) 
@@ -137,8 +138,7 @@ void ts::resources::Track::include(std::istream& stream, std::size_t recursion_d
             std::string file_name;
 
             if (std::getline(line_stream, file_name)) {
-				auto idx = file_name.find_first_not_of(" \t");
-				file_name.erase(0, idx);
+				boost::trim(file_name);
 
                 include(file_name, recursion_depth + 1);
             }
@@ -201,32 +201,7 @@ void ts::resources::Track::include(std::istream& stream, std::size_t recursion_d
         }
     }
 }
-/*
-void ts::resources::Track::parse_collision_mask(std::istream& stream, Tile_id tile_id)
-{
-    world::Collision_mask collision_mask;
-    if (stream >> collision_mask) {
-        for (auto& circle : collision_mask.circles) {
-            circle.wall_def = wall_lib_.wall_by_id(circle.wall_def.id);
-        }
 
-        for (auto& polygon : collision_mask.polygons) {
-            polygon.wall_def = wall_lib_.wall_by_id(polygon.wall_def.id);
-        }
-
-        tile_lib_.define_collision_mask(tile_id, collision_mask);
-    }
-}
-
-
-void ts::resources::Track::parse_wall_definition(std::istream& stream, const std::string& wall_name)
-{
-    Wall_definition wall_definition;
-    if (stream >> wall_definition) {
-        wall_lib_.define_wall(wall_definition);
-    }
-}
-*/
 
 void ts::resources::Track::parse_start_points(std::istream& stream, std::size_t count)
 {
@@ -256,6 +231,7 @@ void ts::resources::Track::parse_tile_definition
     (std::istream& stream, const std::string& pattern_file, const std::string& image_file)
 {
     for (std::string line, directive; directive != "end" && std::getline(stream, line); ) {
+        boost::trim(line);
         std::istringstream line_stream(line);
         if (!read_directive(line_stream, directive)) continue;
 

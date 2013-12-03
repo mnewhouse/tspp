@@ -20,6 +20,7 @@
 #include "terrain_definition.hpp"
 #include "core/directive_reader.hpp"
 
+#include <boost/algorithm/string.hpp>
 #include <sstream>
 
 ts::resources::Terrain_definition::Terrain_definition(std::string terrain_name)
@@ -39,7 +40,9 @@ std::istream& ts::resources::operator>>(std::istream& stream, Terrain_definition
 {
     for (std::string line, directive; directive != "end" && std::getline(stream, line); )
     {
+        boost::trim(line);
         std::istringstream line_stream(line);
+
         read_directive(line_stream, directive);
 
         if (directive == "id") {

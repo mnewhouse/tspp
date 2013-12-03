@@ -29,6 +29,7 @@
 #include "collisions.hpp"
 
 #include <algorithm>
+#include <iostream>
 
 ts::world::World::World(resources::Track&& track)
 : track_(std::move(track)), terrain_map_(track_.size())
@@ -100,6 +101,7 @@ void ts::world::World::update(std::size_t frame_duration)
         new_position.y = std::min<double>(new_position.y, track_.size().y);
         
         auto velocity = car->velocity(), new_velocity = velocity;
+
         auto new_rotation = old_rotation + Rotation<double>::radians(car->angular_velocity() * fd);
         
         auto collision_result = detect_collision(*car, new_position, new_rotation, terrain_map_, track_.terrain_library());

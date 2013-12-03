@@ -28,9 +28,9 @@ namespace ts
 
         // Various constants that are known at compile-time.
 
-        static const char* track_root_directory = "E:/Turbo Sliders/tracks";
-        static const char* data_directory = "E:/Turbo Sliders/tsppdata";
-        static const char* car_directory = "E:/Turbo Sliders/cars";
+        static const char* track_root_directory = "tracks";
+        static const char* data_directory = "data";
+        static const char* car_directory = "cars";
 
     }
 

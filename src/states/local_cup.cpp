@@ -43,8 +43,13 @@ void ts::states::Local_cup_state::update(std::size_t)
         try {
             launch_action();
         }
-        catch (...) {
+        catch (const std::exception& e) {
+            std::cout << e.what() << std::endl;
             next_track();
+        }
+
+        catch (...) {
+            std::cout << "Unknown exception." << std::endl;
         }
     }
 }

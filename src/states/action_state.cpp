@@ -26,6 +26,7 @@
 #include "graphics/texture.hpp"
 
 #include <boost/filesystem.hpp>
+#include <iostream>
 
 ts::states::Action_scene::Action_scene(const resources::Track& track, const cup::Stage_data& stage_data)
 : track_components_(graphics::build_track(track)), frame_duration_(0.0f), camera_(track.size())

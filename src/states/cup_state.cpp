@@ -46,7 +46,7 @@ void ts::states::Cup_state::async_load()
         return make_unique<Action_state>(std::move(track), stg_data, state_machine_handle, context_handle);
     };
 
-    future_state_ = std::async(loader);
+    future_state_ = std::async(std::launch::async, loader);
 }
 
 bool ts::states::Cup_state::is_loading() const

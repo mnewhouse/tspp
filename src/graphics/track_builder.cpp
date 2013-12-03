@@ -24,6 +24,7 @@
 #include "resources/track.hpp"
 
 #include <array>
+#include <algorithm>
 
 #include <SFML/Graphics/Transformable.hpp>
 
@@ -217,7 +218,7 @@ void add_sub_tile(Track_builder_result& result, Texture_loader& texture_loader,
         }
     };
 
-    texture_handle->perform(make_vertices, tile_def.image_rect);
+    texture_handle->perform(make_vertices, image_rect);
     textures.insert(texture_handle);
 }
 
@@ -319,8 +320,6 @@ ts::graphics::Track_builder_result ts::graphics::build_track(const resources::Tr
 
     auto& components = result.components;
 
-    //std::vector<Track_component> pending_components;
-
     for (const auto& tile : track.tile_list()) {
         const auto* tile_group = tile_library.tile_group(tile.id);
         if (!tile_group) continue;
@@ -343,7 +342,7 @@ ts::graphics::Track_builder_result ts::graphics::build_track(const resources::Tr
 
 
     // Sort components by level
-    std::sort(components.begin(), components.end(), 
+    std::stable_sort(components.begin(), components.end(), 
               [](const Track_component& a, const Track_component& b)
     {
         return a.level < b.level;

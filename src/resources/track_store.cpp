@@ -35,7 +35,11 @@ ts::resources::impl::Track_store ts::resources::Track_store::track_store_;
 
 void ts::resources::Track_store::load(const std::string& root_directory)
 {
-    track_store_.scan_directory(root_directory);
+    try {
+        track_store_.scan_directory(root_directory);
+    } 
+
+    catch (const boost::filesystem::filesystem_error&) {}
 }
 
 ts::resources::Track_handle ts::resources::impl::Track_store::random_track() const
