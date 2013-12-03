@@ -62,11 +62,13 @@ namespace ts
             void clamp_view(sf::View& view);
             void update_transform(double frame_time);
 
+
+            Mode mode_;
             const world::Entity* camera_target_;
             Vector2d last_position_;
 
             Vector2d world_size_;
-            Mode mode_;
+            
         };
     }
 }

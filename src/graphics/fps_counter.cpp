@@ -21,7 +21,9 @@
 #include <iostream>
 
 ts::graphics::FPS_Counter::FPS_Counter()
-    : count_(0), time_point_(std::chrono::high_resolution_clock::now()), last_fps_(0.0)
+    : time_point_(std::chrono::high_resolution_clock::now()), 
+      count_(0), 
+      last_fps_(0.0)
 {
 }
 
@@ -53,7 +55,7 @@ double ts::graphics::FPS_Counter::current_fps() const
     auto micro_seconds = elapsed_time.count();
     auto seconds = micro_seconds * 1e-6;
 
-    if (last_fps_ == 0.0 && seconds != 0.0 || micro_seconds >= 1000000) {
+    if ((last_fps_ == 0.0 && seconds != 0.0) || micro_seconds >= 1000000) {
         return count_ / seconds;
     }
 

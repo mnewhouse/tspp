@@ -24,13 +24,15 @@ namespace ts
                 double z;
             };
 
-            sf::Color background_color_;
             Star_position random_position(bool randomize_z = false) const;
-
-            sf::Clock clock_;
 
             std::vector<Star_position> stars_;
             std::vector<sf::Vertex> vertices_;
+
+            sf::Clock clock_;
+
+            sf::Color background_color_;
+
         };
 
     }

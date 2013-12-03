@@ -57,10 +57,10 @@ namespace ts
             Handle<graphics::Texture> texture_;
             const world::Entity* entity_;
 
-            Vector2d last_position_;
-
             resources::Image_type image_type_;
             Vector2d scale_;
+
+            Vector2d last_position_;            
         };
     }
 }

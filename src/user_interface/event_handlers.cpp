@@ -32,9 +32,9 @@ ts::gui::mouse::State ts::gui::events::mouse_event(mouse::State state, const sf:
             return mouse::Button::Right;
         case sf::Mouse::Button::Middle:
             return mouse::Button::Middle;
-        }
-
-        return 0;         
+        default:
+            return 0;
+        }      
     };
 
     switch (event.type)
@@ -55,6 +55,9 @@ ts::gui::mouse::State ts::gui::events::mouse_event(mouse::State state, const sf:
                                          
     case sf::Event::MouseWheelMoved:
         state.scroll_offset = event.mouseWheel.delta;
+        break;
+
+    default:
         break;
     }
 

@@ -20,7 +20,10 @@
 #include "context.hpp"
 
 ts::gui::Context::Context()
-    : mouse_state_(), next_id_(0), active_item_(0), hot_item_(0)
+    : mouse_state_(), 
+      next_id_(0), 
+      hot_item_(0),
+      active_item_(0)
 {
 }
 

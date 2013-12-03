@@ -100,9 +100,7 @@ void ts::states::Action_scene::update(std::size_t frame_duration)
 
 void ts::states::Action_scene::render(graphics::Render_target& render_target)
 {
-    sf::Vector2u screen_size = render_target.getSize();
     auto frame_time = std::min(frame_time_.getElapsedTime().asSeconds() / frame_duration_, 1.0);
-    auto screen_width = float(screen_size.x), screen_height = float(screen_size.y);
 
     camera_.update_view(render_target, frame_time);
     sf::RenderStates render_states;

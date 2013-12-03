@@ -37,7 +37,7 @@ ts::resources::Pattern::Pattern(const std::string& file_name, Int_rect rect)
 }
 
 ts::resources::Pattern::Pattern(Vector2u size)
-: bytes_(size.x * size.y, 0), size_(size)
+: size_(size), bytes_(size.x * size.y, 0)
 {
 }
 
@@ -76,8 +76,8 @@ void ts::resources::Pattern::load_from_file(const std::string& file_name, Int_re
         if (png_get_color_type(png_ptr, info_ptr) != PNG_COLOR_TYPE_PALETTE)
             return false;
 
-        auto image_width = png_get_image_width(png_ptr, info_ptr);
-        auto image_height = png_get_image_height(png_ptr, info_ptr);
+        int image_width = png_get_image_width(png_ptr, info_ptr);
+        int image_height = png_get_image_height(png_ptr, info_ptr);
 
         std::vector<Terrain_id> byte_array(image_width * image_height);
         std::vector<png_bytep> row_pointers(image_height);

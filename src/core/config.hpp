@@ -28,9 +28,9 @@ namespace ts
 
         // Various constants that are known at compile-time.
 
-        static const char* track_root_directory = "tracks";
-        static const char* data_directory = "data";
-        static const char* car_directory = "cars";
+        static const char* const track_root_directory = "tracks";
+        static const char* const data_directory = "data";
+        static const char* const car_directory = "cars";
 
     }
 

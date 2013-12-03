@@ -23,7 +23,10 @@
 #include "core/rotation.hpp"
 
 ts::graphics::Camera::Camera(Vector2u world_size)
-: world_size_(world_size), mode_(Mode::Fixed), last_position_()
+: mode_(Mode::Fixed),
+  camera_target_(nullptr),
+  last_position_(),
+  world_size_(world_size)
 {
 }
 

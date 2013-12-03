@@ -10,7 +10,7 @@ namespace
 }
 
 ts::graphics::Star_field::Star_field(std::size_t count, sf::Color background_color)
-    : stars_(count), background_color_(background_color)
+    : stars_(count), vertices_(), clock_(), background_color_(background_color)
 {
     for (auto& position : stars_) {
         position = random_position(true);
@@ -51,7 +51,6 @@ void ts::graphics::Star_field::render(Render_target& render_target)
 
         const auto& transform = circle.getTransform();
 
-        auto point_count = circle.getPointCount();
         auto* vertices = &vertices_[idx * 9];
 
         vertices[0].position = transform.transformPoint(circle.getPoint(0));
