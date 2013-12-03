@@ -45,9 +45,9 @@ namespace ts
             element_id make_id(element_id id) const { return base_id_ + id; }
 
         private:
-            graphics::Background background_;
-            element_id base_id_;
             Handle<Context> context_;
+            element_id base_id_;
+            graphics::Background background_;        
 
         };
 

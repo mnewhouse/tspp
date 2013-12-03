@@ -71,11 +71,12 @@ namespace ts
         private:
             World* world_;
 
-            Vector2d position_;
-            Vector2d velocity_;
+            Vector2d position_;            
             Rotation<double> rotation_;
-            double angular_velocity_;
             double z_position_;
+
+            Vector2d velocity_;
+            double angular_velocity_;            
 
             resources::Collision_mask collision_mask_;
         };

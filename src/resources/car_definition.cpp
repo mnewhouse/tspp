@@ -31,6 +31,7 @@
 std::istream& ts::resources::operator>>(std::istream& stream, Car_definition& car_def)
 {
     for (std::string line, directive; directive != "end" && std::getline(stream, line); ) {
+        boost::trim(line);
         std::istringstream line_stream(line);
         if (!read_directive(line_stream, directive)) continue;
 
@@ -55,7 +56,7 @@ std::istream& ts::resources::operator>>(std::istream& stream, Car_definition& ca
             stream >> car_def.handling;
         }
 
-        else if (directive == "pattern") {
+        else if (directive == "mask") {
             std::string pattern_file;
             Int_rect pattern_rect;
             if (line_stream >> pattern_file >> pattern_rect) {
@@ -67,8 +68,6 @@ std::istream& ts::resources::operator>>(std::istream& stream, Car_definition& ca
                 
                 Vector2i size = collision_mask.pattern->size();
                 collision_mask.bounding_box = { 0, 0, size.x, size.y };
-
-                std::cout << "Pattern loaded.\n";
             }
         }
 

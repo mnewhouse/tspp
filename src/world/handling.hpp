@@ -37,25 +37,26 @@ namespace ts
         {
             Handling_properties();
 
+            double mass;
+
             double power;
             double reverse_power;
-           
-            double drag_coefficient;
-            double braking;
-            double braking_grip;
-           
-            double friction;
-
-            double non_slide_sector;
-            double slide_braking;
-            double slide_deceleration;
-
+            
             double steering;
             double grip;
             double grip_reduction;
             double anti_slide;
+           
+            double drag_coefficient;
+            double friction;
 
-            double mass;
+            double braking;
+            double braking_grip;         
+            
+
+            double non_slide_sector;
+            double slide_braking;
+            double slide_deceleration;
         };
 
         struct Handling

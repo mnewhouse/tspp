@@ -29,17 +29,21 @@
 #include <sstream>
 
 ts::world::Handling_properties::Handling_properties()
-: power(0.0),
+: mass(1.0),
+  power(0.0),
   reverse_power(0.0),
-  mass(1.0),
-  grip(0.0),
+
   steering(0.0),
+  grip(0.0),  
   grip_reduction(0.0),
   anti_slide(0.0),
+
   drag_coefficient(0.0),
-  friction(0.0),  
+  friction(0.0),
+
   braking(0.0),
   braking_grip(0.0),
+
   non_slide_sector(0.0),
   slide_braking(0.0),
   slide_deceleration(0.0)
@@ -116,13 +120,11 @@ std::istream& ts::world::operator>>(std::istream& stream, Handling_properties& p
 
 void ts::world::Handling::update(const Handling_properties& properties, Car& car, double frame_duration)
 {
-    static const double pi = 3.14159265358979323846;
 
     using controls::Control;
 
     const auto& terrain = car.current_terrain();
 
-    auto angular_velocity = car.angular_velocity();
     auto velocity = car.velocity();
     auto rotation = car.rotation();
     auto heading = Rotation<double>::radians(std::atan2(velocity.x, -velocity.y));

@@ -36,7 +36,9 @@ namespace ts
 
         struct Terrain_definition
         {
-            explicit Terrain_definition(std::string terrain_name = std::string{});
+            explicit Terrain_definition();
+
+            Terrain_id id;
 
             double acceleration;
             double viscosity;
@@ -48,10 +50,8 @@ namespace ts
             bool is_wall;
             Wall_definition wall_definition;
 
-            Terrain_id id;
+            
             sf::Color color;
-
-            std::string name;
         };
 
         std::istream& operator>>(std::istream& stream, Terrain_definition& terrain_def);

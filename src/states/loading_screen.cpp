@@ -51,8 +51,8 @@ void ts::states::Loading_scene::render(graphics::Render_target& render_target)
 ts::states::Loading_state::Loading_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context)
     : gui::State(state_machine, context),
       scene_(context),
-      future_(async_load_resources()),
-      start_time_(std::chrono::high_resolution_clock::now())
+      start_time_(std::chrono::high_resolution_clock::now()),
+      future_(async_load_resources())      
 {
 }
 

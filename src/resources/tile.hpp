@@ -51,7 +51,7 @@ namespace ts
         {
             Level_tile(Placed_tile placed_tile = Placed_tile())
             : Placed_tile(placed_tile),
-            level(0)
+              level(0)
             {}
 
             int level;
@@ -61,9 +61,9 @@ namespace ts
         {
         public:
             Tile_definition(std::string pattern_file, std::string image_file)
-                : pattern_file_(std::move(pattern_file)),
-                image_file_(std::move(image_file)),
-                id(), image_rect(), pattern_rect()
+                : id(), image_rect(), pattern_rect(),
+                  pattern_file_(std::move(pattern_file)),
+                  image_file_(std::move(image_file))
             {}
 
             Tile_id id;

@@ -27,12 +27,12 @@
 
 ts::world::Entity::Entity(World* world, const resources::Collision_mask& collision_mask)
     : world_(world),
-      collision_mask_(collision_mask),
       position_(0, 0),
       rotation_(),
+      z_position_(0),
       velocity_(0, 0),
-      angular_velocity_(0),
-      z_position_(0)
+      angular_velocity_(0),      
+      collision_mask_(collision_mask)
 {
 }
 

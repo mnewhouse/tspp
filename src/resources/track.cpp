@@ -221,7 +221,7 @@ void ts::resources::Track::parse_control_points(std::istream& stream, std::size_
 
 void ts::resources::Track::parse_terrain(std::istream& stream, const std::string& terrain_name)
 {
-    Terrain_definition terrain_def(terrain_name);
+    Terrain_definition terrain_def;
     if (stream >> terrain_def) {
         terrain_lib_.define_terrain(terrain_def);
     }

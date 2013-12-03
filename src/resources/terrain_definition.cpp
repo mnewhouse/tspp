@@ -23,15 +23,14 @@
 #include <boost/algorithm/string.hpp>
 #include <sstream>
 
-ts::resources::Terrain_definition::Terrain_definition(std::string terrain_name)
-: name(std::move(terrain_name)),
+ts::resources::Terrain_definition::Terrain_definition()
+: id(0),
   acceleration(1.0f),
   viscosity(1.0f),  
   steering(1.0f),
-  anti_slide(1.0f),
   grip(1.0f),
-  braking(1.0f),
-  id(0),
+  anti_slide(1.0f),  
+  braking(1.0f),  
   is_wall(false)
 {
 }
