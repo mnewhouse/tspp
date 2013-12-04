@@ -26,9 +26,11 @@
 #include "resources/terrain_map.hpp"
 
 #include "car.hpp"
+#include "collisions.hpp"
 
 #include <memory>
 #include <vector>
+#include <deque>
 
 namespace ts
 {
@@ -57,15 +59,28 @@ namespace ts
             const resources::Terrain_definition& terrain_at(Vector2d point, std::size_t level) const;
 
         private:
+            Vector2d clamp_position(Vector2d position) const;
+
             void load_track_objects();
 
             Vector2f world_size_;
 
             std::vector<std::unique_ptr<Car>> car_list_;
+            std::vector<Entity*> entity_list_;
+
             std::vector<Entity_listener*> entity_listeners_;
 
             resources::Track track_;
             resources::Pattern terrain_map_;
+
+            struct Target_state
+                : public Entity_state
+            {
+                double time_point;
+            };
+
+            std::vector<Target_state> state_buffer_;
+            std::deque<Collision_result> collision_queue_;
         };
 
     }

@@ -160,7 +160,7 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
 
     if (car.control_state(Control::Brake)) {
         if (speed == 0.0 || is_reversing) {
-            delta_speed -= std::abs(properties.reverse_power) * frame_duration * std::abs(terrain.acceleration);
+            delta_speed -= std::abs(properties.reverse_power * 1000.0 / mass) * frame_duration * std::abs(terrain.acceleration);
         }
 
         else {

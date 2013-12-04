@@ -46,6 +46,11 @@ double ts::world::Entity::z_position() const
     return z_position_;
 }
 
+int ts::world::Entity::z_level() const
+{
+  return int(z_position_);
+}
+
 void ts::world::Entity::set_z_position(double z_position)
 {
     z_position_ = z_position;

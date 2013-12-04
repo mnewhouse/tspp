@@ -222,13 +222,16 @@ ts::Vector2d ts::world::get_edge_normal(const resources::Pattern& pattern, WallT
 }
 
 
-ts::world::Collision_result ts::world::detect_collision(const Entity& entity, Vector2i new_position, Rotation<double> new_rotation,
-                                  const resources::Pattern& scenery, const resources::Terrain_library& terrain_lib)
+ts::world::Collision_result ts::world::detect_collision(const Entity_state& subject, const resources::Pattern& scenery, const resources::Terrain_library& terrain_lib)
 {
+    const auto& entity = *subject.entity;
+    Vector2i new_position = subject.position;
+    const auto& new_rotation = subject.rotation;
+
     auto old_rotation = entity.rotation();
     Vector2i old_position = entity.position();
 
-    auto z_level = static_cast<int>(entity.z_position());
+    auto z_level = entity.z_level();
 
     const auto& collision_mask = entity.collision_mask();
     const auto& bounding_box = collision_mask.bounding_box;
@@ -236,6 +239,8 @@ ts::world::Collision_result ts::world::detect_collision(const Entity& entity, Ve
     Collision_result result;
     result.collided = false;
     result.stuck = false;
+    result.subject = subject.entity;
+    result.object = nullptr;
 
     if (!collision_mask.pattern) {
         return result;
@@ -266,8 +271,8 @@ ts::world::Collision_result ts::world::detect_collision(const Entity& entity, Ve
         return terrain_lib.terrain_by_id(terrain_id).is_wall;
     };
 
-    for (auto y = bounding_box.top; y != bounding_box.bottom(); ++y) {
-        for (auto x = bounding_box.left; x != bounding_box.right(); ++x) {
+    for (auto y = bounding_box.top, bottom = bounding_box.bottom(); y != bottom; ++y) {
+        for (auto x = bounding_box.left, right = bounding_box.right(); x != right; ++x) {
             if (pattern(x, y) == 0) continue;
 
             Vector2i point{ x, y };
@@ -283,7 +288,6 @@ ts::world::Collision_result ts::world::detect_collision(const Entity& entity, Ve
             new_transformed += new_position;
 
             if (wall_test(old_transformed)) {
-                // Car in wall, this is ass
                 result.stuck = true;
                 result.collided = true;
                 return result;
@@ -304,21 +308,190 @@ ts::world::Collision_result ts::world::detect_collision(const Entity& entity, Ve
                     else if (result.normal.x > 0) adjustment.x = 1;
 
                     if (result.normal.y < 0) adjustment.y = -1;
-                    else if (result.normal.y > 0) adjustment.y = 1;                    
+                    else if (result.normal.y > 0) adjustment.y = 1;
+
+
+                    auto& position = result.subject_position;
+                    auto& rotation = result.subject_rotation;         
                     
-                    result.position.x = old_position.x + std::round(offset.x * collision_point.time_point) + adjustment.x;
-                    result.position.y = old_position.y + std::round(offset.y * collision_point.time_point) + adjustment.y;
+                    position.x = old_position.x + std::round(offset.x * collision_point.time_point) + adjustment.x;
+                    position.y = old_position.y + std::round(offset.y * collision_point.time_point) + adjustment.y;
 
-                    if (offset.x < 0 && result.position.x > old_position.x) result.position.x = old_position.x;
-                    if (offset.x > 0 && result.position.x < old_position.x) result.position.x = old_position.x;
+                    if (offset.x < 0 && position.x > old_position.x) position.x = old_position.x;
+                    if (offset.x > 0 && position.x < old_position.x) position.x = old_position.x;
 
-                    if (offset.y < 0 && result.position.y > old_position.y) result.position.y = old_position.y;
-                    if (offset.y > 0 && result.position.y < old_position.y) result.position.y = old_position.y;
+                    if (offset.y < 0 && position.y > old_position.y) position.y = old_position.y;
+                    if (offset.y > 0 && position.y < old_position.y) position.y = old_position.y;
 
-                    // Put the entity in the middle of the pixel, to keep things even.
-                    result.position.x += 0.5;
-                    result.position.y += 0.5;
+                    
+                    rotation = old_rotation + Rotation<double>::radians((new_rotation - old_rotation).radians() * collision_point.time_point);
+
+                    // Put the entity in the middle of the pixel, to keep things balanced.
+                    position.x += 0.5;
+                    position.y += 0.5;
                 }
+            }
+        }
+    }
+
+    // Test if car in wall, this is ass
+    if (result.collided) 
+    {
+        new_cos = int(std::cos(new_rotation.radians()) * 65536.0 + 0.5);
+        new_sin = int(std::sin(new_rotation.radians()) * 65536.0 + 0.5);
+
+        auto entity_in_wall = [&]()
+        {
+            for (auto y = bounding_box.top, bottom = bounding_box.bottom(); y != bottom; ++y) {
+                for (auto x = bounding_box.left, right = bounding_box.right(); x != right; ++x) {
+                    if (pattern(x, y) == 0) continue;
+
+                    Vector2i point{ x, y };
+                    point -= center;
+
+                    Vector2i transformed{ (old_cos * point.x - old_sin * point.y + 0x8000) >> 16,
+                        (old_sin * point.x + old_cos * point.y + 0x8000) >> 16 };
+
+                    transformed += Vector2i(result.subject_position);
+
+                    if (wall_test(transformed)) return true;
+                }
+            }
+
+            return false;
+        };
+
+        if (entity_in_wall()) {
+            result.subject_position = old_position;
+            result.subject_rotation = old_rotation;
+            result.normal.x = -offset.x;
+            result.normal.y = -offset.y;
+        }
+    }
+
+
+    return result;
+}
+
+ts::world::Collision_result ts::world::detect_collision(const Entity_state& subject, const Entity_state& object)
+{
+    const auto& entity = *subject.entity;
+
+    Vector2i new_position = subject.position;
+    const auto& new_rotation = subject.rotation;
+
+    Vector2i object_new_position = object.position;
+    const auto& object_rotation = object.rotation;
+
+    auto old_rotation = entity.rotation();
+    Vector2i old_position = entity.position();
+
+    Vector2i object_old_position = object.entity->position();
+
+    const auto& collision_mask = entity.collision_mask();
+    const auto& object_mask = object.entity->collision_mask();
+
+    auto z_level = entity.z_level();
+    
+
+    Collision_result result;
+    result.collided = false;
+    result.stuck = false;
+    result.subject = subject.entity;
+    result.object = object.entity;
+
+
+    if (!collision_mask.pattern || !object_mask.pattern || z_level != object.entity->z_level()) {
+        return result;
+    }
+
+    const auto& bounding_box = collision_mask.bounding_box;
+    const auto& object_bounding_box = object_mask.bounding_box;    
+
+    const auto& pattern = *collision_mask.pattern;
+    const auto& object_pattern = *object_mask.pattern;
+
+    auto old_cos = int(std::cos(old_rotation.radians()) * 65536.0 + 0.5);
+    auto old_sin = int(std::sin(old_rotation.radians()) * 65536.0 + 0.5);
+
+    auto new_cos = int(std::cos(new_rotation.radians()) * 65536.0 + 0.5);
+    auto new_sin = int(std::sin(new_rotation.radians()) * 65536.0 + 0.5);
+
+    auto object_cos = int(std::cos(object_rotation.radians()) * 65536.0 + 0.5);
+    auto object_sin = int(std::sin(object_rotation.radians()) * 65536.0 + 0.5);
+
+    auto offset = new_position - old_position;
+
+    Vector2i center{ bounding_box.left + (bounding_box.width >> 1),
+        bounding_box.top + (bounding_box.height >> 1) };
+
+    Vector2i object_center{ object_bounding_box.left + (object_bounding_box.width >> 1),
+        object_bounding_box.top + (object_bounding_box.height >> 1)
+    };
+
+    // For every point in the subject's collision mask
+        // Draw a line from the subject's old position to its new position
+        // For every pixel in this line,
+           // Calculate the corresponding coordinate in the subject's collision mask
+           // at that point in time, and test if it intersects
+
+    for (auto y = bounding_box.top, bottom = bounding_box.bottom(); y != bottom; ++y) {
+        for (auto x = bounding_box.left, right = bounding_box.right(); x != right; ++x) {
+            if (pattern(x, y) == 0) continue;
+
+            Vector2i point{ x, y };
+            point -= center;
+
+            Vector2i old_transformed{ (old_cos * point.x - old_sin * point.y + 0x8000) >> 16,
+                (old_sin * point.x + old_cos * point.y + 0x8000) >> 16 };
+
+            Vector2i new_transformed{ (new_cos * point.x - new_sin * point.y + 0x8000) >> 16,
+                (new_sin * point.x + new_cos * point.y + 0x8000) >> 16 };
+
+            old_transformed += old_position;
+            new_transformed += new_position;
+
+            Vector2i transformed_offset = new_transformed - old_transformed;
+
+            auto test_collision = [&](const Vector2i& point)
+            {
+                auto frame_offset = point - old_transformed;
+                int time_point = 0xFFFF;
+                if (transformed_offset.x != 0 && transformed_offset.y != 0) {
+                    auto x = (frame_offset.x << 16) / transformed_offset.x;
+                    auto y = (frame_offset.y << 16) / transformed_offset.y;
+                    time_point = (x + y) >> 1;
+                }
+
+                else if (transformed_offset.x != 0) {
+                    time_point = (frame_offset.x << 16) / transformed_offset.x;
+                }
+
+                else if (transformed_offset.y != 0) {
+                    time_point = (frame_offset.y << 16) / transformed_offset.y;
+                }
+
+                // Get object position at time point
+                Vector2i position = { object_old_position.x + (((object_new_position.x - object_old_position.x) * time_point) >> 16),
+                    object_old_position.y + (((object_new_position.y - object_old_position.y) * time_point) >> 16) };
+
+                auto local_position = point - position;
+
+                local_position = { (object_cos * local_position.x - object_sin * local_position.y + 0x8000) >> 16,
+                                   (object_cos * local_position.y - object_sin * local_position.y + 0x8000) >> 16 };
+
+                local_position += object_center;
+
+                if (local_position.x < 0 || local_position.x >= object_bounding_box.right() ||
+                    local_position.y < 0 || local_position.y >= object_bounding_box.bottom()) return false;
+
+                return object_pattern(local_position.x, local_position.y) != 0;
+            };
+
+
+            auto collision_point = find_wall_between_points(old_transformed, new_transformed, test_collision);
+            if (collision_point.collided) {
+                result.collided = true;
             }
         }
     }

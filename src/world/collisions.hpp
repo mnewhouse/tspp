@@ -29,16 +29,22 @@ namespace ts
 {
     namespace world
     {
-        class Entity;
-
         struct Collision_result
         {
             bool collided;
             bool stuck;
+
             Vector2<double> normal;
-            double impact;
             double time_point;
-            Vector2<double> position;
+
+            Entity* subject;
+            Entity* object;
+
+            Vector2<double> subject_position;
+            Vector2<double> object_position;
+
+            Rotation<double> subject_rotation;
+            Rotation<double> object_rotation;
         };
 
         struct Collision_point
@@ -48,8 +54,9 @@ namespace ts
             double time_point;
         };
 
-        Collision_result detect_collision(const Entity& entity, Vector2i new_position, Rotation<double> new_rotation,
-                                          const resources::Pattern& scenery, const resources::Terrain_library& terrain_lib);
+        Collision_result detect_collision(const Entity_state& subject, const resources::Pattern& scenery, const resources::Terrain_library& terrain_lib);
+
+        Collision_result detect_collision(const Entity_state& subject, const Entity_state& object);
     }
 }
 

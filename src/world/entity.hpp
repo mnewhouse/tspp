@@ -66,6 +66,8 @@ namespace ts
             void set_z_position(double z_position);
             double z_position() const;
 
+            int z_level() const;
+
             const resources::Collision_mask& collision_mask() const;
 
         private:
@@ -79,6 +81,13 @@ namespace ts
             double angular_velocity_;            
 
             resources::Collision_mask collision_mask_;
+        };
+
+        struct Entity_state
+        {
+            Entity* entity;
+            Vector2d position;
+            Rotation<double> rotation;
         };
 
     }

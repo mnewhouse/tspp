@@ -152,8 +152,12 @@ ts::states::Action_state::Action_state(resources::Track&& track, const cup::Stag
         if (player.control_slot) {
             control_center_.assume_control(player.control_slot, car);
         }
-        
+
+        car = world_.create_car(player.car);
+        car->set_position({100.0, 100.0});
     }
+
+
 }
 
 void ts::states::Action_state::handle_event(const sf::Event& event)
