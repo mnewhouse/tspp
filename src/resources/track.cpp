@@ -48,8 +48,6 @@ void ts::resources::Track::load_from_file(const std::string& file_name)
 	track_directory_ = path.remove_filename().string();
 
     include(file_name);
-    
-    std::cout << std::endl;
 }
 
 void ts::resources::Track::include(const std::string& file_name)

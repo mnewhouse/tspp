@@ -132,7 +132,7 @@ void ts::world::World::update(std::size_t frame_duration)
         for (auto other_it = std::next(it); other_it != state_buffer_.end(); ++other_it)
         {
             detect_entity_collision(collision, *it, *other_it);
-            detect_entity_collision(collision, *other_it, *it);
+            //detect_entity_collision(collision, *other_it, *it);
         }
 
         if (!collision.stuck && collision.collided) {
@@ -145,17 +145,37 @@ void ts::world::World::update(std::size_t frame_duration)
         return a.time_point < b.time_point;
     };
 
-    auto resolve_collision = [](Entity* entity, const Vector2<double>& position, Rotation<double> rotation, const Vector2<double>& normal)
+    auto resolve_collision = [](const Collision_result& collision)
     {
+        auto entity = collision.subject;
+        auto normal = collision.normal;
+
         auto velocity = entity->velocity();
-        auto dot = velocity.x * normal.x + velocity.y * normal.y;
+        auto dot = velocity.x * collision.normal.x + velocity.y * collision.normal.y;
 
         Vector2d new_velocity = { -2.0 * dot * normal.x + velocity.x, -2.0 * dot * normal.y + velocity.y };
         new_velocity *= 0.5;
 
-        entity->set_position(position);
-        entity->set_rotation(rotation);
+        entity->set_position(collision.subject_position);
+        entity->set_rotation(collision.subject_rotation);
         entity->set_velocity(new_velocity);
+    };
+
+    auto resolve_inter_entity_collision = [](const Collision_result& collision)
+    {
+        auto relative_velocity = collision.subject->velocity() - collision.object->velocity();
+
+        collision.subject->set_velocity(collision.subject->velocity() - relative_velocity);
+        collision.object->set_velocity(collision.object->velocity() + relative_velocity);
+
+        //collision.subject->set_velocity({0, 0});
+        //collision.object->set_velocity({0, 0});
+
+        collision.subject->set_position(collision.subject_position);
+        collision.subject->set_rotation(collision.subject_rotation);
+
+        collision.object->set_position(collision.object_position);
+        collision.object->set_rotation(collision.object_rotation);
     };
 
     auto get_new_collision = [this, detect_entity_collision](const Entity_state& state)
@@ -165,8 +185,8 @@ void ts::world::World::update(std::size_t frame_duration)
         for (const auto& other_state : state_buffer_) {
             if (other_state.entity == state.entity) continue;
 
-            detect_entity_collision(collision, state, other_state);
-            detect_entity_collision(collision, other_state, state);
+            //detect_entity_collision(collision, state, other_state);
+            //detect_entity_collision(collision, other_state, state);
         }
 
         return collision;
@@ -215,14 +235,12 @@ void ts::world::World::update(std::size_t frame_duration)
     {
         const auto& collision = collision_queue_.front();
 
-        auto normal = normalize(collision.normal);
-
-        if (collision.subject) {
-            resolve_collision(collision.subject, collision.subject_position, collision.subject_rotation, normal);
+        if (collision.subject && collision.object) {
+            resolve_inter_entity_collision(collision);
         }
 
-        if (collision.object) {
-            resolve_collision(collision.object, collision.object_position, collision.object_rotation, normal);
+        else if (collision.subject) {
+            resolve_collision(collision);
         }
 
         // Update the position for all entities
@@ -246,16 +264,12 @@ void ts::world::World::update(std::size_t frame_duration)
                 else if (new_collision.collided) {
                     new_collision.time_point = collision.time_point + (time_left * new_collision.time_point);
                     add_new_collision(new_collision);
-
-                    entity->set_velocity({0, 0});
                 }
             }
 
-            else {
-                auto duration = target_state.time_point - last_time_point;
-                move_towards_position(entity, target_state.position, duration);
-                move_towards_rotation(entity, target_state.rotation, duration);
-            }
+            auto duration = target_state.time_point - last_time_point;
+            move_towards_position(entity, target_state.position, duration);
+            move_towards_rotation(entity, target_state.rotation, duration);
         }
 
         
@@ -264,11 +278,10 @@ void ts::world::World::update(std::size_t frame_duration)
         collision_queue_.pop_front();
     }
 
+    // Finally, set the entities' new states
     for (auto& state : state_buffer_) {
-        auto entity = state.entity;
-
-        entity->set_position(state.position);
-        entity->set_rotation(state.rotation);
+        state.entity->set_position(state.position);
+        state.entity->set_rotation(state.rotation);
     }
 
     /*

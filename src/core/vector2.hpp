@@ -184,6 +184,14 @@ namespace ts
         return vec /= num;
     }
 
+    template <typename T>
+    Vector2<T> operator-(Vector2<T> vec)
+    {
+        vec.x = -vec.x;
+        vec.y = -vec.y;
+        return vec;
+    }
+
     template <typename T, typename U>
     bool operator==(Vector2<T> a, Vector2<U> b)
     {
@@ -203,6 +211,12 @@ namespace ts
         if (vec.y == 0.0f) return std::abs(vec.x);
 
         return std::hypot(vec.x, vec.y);
+    }
+
+    template <typename T, typename U>
+    decltype(std::declval<T>() * std::declval<U>()) dot_product(Vector2<T> a, Vector2<U> b)
+    {
+        return a.x * b.x + a.y * b.y;
     }
 
     using Vector2u = Vector2<unsigned>;

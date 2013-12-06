@@ -56,7 +56,7 @@ namespace ts
 
         Collision_result detect_collision(const Entity_state& subject, const resources::Pattern& scenery, const resources::Terrain_library& terrain_lib);
 
-        Collision_result detect_collision(const Entity_state& subject, const Entity_state& object);
+        Collision_result detect_collision(Entity_state subject, Entity_state object);
     }
 }
 
