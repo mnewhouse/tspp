@@ -145,7 +145,7 @@ void ts::world::World::update(std::size_t frame_duration)
         return a.time_point < b.time_point;
     };
 
-    auto resolve_collision = [](const Collision_result& collision)
+    auto resolve_collision = [this](const Collision_result& collision)
     {
         auto entity = collision.subject;
         auto normal = collision.normal;
@@ -156,26 +156,25 @@ void ts::world::World::update(std::size_t frame_duration)
         Vector2d new_velocity = { -2.0 * dot * normal.x + velocity.x, -2.0 * dot * normal.y + velocity.y };
         new_velocity *= 0.5;
 
-        entity->set_position(collision.subject_position);
+        entity->set_position(clamp_position(collision.subject_position));
         entity->set_rotation(collision.subject_rotation);
         entity->set_velocity(new_velocity);
     };
 
-    auto resolve_inter_entity_collision = [](const Collision_result& collision)
+    auto resolve_inter_entity_collision = [this](const Collision_result& collision)
     {
         auto relative_velocity = collision.subject->velocity() - collision.object->velocity();
 
         collision.subject->set_velocity(collision.subject->velocity() - relative_velocity);
         collision.object->set_velocity(collision.object->velocity() + relative_velocity);
 
-        //collision.subject->set_velocity({0, 0});
-        //collision.object->set_velocity({0, 0});
-
-        collision.subject->set_position(collision.subject_position);
+        collision.subject->set_position(clamp_position(collision.subject_position));
         collision.subject->set_rotation(collision.subject_rotation);
 
-        collision.object->set_position(collision.object_position);
+        collision.object->set_position(clamp_position(collision.object_position));
         collision.object->set_rotation(collision.object_rotation);
+
+        
     };
 
     auto get_new_collision = [this, detect_entity_collision](const Entity_state& state)
@@ -251,7 +250,8 @@ void ts::world::World::update(std::size_t frame_duration)
                 auto time_left = 1.0 - collision.time_point;
 
                 target_state.position = entity->position() + (entity->velocity() * fd * time_left);
-                target_state.rotation = entity->rotation() + Rotation<double>::radians(entity->rotation().radians() * fd * time_left);
+                double delta_r = entity->rotation().radians() * fd * time_left * entity->angular_velocity();
+                target_state.rotation = entity->rotation() + Rotation<double>::radians(delta_r);
                 target_state.time_point = 1.0;
 
                 auto new_collision = get_new_collision(target_state);

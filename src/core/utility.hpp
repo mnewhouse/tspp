@@ -84,6 +84,16 @@ namespace ts
     std::unique_ptr<T> make_unique(Args&&... args) {
        return make_unique_helper<T>(std::is_array<T>(), std::forward<Args>(args)...);
     }
+
+    template <typename T>
+    T clamp(T value, T min, T max)
+    {
+        if (max < min) {
+            std::swap(min, max);
+        }
+
+        return std::min(std::max(value, min), max);
+    }
 }
 
 #endif

@@ -8,15 +8,24 @@
 using namespace ts;
 
 #ifdef __linux__
-  #include <X11/Xlib.h>
+#include <X11/Xlib.h>
+
+void initialize()
+{
+    XInitThreads();
+}
+  
+#else
+
+void initialize()
+{
+}
+
 #endif
 
 int main(int, char**)
 {
-#ifdef __linux__
-	XInitThreads();
-#endif
-
+    initialize();
 	
     std::cout.sync_with_stdio(false);
 

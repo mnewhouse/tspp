@@ -155,6 +155,7 @@ ts::states::Action_state::Action_state(resources::Track&& track, const cup::Stag
 
         car = world_.create_car(player.car);
         car->set_position({100.0, 100.0});
+        car->set_rotation(Rotation<double>::degrees(180));
     }
 
 
