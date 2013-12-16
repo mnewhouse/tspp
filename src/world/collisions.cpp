@@ -362,10 +362,7 @@ ts::world::Collision_result ts::world::detect_collision(const Entity_state& subj
         // Get the normal
         auto normal = get_edge_normal(scenery, is_wall, collision_point.global_point, collision_point.global_point - offset);
 
-        std::cout << collision_point.global_point << ", " << collision_point.global_point - offset << std::endl;
-
         result.normal = normalize<double>(normal);
-        std::cout << result.normal << std::endl;
 
         result.subject_position += { 0.5, 0.5 };
     }
