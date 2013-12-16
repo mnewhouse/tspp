@@ -33,6 +33,7 @@ namespace ts
         {
             bool collided;
             bool stuck;
+            bool rotate;
 
             Vector2<double> normal;
             double time_point;
@@ -45,13 +46,6 @@ namespace ts
 
             Rotation<double> subject_rotation;
             Rotation<double> object_rotation;
-        };
-
-        struct Collision_point
-        {
-            bool collided;
-            Vector2i global_point;
-            double time_point;
         };
 
         Collision_result detect_collision(const Entity_state& subject, const resources::Pattern& scenery, const resources::Terrain_library& terrain_lib);

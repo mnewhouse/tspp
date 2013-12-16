@@ -132,7 +132,6 @@ void ts::world::World::update(std::size_t frame_duration)
         for (auto other_it = std::next(it); other_it != state_buffer_.end(); ++other_it)
         {
             detect_entity_collision(collision, *it, *other_it);
-            //detect_entity_collision(collision, *other_it, *it);
         }
 
         if (!collision.stuck && collision.collided) {
@@ -164,17 +163,15 @@ void ts::world::World::update(std::size_t frame_duration)
     auto resolve_inter_entity_collision = [this](const Collision_result& collision)
     {
         auto relative_velocity = collision.subject->velocity() - collision.object->velocity();
-
-        collision.subject->set_velocity(collision.subject->velocity() - relative_velocity);
-        collision.object->set_velocity(collision.object->velocity() + relative_velocity);
-
-        collision.subject->set_position(clamp_position(collision.subject_position));
-        collision.subject->set_rotation(collision.subject_rotation);
-
-        collision.object->set_position(clamp_position(collision.object_position));
+        
+        collision.object->set_velocity(collision.subject->velocity());
+        collision.subject->set_velocity({});
+        
+        collision.subject->set_rotation(collision.subject_rotation);        
         collision.object->set_rotation(collision.object_rotation);
 
-        
+        collision.subject->set_position(clamp_position(collision.subject_position));
+        collision.object->set_position(clamp_position(collision.object_position));
     };
 
     auto get_new_collision = [this, detect_entity_collision](const Entity_state& state)
@@ -184,8 +181,7 @@ void ts::world::World::update(std::size_t frame_duration)
         for (const auto& other_state : state_buffer_) {
             if (other_state.entity == state.entity) continue;
 
-            //detect_entity_collision(collision, state, other_state);
-            //detect_entity_collision(collision, other_state, state);
+            detect_entity_collision(collision, state, other_state);
         }
 
         return collision;
@@ -202,11 +198,15 @@ void ts::world::World::update(std::size_t frame_duration)
         // Get the insert position
         auto insert_position = std::lower_bound(collision_queue_.begin() + 1, collision_queue_.end(), new_collision, collision_compare);
 
-        // Perform the insertion
-        insert_position = collision_queue_.insert(insert_position, new_collision);
+        // Check if there are any conflicting collions prior to the insertion position
+        auto search_result = std::find_if(collision_queue_.begin() + 1, insert_position, pred);
+        if (search_result == insert_position) {
+            // Perform the insertion. God that sounds dirty
+            insert_position = collision_queue_.insert(insert_position, new_collision);
 
-        // Finally, erase all conflicting collisions after the one we just inserted
-        collision_queue_.erase(std::remove_if(insert_position + 1, collision_queue_.end(), pred), collision_queue_.end());
+            // Finally, erase all conflicting collisions after the one we just inserted
+            collision_queue_.erase(std::remove_if(insert_position + 1, collision_queue_.end(), pred), collision_queue_.end());
+        }
     };
 
     auto move_towards_position = [fd](Entity* entity, const Vector2<double>& position, double duration)
@@ -230,6 +230,8 @@ void ts::world::World::update(std::size_t frame_duration)
 
     double last_time_point = 0.0;
 
+    int collision_count = 0;
+
     while (!collision_queue_.empty())
     {
         const auto& collision = collision_queue_.front();
@@ -242,40 +244,64 @@ void ts::world::World::update(std::size_t frame_duration)
             resolve_collision(collision);
         }
 
+        const Target_state* subject_state = nullptr;
+        const Target_state* object_state = nullptr;
+
+        auto time_left = 1.0 - collision.time_point;
+
         // Update the position for all entities
         for (auto& target_state : state_buffer_) {
             auto entity = target_state.entity;
 
             if (entity == collision.subject || entity == collision.object) {
-                auto time_left = 1.0 - collision.time_point;
-
                 target_state.position = entity->position() + (entity->velocity() * fd * time_left);
-                double delta_r = entity->rotation().radians() * fd * time_left * entity->angular_velocity();
-                target_state.rotation = entity->rotation() + Rotation<double>::radians(delta_r);
+
+                if (collision.rotate) {
+                    auto delta_r = entity->rotation().radians() * fd * time_left * entity->angular_velocity();
+                    target_state.rotation = entity->rotation() + Rotation<double>::radians(delta_r);
+                }
+
+                else {
+                    target_state.rotation = entity->rotation();
+                }
+
                 target_state.time_point = 1.0;
 
-                auto new_collision = get_new_collision(target_state);
-
-                if (new_collision.stuck) {
-                    // Car in wall, this is ass!
-
-                }
-
-                else if (new_collision.collided) {
-                    new_collision.time_point = collision.time_point + (time_left * new_collision.time_point);
-                    add_new_collision(new_collision);
-                }
+                if (entity == collision.subject) subject_state = &target_state;
+                else if (entity == collision.object) object_state = &target_state;
             }
 
-            auto duration = target_state.time_point - last_time_point;
-            move_towards_position(entity, target_state.position, duration);
-            move_towards_rotation(entity, target_state.rotation, duration);
+            else {
+                auto duration = target_state.time_point - last_time_point;
+                move_towards_position(entity, target_state.position, duration);
+                move_towards_rotation(entity, target_state.rotation, duration);
+            }
+        }
+
+        if (subject_state && !collision.stuck)
+        {
+            auto new_collision = get_new_collision(*subject_state);
+            if (new_collision.collided) {
+                new_collision.time_point = collision.time_point + (time_left * new_collision.time_point);
+                add_new_collision(new_collision);
+            }
+        }
+
+        if (object_state && !collision.stuck) 
+        {
+            auto new_collision = get_new_collision(*object_state);
+            if (new_collision.collided) {
+                new_collision.time_point = collision.time_point + (time_left * new_collision.time_point);
+                add_new_collision(new_collision);
+            }
         }
 
         
         last_time_point = collision.time_point;
 
         collision_queue_.pop_front();
+
+        ++collision_count;
     }
 
     // Finally, set the entities' new states
@@ -283,97 +309,4 @@ void ts::world::World::update(std::size_t frame_duration)
         state.entity->set_position(state.position);
         state.entity->set_rotation(state.rotation);
     }
-
-    /*
-    // Update all entities
-    for (const auto& car : car_list_) {
-        car->update(fd);
-
-        auto old_position = car->position();
-        auto old_rotation = car->rotation();
-
-        Entity_state car_state;
-        car_state.entity = &*car;
-
-        auto& new_position = car_state.new_position;
-        auto& new_rotation = car_state.new_rotation;
-
-        // Get the new position that we're trying to move to
-        new_position = old_position + car->velocity() * fd;
-
-        // Clamp to valid track region
-        new_position.x = std::max(new_position.x, 0.0);
-        new_position.x = std::min<double>(new_position.x, track_.size().x);
-
-        new_position.y = std::max(new_position.y, 0.0);
-        new_position.y = std::min<double>(new_position.y, track_.size().y);
-        
-        auto velocity = car->velocity(), new_velocity = velocity;
-
-        new_rotation = old_rotation + Rotation<double>::radians(car->angular_velocity() * fd);
-        
-        auto collision_result = detect_collision(car_state, terrain_map_, track_.terrain_library());
-        auto time_point = 0.0;
-
-        while (collision_result.collided && !collision_result.stuck) {
-            auto normal = normalize(collision_result.normal);
-            auto time_elapsed = ((1.0 - time_point) * collision_result.time_point);
-            auto dot = velocity.x * normal.x + velocity.y * normal.y;
-
-            new_velocity = { -2.0 * dot * normal.x + velocity.x, -2.0 * dot * normal.y + velocity.y };
-            new_velocity *= 0.5;
-
-            new_position = collision_result.subject_position + (new_velocity * fd * time_elapsed);
-
-            car->set_position(collision_result.subject_position);
-            car->set_rotation(new_rotation);
-            car->set_velocity(new_velocity);
-
-            time_point += time_elapsed;
-
-            collision_result = detect_collision(car_state, terrain_map_, track_.terrain_library());
-        }
-
-        if (!collision_result.stuck) {
-            // New position found.
-            car->set_position(new_position);
-            car->set_rotation(new_rotation);
-            car->set_velocity(new_velocity);
-
-            // Now update the z position, if necessary.            
-            auto level_transition = [this, &car_state, &car](int level, int offset)
-            {
-                car->set_z_position(double(level + offset));
-
-                // Test if there's room for the car at its new level
-                auto collision_result = detect_collision(car_state, terrain_map_, track_.terrain_library());
-                if (collision_result.collided) {
-                    // If there's not, restore the z position to its old value.
-                    car->set_z_position(double(level));
-                }
-
-                return !collision_result.collided;
-            };
-
-            auto level = int(car->z_position());
-
-            // While there's a non-null terrain above us, attempt to climb one level.
-            while (terrain_at(new_position, level + 1).id != 0 && level_transition(level, +1)) {
-                ++level;
-            }
-
-            if (terrain_at(new_position, level).id == 0) {
-                while (level > 0 && terrain_at(new_position, level - 1).id != 0 && level_transition(level, -1)) {
-                    --level;
-                }
-            }
-        }
-
-        else {
-            // We got stuck somehow :(. Restore the old position.
-            car->set_position(old_position);
-            car->set_rotation(old_rotation);
-        }
-    }
-    */
 }
