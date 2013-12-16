@@ -61,128 +61,159 @@ template <typename WallTest>
 ts::Vector2i ts::world::get_edge_normal(const resources::Pattern& pattern, WallTest is_wall, Vector2i point, Vector2i origin)
 {
     auto offset = point - origin;
-    auto dx = offset.x > 0 ? 1 : -1;
-    auto dy = offset.y > 0 ? 1 : -1;
 
-    if (offset.x != 0) {
+    bool surrounding_points[] = {
+        is_wall({ point.x - 1, point.y - 1 }),
+        is_wall({ point.x, point.y - 1 }),
+        is_wall({ point.x + 1, point.y - 1 }),
 
-        Vector2i pt_a{ point.x - dx, point.y - 1 };
-        Vector2i pt_b{ point.x - dx, point.y + 1 };
+        is_wall({ point.x - 1, point.y }),
+        is_wall({ point.x, point.y }),
+        is_wall({ point.x + 1, point.y }),
 
-        if (!is_wall(pt_a)) {
-            pt_a.x += dx;
-            if (!is_wall(pt_a)) pt_a.x += dx;
+        is_wall({ point.x - 1, point.y + 1 }),
+        is_wall({ point.x, point.y + 1 }),
+        is_wall({ point.x + 1, point.y + 1 })
+    };
+
+    auto offset_from_id = [](int id)
+    {
+        Vector2i offset{};
+
+        switch (id) {
+        case 0: case 3: case 6: --offset.x; break;
+        case 2: case 5: case 8: ++offset.x; break;
+        default: break;
         }
 
-        if (!is_wall(pt_b)) {
-            pt_b.x += dx;
-            if (!is_wall(pt_b)) pt_b.x += dx;
+        switch (id) {
+        case 0: case 1: case 2: --offset.y; break;
+        case 6: case 7: case 8: ++offset.y; break;
+        default: break;
         }
 
-        if (is_wall(pt_a) && is_wall(pt_b)) {
-            auto intersect_x = pt_a.x - (((origin.y - pt_a.y) * (pt_a.x - pt_b.x)) >> 1);
-            auto intersect_y = pt_a.y - (((origin.x - pt_a.x) * (pt_a.x - pt_b.x)) << 1);
+        return offset;
+    };
 
-            Vector2i normal{ std::abs(pt_b.y - pt_a.y), std::abs(pt_b.x - pt_a.x) };
+    auto make_normal = [offset_from_id, point, offset](int a, int b)
+    {
+        auto difference = offset_from_id(a) - offset_from_id(b);
+        std::swap(difference.x, difference.y);
 
-            if (origin.x < intersect_x) normal.x = -normal.x;
-            if (origin.y < intersect_y) normal.y = -normal.y;
-
-            return normal;
-        }
-    }
-
-    if (offset.y != 0) {
-        Vector2i pt_a{ point.x - 1, point.y - dy, };
-        Vector2i pt_b{ point.x + 1, point.y - dy };
-
-        if (!is_wall(pt_a)) {
-            pt_a.y += dy;
-            if (!is_wall(pt_a)) pt_a.y += dy;
-        }
-
-        if (!is_wall(pt_b)) {
-            pt_b.y += dy;
-            if (!is_wall(pt_b)) pt_b.y += dy;
-        }
-
-        if (is_wall(pt_a) && is_wall(pt_b)) {
-            auto intersect_x = pt_a.x - (((origin.y - pt_a.y) * (pt_a.y - pt_b.y)) << 1);
-            auto intersect_y = pt_a.y - (((origin.x - pt_a.x) * (pt_a.y - pt_b.y)) >> 1);            
-
-            Vector2i normal{ std::abs(pt_b.y - pt_a.y), std::abs(pt_b.x - pt_a.x) };
-
-            if (origin.x < intersect_x) normal.x = -normal.x;
-            if (origin.y < intersect_y) normal.y = -normal.y;
-
-            return normal;
-        }
-    }
-
-    if (offset.x != 0) {
-        Vector2i pt{ point.x - dx, point.y - dy };
-        if (!is_wall(pt)) {
-            pt.x += dx;
-            if (!is_wall(pt)) pt.x += dx;
-        }
-
-        if (!is_wall(pt)) {
-            pt = { point.x - dx, point.y + dy };
-            if (!is_wall(pt)) {
-                pt.x += dx;
-                if (!is_wall(pt)) pt.x += dx;
-            }
-        }
-
-        if (is_wall(pt)) {
-            auto intersect_y = point.y + ((origin.x - point.x) * (pt.x - point.x) * (pt.y - point.y));
-            auto intersect_x = point.x + ((origin.y - point.y) * (pt.x - point.x) * (pt.y - point.y));
-
-            Vector2i normal{ std::abs(pt.y - point.y), std::abs(pt.x - point.x) };
-
-            if (origin.x < intersect_x) normal.x = -normal.x;
-            if (origin.y < intersect_y) normal.y = -normal.y;
-
-            return normal;
-        }
-    }
-
-
-    if (offset.y != 0) {
-        Vector2i pt{ point.x - dx, point.y - dy };
-        if (!is_wall(pt)) {
-            pt.y += dy;
-            if (!is_wall(pt)) pt.y += dy;
-        }
-
-        if (!is_wall(pt)) {
-            pt = { point.x + dx, point.y - dy};
-            if (!is_wall(pt)) {
-                pt.y += dy;
-                if (!is_wall(pt)) pt.y += dy;
-            }
-        }
-
-        if (is_wall(pt)) {
-            auto intersect_x = point.x + ((origin.y - point.y) * (pt.y - point.y) * (pt.x - point.x));
-            auto intersect_y = point.y + ((origin.x - point.x) * (pt.y - point.y) * (pt.x - point.x));
-
-            Vector2i normal{ std::abs(pt.y - point.y), std::abs(pt.x - point.x) };
-
-            if (origin.x < intersect_x) normal.x = -normal.x;
-            if (origin.y < intersect_y) normal.y = -normal.y;
-
-            return normal;
-        }
-    }
-
-    if (std::abs(offset.y) > std::abs(offset.x)) {
-        return Vector2i{ 0, offset.y > 0 ? 1 : -1 };
-    }
+        difference.x = std::abs(difference.x);
+        difference.y = std::abs(difference.y);
         
-    return Vector2i{ offset.x > 0 ? 1 : -1, 0 };
-}
+        if (offset.x > 0) difference.x = -difference.x;
+        if (offset.y > 0) difference.y = -difference.y;
 
+        return difference;
+    };
+
+    auto find_surrounding_points = [&surrounding_points](int a, int b, int increment)
+    {
+        for (int i = 0; i != 2 && !surrounding_points[a]; ++i, a += increment);
+        for (int i = 0; i != 2 && !surrounding_points[b]; ++i, b += increment);
+
+        return std::make_pair(a, b);
+    };
+
+    if (offset.x < 0) {
+        auto pair = find_surrounding_points(2, 8, -1);
+
+        if (surrounding_points[pair.first] && surrounding_points[pair.second]) {
+            return make_normal(pair.first, pair.second);
+        }
+    }
+
+    else if (offset.x > 0) {
+        auto pair = find_surrounding_points(0, 6, +1);
+
+        if (surrounding_points[pair.first] && surrounding_points[pair.second]) {
+            return make_normal(pair.first, pair.second);
+        }
+    }
+
+    if (offset.y < 0) {
+        auto pair = find_surrounding_points(6, 8, -3);
+
+        if (surrounding_points[pair.first] && surrounding_points[pair.second]) {
+            return make_normal(pair.first, pair.second);
+        }
+    }
+
+    else if (offset.y > 0) {
+        auto pair = find_surrounding_points(0, 2, +3);
+
+        if (surrounding_points[pair.first] && surrounding_points[pair.second]) {
+            return make_normal(pair.first, pair.second);
+        }
+    }
+
+    // Now attempt to find two-pixel normal    
+    if (offset.x < 0) {
+        auto pair = find_surrounding_points(2, 5, -1);
+
+        if (surrounding_points[pair.first] && surrounding_points[pair.second]) {
+            return make_normal(pair.first, pair.second);
+        }
+
+        pair = find_surrounding_points(5, 8, -1);
+        if (surrounding_points[pair.first] && surrounding_points[pair.second]) {
+            return make_normal(pair.first, pair.second);
+        }
+    }
+
+    else if (offset.x > 0) {
+        auto pair = find_surrounding_points(0, 3, +1);
+
+        if (surrounding_points[pair.first] && surrounding_points[pair.second]) {
+            return make_normal(pair.first, pair.second);
+        }
+
+        pair = find_surrounding_points(3, 6, +1);
+        if (surrounding_points[pair.first] && surrounding_points[pair.second]) {
+            return make_normal(pair.first, pair.second);
+        }
+    }
+
+    if (offset.y < 0) {
+        auto pair = find_surrounding_points(6, 7, -3);
+
+        if (surrounding_points[pair.first] && surrounding_points[pair.second]) {
+            return make_normal(pair.first, pair.second);
+        }
+
+        pair = find_surrounding_points(7, 8, -3);
+
+        if (surrounding_points[pair.first] && surrounding_points[pair.second]) {
+            return make_normal(pair.first, pair.second);
+        }
+    }
+
+    else if (offset.y > 0) {
+        auto pair = find_surrounding_points(0, 1, +3);
+
+        if (surrounding_points[pair.first] && surrounding_points[pair.second]) {
+            return make_normal(pair.first, pair.second);
+        }
+
+        pair = find_surrounding_points(1, 2, +3);
+
+        if (surrounding_points[pair.first] && surrounding_points[pair.second]) {
+            return make_normal(pair.first, pair.second);
+        }
+    }
+
+    if (std::abs(offset.x) > std::abs(offset.y)) {
+        return { offset.x < 0 ? 1 : -1, 0 };
+    }
+
+    if (std::abs(offset.y > std::abs(offset.x))) {
+        return { 0, offset.y < 0 ? 1 : -1 };
+    }
+
+    return { offset.x < 0 ? 1 : -1, offset.y < 0 ? 1 : -1 };
+}
 
 template <typename CollisionTest>
 ts::world::Collision_point ts::world::test_trajectory(Vector2i start, Vector2i end, CollisionTest test_func)
@@ -287,8 +318,6 @@ ts::world::Collision_result ts::world::detect_collision(const Entity_state& subj
                 auto global_point = transform_point(new_sin, new_cos, point) + position;
 
                 if (is_wall(global_point)) {
-                    std::cout << global_point << " is wall!\n";
-
                     return collision(global_point);
                 }
             }
@@ -333,7 +362,10 @@ ts::world::Collision_result ts::world::detect_collision(const Entity_state& subj
         // Get the normal
         auto normal = get_edge_normal(scenery, is_wall, collision_point.global_point, collision_point.global_point - offset);
 
-        result.normal = normalize<double>(normal);            
+        std::cout << collision_point.global_point << ", " << collision_point.global_point - offset << std::endl;
+
+        result.normal = normalize<double>(normal);
+        std::cout << result.normal << std::endl;
 
         result.subject_position += { 0.5, 0.5 };
     }
