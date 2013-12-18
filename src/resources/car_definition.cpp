@@ -76,7 +76,7 @@ std::istream& ts::resources::operator>>(std::istream& stream, Car_definition& ca
         }
 
         else if (directive == "elasticity") {
-            line_stream >> car_def.wall_definition.friction;
+            line_stream >> car_def.wall_definition.elasticity;
         }
     }
 

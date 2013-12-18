@@ -110,10 +110,66 @@ void ts::world::World::update(std::size_t frame_duration)
             state.entity = entity;
             state.position = clamp_position(entity->position() + entity->velocity() * fd);
             state.rotation = entity->rotation() + Rotation<double>::radians(entity->angular_velocity() * fd);
+            state.time_point = 1.0;
 
             return state;
         }
     );
+
+    collision_queue_.clear();
+
+    auto collision_compare = [](const Collision_result& a, const Collision_result& b)
+    {
+        return a.time_point < b.time_point;
+    };
+
+    
+    auto add_new_collision = [this, collision_compare](const Collision_result& new_collision)
+    {
+        auto pred = [&new_collision](const Collision_result& result)
+        {
+            return (new_collision.subject == result.subject || new_collision.subject == result.object) ||
+                (new_collision.object != nullptr && (new_collision.object == result.subject || new_collision.object == result.object));
+        };
+
+        auto update_collision_state = [this](const Entity* entity, const Vector2<double>& position,
+                                             Rotation<double> rotation, double time_point)
+        {
+            auto it = std::find_if(state_buffer_.begin(), state_buffer_.end(),
+                                   [entity](const Target_state& state)
+            {
+                return state.entity == entity;
+            });
+
+            if (it != state_buffer_.end()) {
+                it->position = position;
+                it->rotation = rotation;
+                it->time_point = time_point;
+            }
+        };
+
+
+        // Get the insert position
+        auto insert_position = std::lower_bound(collision_queue_.begin(), collision_queue_.end(), new_collision, collision_compare);
+
+        // Check if there are any conflicting collisions prior to the insertion position
+        auto search_result = std::find_if(collision_queue_.begin(), insert_position, pred);
+        if (search_result == insert_position) {
+            // Perform the insertion. God that sounds dirty
+            insert_position = collision_queue_.insert(insert_position, new_collision);
+
+            // Finally, erase all conflicting collisions after the one we just inserted
+            collision_queue_.erase(std::remove_if(insert_position + 1, collision_queue_.end(), pred), collision_queue_.end());
+
+            update_collision_state(new_collision.subject, new_collision.subject_position, 
+                                   new_collision.subject_rotation, new_collision.time_point);
+
+            if (new_collision.object) {
+                update_collision_state(new_collision.object, new_collision.object_position,
+                                       new_collision.object_rotation, new_collision.time_point);
+            }
+        }
+    };
 
     auto detect_entity_collision = [](Collision_result& collision, const Entity_state& state_a, const Entity_state& state_b)
     {
@@ -122,8 +178,6 @@ void ts::world::World::update(std::size_t frame_duration)
             collision = entity_collision;
         }
     };
-
-    collision_queue_.clear();
 
     for (auto it = state_buffer_.begin(); it != state_buffer_.end(); ++it)
     {
@@ -135,14 +189,9 @@ void ts::world::World::update(std::size_t frame_duration)
         }
 
         if (!collision.stuck && collision.collided) {
-            collision_queue_.push_back(collision);
+            add_new_collision(collision);
         }
     }
-
-    auto collision_compare = [](const Collision_result& a, const Collision_result& b)
-    {
-        return a.time_point < b.time_point;
-    };
 
     auto resolve_collision = [this](const Collision_result& collision)
     {
@@ -150,22 +199,45 @@ void ts::world::World::update(std::size_t frame_duration)
         auto normal = collision.normal;
 
         auto velocity = entity->velocity();
-        auto dot = velocity.x * collision.normal.x + velocity.y * collision.normal.y;
+        auto dot = velocity.x * normal.x + velocity.y * normal.y;
 
         Vector2d new_velocity = { -2.0 * dot * normal.x + velocity.x, -2.0 * dot * normal.y + velocity.y };
-        new_velocity *= 0.5;
+
+        auto bounciness_factor = collision.bounciness * entity->elasticity();
+        new_velocity *= bounciness_factor;
 
         entity->set_position(clamp_position(collision.subject_position));
         entity->set_rotation(collision.subject_rotation);
         entity->set_velocity(new_velocity);
     };
 
-    auto resolve_inter_entity_collision = [this](const Collision_result& collision)
-    {
-        auto relative_velocity = collision.subject->velocity() - collision.object->velocity();
-        
-        collision.object->set_velocity(collision.subject->velocity());
-        collision.subject->set_velocity({});
+    auto resolve_collision_between_entities = [this](const Collision_result& collision)
+    {       
+        auto normal = collision.normal;
+        auto elasticity_factor = collision.subject->elasticity() * collision.object->elasticity();
+
+        auto object_velocity = collision.object->velocity();
+        auto subject_velocity = collision.subject->velocity();
+
+        auto subject_mass = std::max(collision.subject->mass(), 1.0);
+        auto object_mass = std::max(collision.object->mass(), 1.0);
+
+        auto relative_velocity = subject_velocity - object_velocity;
+        auto momentum = relative_velocity * subject_mass;
+
+        if (subject_mass >= object_mass) {            
+            momentum -= relative_velocity * object_mass;
+
+            subject_velocity = object_velocity - ((momentum / subject_mass) * elasticity_factor);
+            object_velocity += relative_velocity * elasticity_factor;
+        }
+
+        else {
+
+        }
+
+        collision.object->set_velocity(object_velocity);
+        collision.subject->set_velocity(subject_velocity);
         
         collision.subject->set_rotation(collision.subject_rotation);        
         collision.object->set_rotation(collision.object_rotation);
@@ -173,7 +245,7 @@ void ts::world::World::update(std::size_t frame_duration)
         collision.subject->set_position(clamp_position(collision.subject_position));
         collision.object->set_position(clamp_position(collision.object_position));
     };
-
+    
     auto get_new_collision = [this, detect_entity_collision](const Entity_state& state)
     {
         Collision_result collision = detect_collision(state, terrain_map_, track_.terrain_library());
@@ -185,28 +257,6 @@ void ts::world::World::update(std::size_t frame_duration)
         }
 
         return collision;
-    };
-
-    auto add_new_collision = [this, collision_compare](const Collision_result& new_collision)
-    {
-        auto pred = [&new_collision](const Collision_result& result)
-        {
-            return (new_collision.subject == result.subject || new_collision.subject == result.object) ||
-                (new_collision.object != nullptr && (new_collision.object == result.subject || new_collision.object == result.object));
-        };
-
-        // Get the insert position
-        auto insert_position = std::lower_bound(collision_queue_.begin() + 1, collision_queue_.end(), new_collision, collision_compare);
-
-        // Check if there are any conflicting collions prior to the insertion position
-        auto search_result = std::find_if(collision_queue_.begin() + 1, insert_position, pred);
-        if (search_result == insert_position) {
-            // Perform the insertion. God that sounds dirty
-            insert_position = collision_queue_.insert(insert_position, new_collision);
-
-            // Finally, erase all conflicting collisions after the one we just inserted
-            collision_queue_.erase(std::remove_if(insert_position + 1, collision_queue_.end(), pred), collision_queue_.end());
-        }
     };
 
     auto move_towards_position = [fd](Entity* entity, const Vector2<double>& position, double duration)
@@ -230,14 +280,13 @@ void ts::world::World::update(std::size_t frame_duration)
 
     double last_time_point = 0.0;
 
-    int collision_count = 0;
-
     while (!collision_queue_.empty())
     {
-        const auto& collision = collision_queue_.front();
-
+        const auto collision = collision_queue_.front();
+        collision_queue_.pop_front();
+        
         if (collision.subject && collision.object) {
-            resolve_inter_entity_collision(collision);
+            resolve_collision_between_entities(collision);
         }
 
         else if (collision.subject) {
@@ -249,6 +298,8 @@ void ts::world::World::update(std::size_t frame_duration)
 
         auto time_left = 1.0 - collision.time_point;
 
+
+
         // Update the position for all entities
         for (auto& target_state : state_buffer_) {
             auto entity = target_state.entity;
@@ -258,7 +309,7 @@ void ts::world::World::update(std::size_t frame_duration)
 
                 if (collision.rotate) {
                     auto delta_r = entity->rotation().radians() * fd * time_left * entity->angular_velocity();
-                    target_state.rotation = entity->rotation() + Rotation<double>::radians(delta_r);
+                    target_state.rotation = entity->rotation() +Rotation<double>::radians(delta_r);
                 }
 
                 else {
@@ -278,34 +329,28 @@ void ts::world::World::update(std::size_t frame_duration)
             }
         }
 
-        if (subject_state && !collision.stuck)
-        {
-            auto new_collision = get_new_collision(*subject_state);
+        auto get_future_collision = [&](const Target_state& state)
+        {            
+            auto new_collision = get_new_collision(state);
             if (new_collision.collided) {
                 new_collision.time_point = collision.time_point + (time_left * new_collision.time_point);
                 add_new_collision(new_collision);
             }
-        }
+        };
+        
 
-        if (object_state && !collision.stuck) 
+        if (!collision.stuck && time_left > 0.0)
         {
-            auto new_collision = get_new_collision(*object_state);
-            if (new_collision.collided) {
-                new_collision.time_point = collision.time_point + (time_left * new_collision.time_point);
-                add_new_collision(new_collision);
-            }
+            if (subject_state) get_future_collision(*subject_state);
+            if (object_state) get_future_collision(*object_state);
         }
-
         
         last_time_point = collision.time_point;
-
-        collision_queue_.pop_front();
-
-        ++collision_count;
     }
 
     // Finally, set the entities' new states
-    for (auto& state : state_buffer_) {
+    for (auto& state : state_buffer_) 
+    {
         state.entity->set_position(state.position);
         state.entity->set_rotation(state.rotation);
     }

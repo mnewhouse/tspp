@@ -35,6 +35,8 @@ namespace ts
             bool stuck;
             bool rotate;
 
+            double bounciness;
+
             Vector2<double> normal;
             double time_point;
 

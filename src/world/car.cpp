@@ -24,6 +24,8 @@ ts::world::Car::Car(World* world, const resources::Car_definition& car_definitio
     : Entity(world, car_definition.collision_mask),
       car_definition_(car_definition)
 {
+    set_elasticity(car_definition.wall_definition.elasticity);
+    set_mass(car_definition.handling.mass);
 }
 
 const ts::resources::Car_definition& ts::world::Car::car_definition() const

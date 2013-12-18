@@ -75,6 +75,10 @@ std::istream& ts::resources::operator>>(std::istream& stream, Terrain_definition
             line_stream >> terrain_def.braking;
         }
 
+        else if (directive == "bounciness") {
+            line_stream >> terrain_def.wall_definition.elasticity;
+        }
+
         else if (directive == "iswall") {
             int value;
             if (line_stream >> value) {

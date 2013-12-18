@@ -107,3 +107,23 @@ const ts::resources::Collision_mask& ts::world::Entity::collision_mask() const
 {
     return collision_mask_;
 }
+
+void ts::world::Entity::set_elasticity(double elasticity)
+{
+    elasticity_ = elasticity;
+}
+
+double ts::world::Entity::elasticity() const
+{
+    return elasticity_;
+}
+
+void ts::world::Entity::set_mass(double mass)
+{
+    mass_ = mass;
+}
+
+double ts::world::Entity::mass() const
+{
+    return mass_;
+}

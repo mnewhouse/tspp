@@ -66,7 +66,14 @@ namespace ts
             void set_z_position(double z_position);
             double z_position() const;
 
+            void set_elasticity(double elasticity);
+            double elasticity() const;
+
             int z_level() const;
+
+            double mass() const;
+            void set_mass(double mass);
+            
 
             const resources::Collision_mask& collision_mask() const;
 
@@ -78,7 +85,10 @@ namespace ts
             double z_position_;
 
             Vector2d velocity_;
-            double angular_velocity_;            
+            double angular_velocity_;
+
+            double elasticity_;
+            double mass_;
 
             resources::Collision_mask collision_mask_;
         };

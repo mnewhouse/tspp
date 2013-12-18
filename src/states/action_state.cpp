@@ -45,6 +45,11 @@ void ts::states::Action_scene::zoom_out()
     camera_.setScale(scale / 1.05f);
 }
 
+ts::graphics::Camera& ts::states::Action_scene::camera()
+{
+    return camera_;
+}
+
 void ts::states::Action_scene::on_car_create(const world::Car& car)
 {
     const auto& car_definition = car.car_definition();
@@ -59,8 +64,6 @@ void ts::states::Action_scene::on_car_create(const world::Car& car)
 
     Vector2f scale(car_definition.image_scale, car_definition.image_scale);
     drawable_entities_.back().set_scale(scale);
-
-    camera_.set_target(&car);
 }
 
 void ts::states::Action_scene::on_entity_destroy(const world::Entity& entity)
@@ -151,6 +154,7 @@ ts::states::Action_state::Action_state(resources::Track&& track, const cup::Stag
 
         if (player.control_slot) {
             control_center_.assume_control(player.control_slot, car);
+            action_scene_.camera().set_target(&*car);
         }
 
         car = world_.create_car(player.car);

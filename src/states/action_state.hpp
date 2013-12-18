@@ -60,6 +60,8 @@ namespace ts
             void zoom_in();
             void zoom_out();
 
+            graphics::Camera& camera();
+
 
             virtual void on_car_create(const world::Car& car) override;
             virtual void on_entity_destroy(const world::Entity& entity) override;

@@ -28,6 +28,7 @@ ts::graphics::Camera::Camera(Vector2u world_size)
   last_position_(),
   world_size_(world_size)
 {
+    setScale({ 2.0f, 2.0f });
 }
 
 void ts::graphics::Camera::set_target(const world::Entity* target)
