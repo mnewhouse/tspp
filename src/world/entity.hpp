@@ -20,6 +20,7 @@
 #ifndef WORLD_ENTITY_HPP
 #define WORLD_ENTITY_HPP
 
+#include "collision_bitmap.hpp"
 
 #include "core/rotation.hpp"
 #include "core/vector2.hpp"
@@ -31,10 +32,6 @@
 
 namespace ts
 {
-    namespace resources {
-        struct Collision_mask;
-    }
-
     namespace world
     {
         class World;
@@ -42,7 +39,7 @@ namespace ts
         class Entity
         {
         public:
-            Entity(World* world, const resources::Collision_mask& collision_mask);
+            Entity(World* world, const std::shared_ptr<resources::Pattern>& pattern);
 
             virtual ~Entity() = 0;
 
@@ -72,10 +69,10 @@ namespace ts
             int z_level() const;
 
             double mass() const;
-            void set_mass(double mass);
-            
+            void set_mass(double mass);        
 
-            const resources::Collision_mask& collision_mask() const;
+            const Collision_bitmap& collision_bitmap() const;
+            Collision_bitmap& collision_bitmap();
 
         private:
             World* world_;
@@ -90,12 +87,12 @@ namespace ts
             double elasticity_;
             double mass_;
 
-            resources::Collision_mask collision_mask_;
+            Collision_bitmap collision_bitmap_;
         };
 
         struct Entity_state
         {
-            Entity* entity;
+            Entity* entity = nullptr;
             Vector2d position;
             Rotation<double> rotation;
         };

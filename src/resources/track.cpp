@@ -34,10 +34,12 @@
 #include "track_handle.hpp"
 
 ts::resources::Track::Track()
+  : num_levels_(0)
 {
 }
 
 ts::resources::Track::Track(const Track_handle& track_handle)
+  : num_levels_(0)
 {
 	load_from_file(track_handle.path());
 }
@@ -87,6 +89,11 @@ const std::vector<ts::resources::Level_tile>& ts::resources::Track::tile_list() 
 ts::Vector2u ts::resources::Track::size() const
 {
     return track_size_;
+}
+
+std::size_t ts::resources::Track::num_levels() const
+{
+    return num_levels_;
 }
 
 template <typename Func>
@@ -194,6 +201,7 @@ void ts::resources::Track::include(std::istream& stream, std::size_t recursion_d
                     line_stream >> num_levels >> size) 
                 {
                     track_size_ = size;
+                    num_levels_ = num_levels;
                 }
             }
         }

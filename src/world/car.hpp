@@ -44,10 +44,18 @@ namespace ts
             const resources::Car_definition& car_definition() const;
 
             virtual void update(double frame_duration) override;
+            void toggle_reversing(bool reverse);
+            bool is_reversing() const;
+
+            double current_traction() const;
+            void set_current_traction(double traction);
 
         private:
             resources::Car_definition car_definition_;
             Handling handling_;
+
+            double current_traction_;
+            bool is_reversing_;
         };
 
     }

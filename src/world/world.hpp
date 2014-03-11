@@ -20,13 +20,13 @@
 #ifndef WORLD_WORLD_HPP
 #define WORLD_WORLD_HPP
 
-#include "core/vector2.hpp"
+#include "collisions.hpp"
+#include "car.hpp"
 
 #include "resources/track.hpp"
 #include "resources/terrain_map.hpp"
 
-#include "car.hpp"
-#include "collisions.hpp"
+#include "core/vector2.hpp"
 
 #include <memory>
 #include <vector>
@@ -61,6 +61,8 @@ namespace ts
         private:
             Vector2d clamp_position(Vector2d position) const;
 
+            void handle_collisions(double frame_duration);
+
             void load_track_objects();
 
             Vector2f world_size_;
@@ -69,18 +71,14 @@ namespace ts
             std::vector<Entity*> entity_list_;
 
             std::vector<Entity_listener*> entity_listeners_;
+                
+
+            std::vector<Entity_state> state_buffer_;
+            std::deque<Collision_result> collision_queue_;
 
             resources::Track track_;
             resources::Pattern terrain_map_;
-
-            struct Target_state
-                : public Entity_state
-            {
-                double time_point;
-            };
-
-            std::vector<Target_state> state_buffer_;
-            std::deque<Collision_result> collision_queue_;
+            Static_collision_bitmap scenery_bitmap_;
         };
 
     }

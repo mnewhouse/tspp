@@ -62,12 +62,8 @@ std::istream& ts::resources::operator>>(std::istream& stream, Car_definition& ca
             if (line_stream >> pattern_file >> pattern_rect) {
                 boost::filesystem::path path = config::car_directory;
                 path /= pattern_file;
-                
-                auto& collision_mask = car_def.collision_mask;
-                collision_mask.pattern = std::make_shared<Pattern>(path.string(), pattern_rect);
-                
-                Vector2i size = collision_mask.pattern->size();
-                collision_mask.bounding_box = { 0, 0, size.x, size.y };
+
+                car_def.pattern = std::make_shared<Pattern>(path.string(), pattern_rect);
             }
         }
 

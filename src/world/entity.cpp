@@ -20,19 +20,17 @@
 #include "entity.hpp"
 #include "world.hpp"
 
-#include "resources/collision_mask.hpp"
+#include "resources/collision_bitmap.hpp"
 #include "resources/terrain_definition.hpp"
 
-#include "collisions.hpp"
-
-ts::world::Entity::Entity(World* world, const resources::Collision_mask& collision_mask)
+ts::world::Entity::Entity(World* world, const std::shared_ptr<resources::Pattern>& pattern)
     : world_(world),
       position_(0, 0),
       rotation_(),
       z_position_(0),
       velocity_(0, 0),
       angular_velocity_(0),      
-      collision_mask_(collision_mask)
+      collision_bitmap_(pattern)
 {
 }
 
@@ -103,9 +101,14 @@ const ts::resources::Terrain_definition& ts::world::Entity::current_terrain() co
     return world_->terrain_at(position(), level);
 }
 
-const ts::resources::Collision_mask& ts::world::Entity::collision_mask() const
+const ts::world::Collision_bitmap& ts::world::Entity::collision_bitmap() const
 {
-    return collision_mask_;
+    return collision_bitmap_;
+}
+
+ts::world::Collision_bitmap& ts::world::Entity::collision_bitmap()
+{
+    return collision_bitmap_;
 }
 
 void ts::world::Entity::set_elasticity(double elasticity)

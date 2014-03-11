@@ -23,6 +23,7 @@
 #include "cup/stage_data.hpp"
 #include "graphics/drawable_entity.hpp"
 #include "resources/track.hpp"
+#include "resources/car_store.hpp"
 #include "graphics/texture.hpp"
 
 #include <boost/filesystem.hpp>
@@ -156,13 +157,7 @@ ts::states::Action_state::Action_state(resources::Track&& track, const cup::Stag
             control_center_.assume_control(player.control_slot, car);
             action_scene_.camera().set_target(&*car);
         }
-
-        car = world_.create_car(player.car);
-        car->set_position({100.0, 100.0});
-        car->set_rotation(Rotation<double>::degrees(180));
     }
-
-
 }
 
 void ts::states::Action_state::handle_event(const sf::Event& event)

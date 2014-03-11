@@ -29,8 +29,6 @@ extern "C" {
 
 #include "core/utility.hpp"
 
-#include "collision_mask.hpp"
-
 ts::resources::Pattern::Pattern(const std::string& file_name, Int_rect rect)
 {
     load_from_file(file_name, rect);

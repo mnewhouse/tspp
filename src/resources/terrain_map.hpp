@@ -36,7 +36,7 @@ namespace ts
     {
         class Track;
 
-        void build_track_pattern(const resources::Track& track, Pattern& pattern);
+        Pattern build_track_pattern(const Track& track);
     }
 }
 

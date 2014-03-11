@@ -31,7 +31,7 @@ void ts::cup::Cup::make_stage_data()
     stage_data_.players.resize(count);
     for (std::size_t id = 0; id != count; ++id)
     {
-        stage_data_.players[id].car = car_definition_;
+        stage_data_.players[id].car = car_list_.front();
         stage_data_.players[id].control_slot = player_list_[id].control_slot;
     }
 }
@@ -51,14 +51,36 @@ const ts::cup::Stage_data& ts::cup::Cup::stage_data() const
     return stage_data_;
 }
 
-void ts::cup::Cup::set_car(const resources::Car_definition& car_definition)
+void ts::cup::Cup::add_track(resources::Track_handle track_handle)
 {
-    car_definition_ = car_definition;
+    track_list_.push_back(std::move(track_handle));
 }
 
-void ts::cup::Cup::add_track(const ts::resources::Track_handle& track_handle)
+void ts::cup::Cup::set_car(const resources::Car_definition& car_def)
 {
-    track_list_.push_back(track_handle);
+    car_list_.clear();
+    car_list_.push_back(car_def);
+
+    car_mode_ = Car_mode::Fixed;
+}
+
+void ts::cup::Cup::add_car(const resources::Car_definition& car_def)
+{
+    car_list_.push_back(car_def);
+
+    if (car_mode_ == Car_mode::Fixed) {
+        car_mode_ = Car_mode::Free;
+    }
+}
+
+void ts::cup::Cup::set_car_mode(Car_mode car_mode)
+{
+    car_mode_ = car_mode;
+}
+
+const std::vector<ts::resources::Car_definition>& ts::cup::Cup::car_list() const
+{
+    return car_list_;
 }
 
 const std::vector<ts::resources::Track_handle>& ts::cup::Cup::track_list() const

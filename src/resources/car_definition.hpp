@@ -27,7 +27,6 @@
 
 #include "core/rect.hpp"
 
-#include "collision_mask.hpp"
 #include "world/handling.hpp"
 
 #include "image_type.hpp"
@@ -48,7 +47,7 @@ namespace ts
             std::string image_file;
             Image_type image_type;
 
-            Collision_mask collision_mask;
+            std::shared_ptr<Pattern> pattern;
             Wall_definition wall_definition;
 
             world::Handling_properties handling;

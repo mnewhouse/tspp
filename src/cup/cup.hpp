@@ -40,15 +40,27 @@ namespace ts
         class Cup
         {
         public:
-            Cup();
+            enum class Car_mode
+            {
+                Fixed,
+                Random,
+                Free
+            };
 
-            void set_car(const resources::Car_definition& car_definition);
+            Cup();
 
             void add_player(const Player& player);
             std::size_t player_count() const;
 
-            void add_track(const resources::Track_handle& track_handle);
+            void add_track(resources::Track_handle track_handle);
             const std::vector<resources::Track_handle>& track_list() const;
+
+            void set_car(const resources::Car_definition& car_def);
+            void set_car_mode(Car_mode car_mode);
+            void add_car(const resources::Car_definition& car_def);
+
+            const std::vector<resources::Car_definition>& car_list() const;
+            Car_mode car_mode() const;
 
             void next_track();
             resources::Track_handle current_track() const;
@@ -59,10 +71,10 @@ namespace ts
         private:
             std::size_t current_track_;
             std::vector<resources::Track_handle> track_list_;
+            std::vector<resources::Car_definition> car_list_;
+            Car_mode car_mode_;
 
-            std::vector<Player> player_list_;
-
-            resources::Car_definition car_definition_;
+            std::vector<Player> player_list_;            
 
             Stage_data stage_data_;
         };

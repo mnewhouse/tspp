@@ -35,9 +35,10 @@ namespace ts
 }
 
 
-void ts::resources::build_track_pattern(const resources::Track& track, Pattern& dest)
+ts::resources::Pattern ts::resources::build_track_pattern(const resources::Track& track)
 {
     Pattern_loader pattern_loader;
+    Pattern pattern(track.size());
 
     auto place_tile_func = [&](const Tile_group_definition& tile_def, const Level_tile& tile,
                                const Tile_definition& sub_tile_def, const Level_tile& sub_tile,
@@ -46,10 +47,12 @@ void ts::resources::build_track_pattern(const resources::Track& track, Pattern& 
         auto pattern_file = track.find_include_path(sub_tile_def.pattern_file());
 
         auto handle = pattern_loader.load_from_file(pattern_file);
-        apply_pattern(dest, *handle, sub_tile_def.pattern_rect, position, rotation);
+        apply_pattern(pattern, *handle, sub_tile_def.pattern_rect, position, rotation);
     };
 
     for_each_tile(track.tile_list().begin(), track.tile_list().end(), track.tile_library(), place_tile_func);
+
+    return pattern;
 }
 
 

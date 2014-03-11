@@ -33,6 +33,22 @@ namespace ts
     {
         class Car;
 
+        struct Traction_limit
+        {
+            double accelerate;
+            double brake;
+            double lateral;
+        };
+
+        struct Traction_loss
+        {
+            double multiplier;
+            double steering_effect;
+            double antislide_effect;
+            double accelerate_effect;
+            double brake_effect;
+        };
+
         struct Handling_properties
         {
             Handling_properties();
@@ -41,22 +57,21 @@ namespace ts
 
             double power;
             double reverse_power;
-            
-            double steering;
-            double grip;
-            double grip_reduction;
-            double anti_slide;
-           
-            double drag_coefficient;
-            double friction;
 
             double braking;
-            double braking_grip;         
             
+            double grip;
+            double steering;
+            double antislide;
+           
+            double drag_coefficient;
+            double roll_resistance;
+            double lateral_friction;
 
-            double non_slide_sector;
-            double slide_braking;
-            double slide_deceleration;
+            Traction_limit traction_limit;
+            Traction_loss traction_loss;           
+
+            double reverse_threshold;
         };
 
         struct Handling

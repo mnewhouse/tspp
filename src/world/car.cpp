@@ -21,8 +21,10 @@
 #include "world.hpp"
 
 ts::world::Car::Car(World* world, const resources::Car_definition& car_definition)
-    : Entity(world, car_definition.collision_mask),
-      car_definition_(car_definition)
+    : Entity(world, car_definition.pattern),
+      car_definition_(car_definition),
+      current_traction_(0.0),
+      is_reversing_(false)
 {
     set_elasticity(car_definition.wall_definition.elasticity);
     set_mass(car_definition.handling.mass);
@@ -37,3 +39,24 @@ void ts::world::Car::update(double frame_duration)
 {
     handling_.update(car_definition_.handling, *this, frame_duration);
 }
+
+bool ts::world::Car::is_reversing() const
+{
+    return is_reversing_;
+}
+
+void ts::world::Car::toggle_reversing(bool reversing)
+{
+    is_reversing_ = reversing;
+}
+
+double ts::world::Car::current_traction() const
+{
+    return current_traction_;
+}
+
+void ts::world::Car::set_current_traction(double traction)
+{
+    current_traction_ = traction;
+}
+

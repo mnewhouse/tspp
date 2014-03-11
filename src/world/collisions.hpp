@@ -20,9 +20,8 @@
 #ifndef WORLD_COLLISIONS_HPP
 #define WORLD_COLLISIONS_HPP
 
-#include "resources/pattern.hpp"
-#include "core/rotation.hpp"
-
+#include "core/vector2.hpp"
+#include "collision_bitmap.hpp"
 #include "entity.hpp"
 
 namespace ts
@@ -31,31 +30,25 @@ namespace ts
     {
         struct Collision_result
         {
-            bool collided;
-            bool stuck;
-            bool rotate;
+            bool collided = false;
+            bool rotate = false;
+            bool deflect = false;
 
-            double bounciness;
+            Entity_state subject_state;
+            Entity_state object_state;            
 
+            double time_point = 0.0;
             Vector2<double> normal;
-            double time_point;
+            Vector2<int> global_point;
 
-            Entity* subject;
-            Entity* object;
-
-            Vector2<double> subject_position;
-            Vector2<double> object_position;
-
-            Rotation<double> subject_rotation;
-            Rotation<double> object_rotation;
+            operator bool() const { return collided; }
         };
 
-        Collision_result detect_collision(const Entity_state& subject, const resources::Pattern& scenery, const resources::Terrain_library& terrain_lib);
+        Collision_result detect_scenery_collision(const Entity_state& entity_state, const Static_collision_bitmap& scenery);
 
-        Collision_result detect_collision(Entity_state subject, Entity_state object);
+        void resolve_scenery_collision(const Collision_result& collision, double wall_bounciness);
     }
 }
-
 
 
 #endif

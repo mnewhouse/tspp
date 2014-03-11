@@ -32,7 +32,6 @@ namespace ts
 
         namespace impl
         {
-
             class Car_store
             {
             public:

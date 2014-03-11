@@ -98,8 +98,8 @@ void ts::core::Game::main()
                 gui_context.set_mouse_state(new_mouse_state);
             }
 
-            state_machine->update(16);
             clock.restart();
+            state_machine->update(16);            
         }
 
         state_machine.update();

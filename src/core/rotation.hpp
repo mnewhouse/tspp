@@ -41,6 +41,8 @@ namespace ts
         template <typename U>
         Rotation<T>& operator-=(Rotation<U> right);
 
+        Rotation<T> operator-() const;
+
         T degrees() const;
         T radians() const;
 
@@ -72,11 +74,8 @@ namespace ts
     {
         const auto range = T(pi * 2.0);
 
-        if (radians_ < -pi || radians_ >= pi) {
-            radians_ = std::fmod(radians_, range);
-            if (radians_ < -pi) radians_ += range;
-            else if (radians_ > pi) radians_ -= range;
-        }
+        while (radians_ >= pi) radians_ -= range;
+        while (radians_ < -pi) radians_ += range;
     }
 
     template <typename T>
@@ -90,6 +89,13 @@ namespace ts
     {
         return left -= right;
     }
+
+    template <typename T>
+    Rotation<T> Rotation<T>::operator-() const
+    {
+        return Rotation<T>(radians() - pi);
+    }
+
 
     template <typename T>
     T Rotation<T>::degrees() const

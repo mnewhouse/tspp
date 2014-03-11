@@ -26,7 +26,6 @@
 #include "core/rect.hpp"
 #include "core/vector2.hpp"
 
-#include "collision_mask.hpp"
 #include "terrain_definition.hpp"
 #include "terrain_library.hpp"
 
@@ -51,78 +50,8 @@ namespace ts
             Vector2u size_;
             std::vector<Terrain_id> bytes_;
         };
-
-        /*
-
-        template <typename Callback>
-        void generate_polygons_from_pattern(Pattern pattern, Callback callback_func, Int_rect rect = Int_rect{});
-
-        template <typename Callback>
-        void generate_polygons_from_pattern(Pattern pattern, const Terrain_library& terrain_lib,                                            Callback callback_func, Int_rect rect = Int_rect{});
-
-
-        namespace impl 
-        {
-            Collision_polygon generate_polygon(Pattern& pattern, Int_rect rect, Vector2i start_point);
-        }
-        */
     }
 }
 
-/*
-template <typename Callback>
-void ts::resources::generate_polygons_from_pattern(Pattern pattern, Callback callback_func, Int_rect rect)
-{
-    if (rect.width == 0) {
-        rect.width = pattern.size().x;
-        rect.left = 0;
-    }
-
-    if (rect.height == 0) {
-        rect.height = pattern.size().y;
-        rect.top = 0;
-    }
-
-    for (int y = rect.top; y != rect.bottom(); ++y) {
-        for (int x = rect.left; x != rect.right(); ++x) {
-            auto terrain_id = pattern(x, y);
-            if (terrain_id) {
-                auto polygons = impl::generate_polygon(pattern, rect, Vector2i(x, y));
-                callback_func(std::move(polygons), terrain_id);
-            }
-        }
-    }
-}
-
-
-template <typename Callback>
-void ts::resources::generate_polygons_from_pattern(Pattern pattern, const Terrain_library& terrain_lib, 
-                                                   Callback callback_func, Int_rect rect)
-{
-    if (rect.width == 0) {
-        rect.width = pattern.size().x;
-        rect.left = 0;
-    }
-
-    if (rect.height == 0) {
-        rect.height = pattern.size().y;
-        rect.top = 0;
-    }
-
-    for (int y = rect.top; y != rect.bottom(); ++y) {
-        for (int x = rect.left; x != rect.right(); ++x) {
-            auto terrain_id = pattern(x, y);
-            if (terrain_id) {
-                const auto& terrain_def = terrain_lib.terrain_by_id(terrain_id);
-
-                if (terrain_def.is_wall) {
-                    auto polygons = impl::generate_polygon(pattern, rect, Vector2i(x, y));
-                    callback_func(std::move(polygons), terrain_id);
-                }
-            }
-        }
-    }
-}
-*/
 
 #endif

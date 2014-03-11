@@ -46,7 +46,7 @@ namespace ts
             {}
 
             template <typename ConcreteType>
-            void change_state(std::unique_ptr<ConcreteType>&& state);
+            void change_state(std::unique_ptr<ConcreteType> state);
 
             void change_state();
             void clear();
@@ -76,9 +76,6 @@ namespace ts
         private:
             typedef void* state_type_id;
 
-            template <typename ConcreteType>
-            state_type_id state_id(ConcreteType&& type);
-
             std::map<state_type_id, std::unique_ptr<StateType>> state_map_;
 
             struct Stack_entry
@@ -94,15 +91,7 @@ namespace ts
 
         template <typename StateType>
         template <typename ConcreteType>
-        void* State_machine<StateType>::state_id(ConcreteType&& type)
-        {
-            static int id = 0;
-            return &id;
-        }
-
-        template <typename StateType>
-        template <typename ConcreteType>
-        void State_machine<StateType>::change_state(std::unique_ptr<ConcreteType>&& state)
+        void State_machine<StateType>::change_state(std::unique_ptr<ConcreteType> state)
         {
             auto id = type_id<ConcreteType>();
             pending_state_.first = id;

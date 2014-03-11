@@ -99,11 +99,11 @@ void ts::states::Main_menu_scene::render(graphics::Render_target& render_target)
             cup_state->add_track(track_store->get_track_by_name("lvp-arena2"));
         }
 
-        auto car = car_store->get_car_by_name("slider");
+        auto car = car_store->get_car_by_name("Test-car");
         if (car) {
             cup_state->set_car(*car);
             state_machine->change_state(std::move(cup_state));
-        }        
+        }
     }
 
     if (menu_item("Editor").clicked) {

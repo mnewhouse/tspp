@@ -76,6 +76,9 @@ void ts::graphics::Drawable_entity::draw(graphics::Render_target& render_target,
 
     else {
         sprite.setRotation(float(rotation.degrees()));
+
+        Vector2i size = texture_->size();
+        texture_->perform(draw_sprite, { 0, 0, size.x, size.y });
     }
 }
 

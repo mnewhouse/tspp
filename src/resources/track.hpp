@@ -49,6 +49,8 @@ namespace ts
             const std::vector<Level_tile>& tile_list() const;
             Vector2u size() const;
 
+            std::size_t num_levels() const;
+
             std::string find_include_path(const std::string& file_name) const;
 
         private:
@@ -67,6 +69,7 @@ namespace ts
 
             std::vector<Level_tile> tile_list_;
             Vector2u track_size_;
+            std::size_t num_levels_;
 
             Tile_library tile_lib_;
             Terrain_library terrain_lib_;
