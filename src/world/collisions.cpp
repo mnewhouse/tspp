@@ -1,6 +1,6 @@
 /*
  * Turbo Sliders++
- * Copyright (C) 2013 Martin Newhouse
+ * Copyright (C) 2013-2014 Martin Newhouse
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ ts::world::Collision_result ts::world::detect_scenery_collision(const Entity_sta
 
     auto trajectory_test = [&](const Vector2<double>& position, double time_point)
     {
-        return collision_test(bitmap, position, scenery);
+        return collision_test(bitmap, scenery, position, level);
     };
 
     Collision_result result;
@@ -46,8 +46,6 @@ ts::world::Collision_result ts::world::detect_scenery_collision(const Entity_sta
     result.collided = true;
     result.time_point = collision_point.valid_time_point;
     result.global_point = collision_point.result.point;
-
-    // Local collision point
 
     result.subject_state = entity_state;
     result.subject_state.position = collision_point.valid_point;
@@ -68,6 +66,7 @@ ts::world::Collision_result ts::world::detect_scenery_collision(const Entity_sta
 
 void ts::world::resolve_scenery_collision(const Collision_result& collision, double wall_bounciness)
 {
+    // Only update the velocity if 'deflect' flag is set
     if (collision.deflect)
     {
         const auto& subject_state = collision.subject_state;

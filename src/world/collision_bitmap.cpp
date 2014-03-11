@@ -99,11 +99,6 @@ void ts::world::Collision_bitmap::update(Rotation<double> rotation)
     }
 }
 
-std::size_t ts::world::Collision_bitmap::level() const
-{
-    return level_;
-}
-
 const ts::Vector2u& ts::world::Collision_bitmap::size() const
 {
     return bitmap_size_;
@@ -179,8 +174,8 @@ bool ts::world::collision_test(const Collision_bitmap& subject, const Collision_
 }
 */
 
-ts::world::Collision_point ts::world::collision_test(const Collision_bitmap& subject, Vector2i subject_position, 
-                                                     const Static_collision_bitmap& scenery)
+ts::world::Collision_point ts::world::collision_test(const Collision_bitmap& subject, const Static_collision_bitmap& scenery,
+                                                     Vector2i subject_position, std::size_t subject_level)                                                     
 {
     Vector2i subject_size = subject.size();
     const auto& subject_bitmap = subject.bitmap();
@@ -200,8 +195,10 @@ ts::world::Collision_point ts::world::collision_test(const Collision_bitmap& sub
     auto subject_row_width = subject_size.x >> 6;
 
     auto subject_top_edge = (top_edge >= 0 ? 0 : -top_edge);
+
+    auto level_size = subject_row_width * scenery_size.y * subject_level;
     
-    auto subject_row_begin = &subject_bitmap[subject_top_edge * subject_row_width];
+    auto subject_row_begin = &subject_bitmap[level_size + subject_top_edge * subject_row_width];
     auto subject_begin = subject_row_begin;
     auto subject_end = subject_begin + subject_row_width;
 
@@ -217,8 +214,6 @@ ts::world::Collision_point ts::world::collision_test(const Collision_bitmap& sub
     else {
         subject_begin += -left_edge >> 6;
     }
-
-    auto level = subject.level();
 
     auto offset = (left_edge + subject_size.x) & 63;
     auto inverse_offset = (64 - offset) & 63;

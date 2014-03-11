@@ -1,6 +1,6 @@
 /*
  * Turbo Sliders++
- * Copyright (C) 2013 Martin Newhouse
+ * Copyright (C) 2013-2014 Martin Newhouse
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,14 +42,12 @@ namespace ts
         public:
             Collision_bitmap(const std::shared_ptr<resources::Pattern>& pattern);
 
-            void set_rotation(Rotation<double> rotation);        
-            void set_level(std::size_t level);
+            void set_rotation(Rotation<double> rotation);
             void set_position(Vector2i position);
 
             const Vector2u& size() const;
             const std::vector<std::uint64_t>& bitmap() const;
             Rotation<double> rotation() const;
-            std::size_t level() const;
 
         private:
             void update(Rotation<double> rotation);
@@ -57,7 +55,6 @@ namespace ts
             Vector2u bitmap_size_;
             std::vector<std::uint64_t> bitmap_;
             Rotation<double> rotation_;
-            std::size_t level_;
 
             std::shared_ptr<resources::Pattern> pattern_;
         };
@@ -90,8 +87,8 @@ namespace ts
         Collision_point collision_test(const Collision_bitmap& subject, Vector2i subject_position,
                                        const Collision_bitmap& object, Vector2i object_position);
 
-        Collision_point collision_test(const Collision_bitmap& subject, Vector2i subject_position, 
-                                       const Static_collision_bitmap& scenery);
+        Collision_point collision_test(const Collision_bitmap& subject, const Static_collision_bitmap& scenery,
+                                       Vector2i subject_position, std::size_t subject_level);
     }
 }
 
