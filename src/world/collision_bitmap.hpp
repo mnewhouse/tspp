@@ -21,9 +21,7 @@
 #define RESOURCES_COLLISION_MASK_HPP
 
 #include <vector>
-#include <istream>
 #include <memory>
-#include <algorithm>
 #include <cstdint>
 
 #include "core/vector2.hpp"

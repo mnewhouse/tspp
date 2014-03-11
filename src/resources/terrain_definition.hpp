@@ -24,8 +24,6 @@
 #include <string>
 #include <istream>
 
-#include <SFML/Graphics/Color.hpp>
-
 #include "wall_definition.hpp"
 
 namespace ts
@@ -49,9 +47,8 @@ namespace ts
 
             bool is_wall;
             Wall_definition wall_definition;
-
             
-            sf::Color color;
+            std::uint32_t color[3];
         };
 
         std::istream& operator>>(std::istream& stream, Terrain_definition& terrain_def);

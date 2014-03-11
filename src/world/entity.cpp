@@ -19,8 +19,8 @@
 
 #include "entity.hpp"
 #include "world.hpp"
+#include "collision_bitmap.hpp"
 
-#include "resources/collision_bitmap.hpp"
 #include "resources/terrain_definition.hpp"
 
 ts::world::Entity::Entity(World* world, const std::shared_ptr<resources::Pattern>& pattern)

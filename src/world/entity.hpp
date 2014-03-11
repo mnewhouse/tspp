@@ -25,13 +25,16 @@
 #include "core/rotation.hpp"
 #include "core/vector2.hpp"
 
-#include "resources/terrain_definition.hpp"
-#include "resources/pattern.hpp"
-
 #include <memory>
 
 namespace ts
 {
+    namespace resources
+    {
+        class Pattern;
+        struct Terrain_definition;
+    }
+
     namespace world
     {
         class World;

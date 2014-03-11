@@ -92,7 +92,7 @@ auto ts::world::test_trajectory(Vector2<double> start, Vector2<double> end, Coll
     return result;
 }
 
-/*
+#ifdef DISABLED
 template <typename CollisionTest>
 auto ts::world::test_trajectory(Vector2i point, Vector2i end, CollisionTest test_func) ->
     ts::world::Trajectory_point<typename std::decay<decltype(test_func(point, 0.0))>::type>
@@ -142,7 +142,7 @@ auto ts::world::test_trajectory(Vector2i point, Vector2i end, CollisionTest test
     result.result = test_func(result.point, 1.0);
     return result;
 }
-*/
+#endif
 
 template <typename WallTest>
 ts::Vector2<double> ts::world::get_edge_normal(Vector2i point, Vector2<double> heading, WallTest is_wall)

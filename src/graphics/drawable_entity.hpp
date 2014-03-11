@@ -20,10 +20,12 @@
 #ifndef GRAPHICS_DRAWABLE_ENTITY_HPP
 #define GRAPHICS_DRAWABLE_ENTITY_HPP
 
+#include "renderer.hpp"
+
 #include "resources/image_type.hpp"
+
 #include "core/handle.hpp"
 #include "core/vector2.hpp"
-#include "renderer.hpp"
 
 namespace ts
 {

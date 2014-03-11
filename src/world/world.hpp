@@ -20,8 +20,8 @@
 #ifndef WORLD_WORLD_HPP
 #define WORLD_WORLD_HPP
 
+#include "collision_bitmap.hpp"
 #include "collisions.hpp"
-#include "car.hpp"
 
 #include "resources/track.hpp"
 #include "resources/terrain_map.hpp"
@@ -43,6 +43,9 @@ namespace ts
     namespace world
     {
         class Entity_listener;
+        class Entity;
+        struct Entity_state;
+        class Car;        
 
         class World
         {

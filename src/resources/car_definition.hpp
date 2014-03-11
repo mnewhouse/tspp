@@ -25,18 +25,20 @@
 #include <vector>
 #include <memory>
 
-#include "core/rect.hpp"
+#include "image_type.hpp"
+#include "wall_definition.hpp"
 
 #include "world/handling.hpp"
 
-#include "image_type.hpp"
-#include "pattern.hpp"
+#include "core/rect.hpp"
 
 namespace ts
 {
 
     namespace resources
     {
+        class Pattern;
+        
         struct Car_definition
         {
             std::string file_path;

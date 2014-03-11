@@ -21,7 +21,6 @@
 #define WORLD_COLLISIONS_HPP
 
 #include "core/vector2.hpp"
-#include "collision_bitmap.hpp"
 #include "entity.hpp"
 
 namespace ts
@@ -43,6 +42,9 @@ namespace ts
 
             operator bool() const { return collided; }
         };
+
+        struct Entity_state;
+        class Static_collision_bitmap;
 
         Collision_result detect_scenery_collision(const Entity_state& entity_state, const Static_collision_bitmap& scenery);
 

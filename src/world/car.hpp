@@ -20,12 +20,11 @@
 #ifndef WORLD_CAR_HPP
 #define WORLD_CAR_HPP
 
-#include "controls/controllable.hpp"
-
-#include "resources/car_definition.hpp"
-
 #include "entity.hpp"
 #include "handling.hpp"
+
+#include "controls/controllable.hpp"
+#include "resources/car_definition.hpp"
 
 namespace ts
 {

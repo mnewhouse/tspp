@@ -4,8 +4,8 @@
 #include "resources/terrain_library.hpp"
 
 #include <cmath>
+#include <algorithm>
 #include <fstream>
-#include <iomanip>
 
 namespace ts
 {
@@ -200,8 +200,9 @@ ts::world::Collision_point ts::world::collision_test(const Collision_bitmap& sub
     auto subject_row_width = subject_size.x >> 6;
 
     auto subject_top_edge = (top_edge >= 0 ? 0 : -top_edge);
-
-    auto subject_begin = &subject_bitmap[subject_top_edge * subject_row_width];
+    
+    auto subject_row_begin = &subject_bitmap[subject_top_edge * subject_row_width];
+    auto subject_begin = subject_row_begin;
     auto subject_end = subject_begin + subject_row_width;
 
     top_edge = std::max(top_edge, 0);
@@ -249,7 +250,9 @@ ts::world::Collision_point ts::world::collision_test(const Collision_bitmap& sub
         if (left_edge < 0)
         {
             if (auto mask = (inverse_offset ? (*subject_ptr << inverse_offset) & *scenery_ptr : 0))
+            {
                 return collision(scenery_x, scenery_y, mask);
+            }
 
             ++subject_ptr;
         }
@@ -279,19 +282,22 @@ ts::world::Collision_point ts::world::collision_test(const Collision_bitmap& sub
         }
 
         scenery_row_begin += scenery_row_width;
+        subject_row_begin += subject_row_width;
 
-        if (scenery_ptr != scenery_row_begin)
+        if (scenery_ptr != scenery_row_begin && subject_ptr != subject_row_begin)
         {
             if (auto mask = (inverse_offset ? (*subject_ptr << inverse_offset) & *scenery_ptr : 0))
-                return collision(scenery_x, scenery_y, mask);
+            {
+                return collision(scenery_x, scenery_y, mask);                
+            }
+                
         }
 
         scenery_begin += scenery_row_width;
-        scenery_end += scenery_row_width;        
+        scenery_end += scenery_row_width;
         
         subject_begin += subject_row_width;
-
-        scenery_row_begin += scenery_row_width;
+        subject_end += subject_row_width;
     }
 
     return Collision_point();

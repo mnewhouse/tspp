@@ -68,7 +68,7 @@ ts::world::Car* ts::world::World::create_car(const resources::Car_definition& ca
         }
     );
 
-    car.set_position({ 200.0, 200.0 });
+    car.set_position({ 739.0 / 2.0, 511.0 / 2.0 });
 
     entity_list_.push_back(&car);
 

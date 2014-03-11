@@ -27,7 +27,6 @@
 #include "core/vector2.hpp"
 
 #include "terrain_definition.hpp"
-#include "terrain_library.hpp"
 
 namespace ts
 {

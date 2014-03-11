@@ -23,7 +23,6 @@
 #include <vector>
 #include <memory>
 
-#include "resources/car_definition.hpp"
 #include "stage_data.hpp"
 #include "player.hpp"
 
@@ -32,6 +31,7 @@ namespace ts
     namespace resources
     {
         class Track_handle;
+        struct Car_definition;
     }
 
 

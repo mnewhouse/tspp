@@ -20,8 +20,6 @@
 #ifndef RESOURCES_TERRAIN_MAP_HPP
 #define RESOURCES_TERRAIN_MAP_HPP
 
-#include "resources/terrain_definition.hpp"
-
 #include "core/rect.hpp"
 #include "core/vector2.hpp"
 #include "core/rotation.hpp"
