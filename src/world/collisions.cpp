@@ -20,6 +20,62 @@
 #include "collisions.hpp"
 #include "collision_helpers.hpp"
 
+ts::world::Collision_result ts::world::detect_entity_collision(const Entity_state& subject_state, const Entity_state& object_state)
+{
+    auto subject = subject_state.entity;
+    auto object = object_state.entity;
+
+    const auto& subject_bitmap = subject->collision_bitmap();
+    const auto& object_bitmap = object->collision_bitmap();
+
+    Collision_result result;
+
+    auto subject_level = subject->z_level();
+    auto object_level = object->z_level();
+    if (subject == object || subject_level != object_level) return result;
+
+    auto subject_offset = subject_state.position - subject->position();
+    auto object_offset = object_state.position - object->position();
+
+    auto trajectory_test = [&](const Vector2<double> offset, double time_point)
+    {
+        auto object_position = interpolate_position(object->position(), object_state.position, time_point);
+        auto subject_position = interpolate_position(subject->position(), subject_state.position, time_point);
+
+        return collision_test(subject_bitmap, object_bitmap, 
+                              subject_position, object_position, 
+                              subject_state.rotation, object_state.rotation,
+                              subject_level, object_level);
+    };
+
+    auto collision_point = test_trajectory({ 0.0, 0.0 }, subject_offset - object_offset, trajectory_test);
+    if (!collision_point.result) return result;
+
+    result.collided = true;
+    result.rotate = true;
+    result.deflect = true;
+    result.time_point = collision_point.valid_time_point;
+    result.global_point = collision_point.result.point;
+
+    result.subject_state = subject_state;
+    result.object_state = object_state;
+
+    if (result.time_point < 0.0)
+    {
+        result.subject_state.rotation = subject->rotation();
+        result.object_state.rotation = object->rotation();
+
+        result.time_point = 0.0;
+        result.deflect = false;
+        result.rotate = false;
+    }
+
+    result.subject_state.position = interpolate_position(subject->position(), subject_state.position, result.time_point);
+    result.object_state.position = interpolate_position(object->position(), object_state.position, result.time_point);
+
+    return result;
+}
+
 ts::world::Collision_result ts::world::detect_scenery_collision(const Entity_state& entity_state, const Static_collision_bitmap& scenery)
 {
     auto entity = entity_state.entity;
@@ -29,7 +85,7 @@ ts::world::Collision_result ts::world::detect_scenery_collision(const Entity_sta
 
     auto trajectory_test = [&](const Vector2<double>& position, double time_point)
     {
-        return collision_test(bitmap, scenery, position, level);
+        return collision_test(bitmap, scenery, position, entity_state.rotation, level);
     };
 
     Collision_result result;

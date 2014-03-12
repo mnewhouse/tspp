@@ -61,6 +61,9 @@ namespace ts
             const resources::Terrain_definition& terrain_at(Vector2d point) const;
             const resources::Terrain_definition& terrain_at(Vector2d point, std::size_t level) const;
 
+            const std::shared_ptr<Collision_bitmap> dynamic_collision_bitmap
+                (const std::shared_ptr<resources::Pattern>& pattern);
+
         private:
             Vector2d clamp_position(Vector2d position) const;
 
@@ -82,6 +85,8 @@ namespace ts
             resources::Track track_;
             resources::Pattern terrain_map_;
             Static_collision_bitmap scenery_bitmap_;
+
+            Collision_bitmap_store dynamic_bitmap_store_;
         };
 
     }

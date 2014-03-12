@@ -20,12 +20,13 @@
 #ifndef RESOURCES_COLLISION_MASK_HPP
 #define RESOURCES_COLLISION_MASK_HPP
 
+#include "core/vector2.hpp"
+#include "core/rotation.hpp"
+
 #include <vector>
 #include <memory>
 #include <cstdint>
-
-#include "core/vector2.hpp"
-#include "core/rotation.hpp"
+#include <map>
 
 namespace ts
 {
@@ -42,22 +43,25 @@ namespace ts
         public:
             Collision_bitmap(const std::shared_ptr<resources::Pattern>& pattern);
 
-            void set_rotation(Rotation<double> rotation);
-            void set_position(Vector2i position);
-
             const Vector2u& size() const;
             const std::vector<std::uint64_t>& bitmap() const;
-            Rotation<double> rotation() const;
 
         private:
             void update(Rotation<double> rotation);
             
             Vector2u bitmap_size_;
             std::vector<std::uint64_t> bitmap_;
-            Rotation<double> rotation_;
-
-            std::shared_ptr<resources::Pattern> pattern_;
         };
+
+        class Collision_bitmap_store
+        {
+        public:
+            const std::shared_ptr<Collision_bitmap>& operator[](const std::shared_ptr<resources::Pattern>& pattern);
+
+        private:
+            std::map<std::shared_ptr<resources::Pattern>, std::shared_ptr<Collision_bitmap>> bitmap_lookup_;
+        };
+
 
         class Static_collision_bitmap
         {
@@ -84,11 +88,13 @@ namespace ts
             operator bool() const { return collided; }
         };
 
-        Collision_point collision_test(const Collision_bitmap& subject, Vector2i subject_position,
-                                       const Collision_bitmap& object, Vector2i object_position);
+        Collision_point collision_test(const Collision_bitmap& subject, const Collision_bitmap& object,
+                                       Vector2i subject_position, Vector2i object_position,
+                                       Rotation<double> subject_rotation, Rotation<double> object_rotation,
+                                       std::size_t subject_level, std::size_t object_level);
 
         Collision_point collision_test(const Collision_bitmap& subject, const Static_collision_bitmap& scenery,
-                                       Vector2i subject_position, std::size_t subject_level);
+                                       Vector2i subject_position, Rotation<double> subject_rotation, std::size_t subject_level);
     }
 }
 

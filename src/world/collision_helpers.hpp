@@ -55,6 +55,11 @@ namespace ts
             return{ old_pos.x + ((new_pos.x - old_pos.x) * time_point),
                 old_pos.y + ((new_pos.y - old_pos.y) * time_point) };
         }
+
+        inline Vector2<double> transform_point(const Vector2<double>& point, double sin, double cos)
+        {
+            return{ point.x * cos - sin * point.y, point.y * cos + sin * point.x };
+        }
     }
 }
 
@@ -191,7 +196,7 @@ ts::Vector2<double> ts::world::get_edge_normal(Vector2i point, Vector2<double> h
 
     heading = normalize(heading);
 
-    if (it_a == wall_test_order.end() || it_b == wall_test_order.rend())
+    if (it_a == wall_test_order.end() || it_b == wall_test_order.rend() || *it_a == *it_b)
     {
         return -heading;
     }

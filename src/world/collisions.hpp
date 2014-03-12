@@ -46,10 +46,31 @@ namespace ts
         struct Entity_state;
         class Static_collision_bitmap;
 
+        template <typename InputIt>
+        Collision_result detect_entity_collision(const Entity_state& subject, InputIt it, InputIt end);
+
+        Collision_result detect_entity_collision(const Entity_state& subject, const Entity_state& object);
         Collision_result detect_scenery_collision(const Entity_state& entity_state, const Static_collision_bitmap& scenery);
 
+        void resolve_entity_collision(const Collision_result& collision);
         void resolve_scenery_collision(const Collision_result& collision, double wall_bounciness);
     }
+}
+
+template <typename InputIt>
+ts::world::Collision_result ts::world::detect_entity_collision(const Entity_state& subject, InputIt it, InputIt end)
+{
+    auto collision = detect_entity_collision(subject, *it);
+    while (++it != end)
+    {
+        auto new_collision = detect_entity_collision(subject, *it);
+        if (new_collision && (!collision || new_collision.time_point < collision.time_point))
+        {
+            collision = new_collision;
+        }
+    }
+
+    return collision;
 }
 
 

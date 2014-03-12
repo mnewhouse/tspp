@@ -1,4 +1,5 @@
 #include "collision_bitmap.hpp"
+#include "collision_helpers.hpp"
 
 #include "resources/pattern.hpp"
 #include "resources/terrain_library.hpp"
@@ -7,12 +8,35 @@
 #include <algorithm>
 #include <fstream>
 
+namespace
+{
+    static const std::size_t num_rotations = 64;
+}
+
 namespace ts
 {
     namespace world
     {
         Vector2u calculate_bitmap_size(const resources::Pattern& pattern);
+
+        std::vector<std::uint64_t> generate_rotated_bitmaps(const resources::Pattern& pattern, Vector2i bitmap_size);
+
+        std::size_t rotation_frame(Rotation<double> rotation);
+
+        Collision_point collision_test_impl(const std::uint64_t* subject_data, const std::uint64_t* object_data,
+                                            Vector2i subject_size, Vector2i object_size,
+                                            Vector2i subject_position, Vector2i object_position,
+                                            Vector2i subject_center, Vector2i object_center);
     }
+}
+
+std::size_t ts::world::rotation_frame(Rotation<double> rotation)
+{
+    const double frame_factor = num_rotations / 360.0;
+    auto frame_id = static_cast<int>(std::floor(90 * frame_factor + 0.5)) + num_rotations;
+    if (frame_id >= num_rotations) frame_id -= num_rotations;
+
+    return frame_id;
 }
 
 ts::Vector2u ts::world::calculate_bitmap_size(const resources::Pattern& pattern)
@@ -22,7 +46,7 @@ ts::Vector2u ts::world::calculate_bitmap_size(const resources::Pattern& pattern)
     auto max_size = std::max(size.x, size.y);
     Vector2u result{ max_size, max_size };
 
-    result.x += result.x >> 1; // +50% to allow free rotation
+    result.x <<= 1;
     if ((result.x & 63) != 0) {
         // Make the width a multiple of 32
         result.x |= 63;
@@ -33,70 +57,55 @@ ts::Vector2u ts::world::calculate_bitmap_size(const resources::Pattern& pattern)
     return result;
 }
 
+std::vector<std::uint64_t> ts::world::generate_rotated_bitmaps(const resources::Pattern& pattern, Vector2i bitmap_size)
+{
+    std::vector<std::uint64_t> bitmap(bitmap_size.y * (bitmap_size.x >> 6) * num_rotations);
+
+    Vector2i pattern_size = pattern.size();
+
+    Vector2i dest_center(bitmap_size.x >> 1, bitmap_size.y >> 1);
+    Vector2i source_center(pattern_size.x >> 1, pattern_size.y >> 1);
+
+    Rotation<double> rotation, increment = Rotation<double>::degrees(360.0 / num_rotations);
+
+    auto row_width = bitmap_size.x >> 6;
+
+    for (int r = 0; r != num_rotations; ++r, rotation += increment)
+    {
+        auto sin = std::sin(rotation.radians());
+        auto cos = std::cos(rotation.radians());
+
+        Vector2<double> source_point(-source_center.x, -source_center.y);
+
+        auto base_ptr = &bitmap[bitmap_size.y * row_width * r];
+        
+        for (std::size_t y = 0; y != pattern_size.y; ++y, source_point.y += 1.0)
+        {
+            source_point.x = -source_center.x;
+
+            for (std::size_t x = 0; x != pattern_size.x; ++x, source_point.x += 1.0)
+            {
+                if (pattern(x, y) == 0) continue;
+
+                auto transformed = transform_point(source_point, sin, cos);
+                Vector2i dest_point(std::floor(transformed.x + 0.5), std::floor(transformed.y + 0.5));
+
+                dest_point += dest_center;
+            
+                auto& entry = base_ptr[row_width * dest_point.y + (dest_point.x >> 6)];
+                entry |= std::uint64_t(1) << (63 - (dest_point.x & 63));
+            }
+        }
+    }
+
+    return bitmap;    
+}
+
 
 ts::world::Collision_bitmap::Collision_bitmap(const std::shared_ptr<resources::Pattern>& pattern)
   : bitmap_size_(calculate_bitmap_size(*pattern)),
-    bitmap_((bitmap_size_.x >> 6) * bitmap_size_.y, 0U),
-    pattern_(pattern),
-    rotation_()
+    bitmap_(generate_rotated_bitmaps(*pattern, bitmap_size_))
 {
-    update({});
-}
-
-void ts::world::Collision_bitmap::set_rotation(Rotation<double> rotation)
-{
-    auto delta_rotation = rotation_ - rotation;
-    if (std::abs(delta_rotation.degrees()) >= 1.0) {
-        update(rotation);
-        rotation_ = rotation;
-    }
-}
-
-void ts::world::Collision_bitmap::update(Rotation<double> rotation)
-{    
-    Vector2i dest_center = bitmap_size_;
-    dest_center.x >>= 1;
-    dest_center.y >>= 1;
-
-    const auto& source_pattern = *pattern_;
-    Vector2i size = source_pattern.size(), source_center = size;
-    source_center.x >>= 1;
-    source_center.y >>= 1;
-
-    auto inverse_rotation = -rotation;
-
-    auto sin = static_cast<int>(std::sin(inverse_rotation.radians()) * 65536.0 + 0.5);
-    auto cos = static_cast<int>(std::cos(inverse_rotation.radians()) * 65536.0 + 0.5);
-
-    std::uint64_t* bitmap_ptr = &bitmap_[0];
-
-    Vector2i point{ -dest_center.x, -dest_center.y };
-
-    for (int y_end = point.y + bitmap_size_.y; point.y != y_end; ++point.y) {
-        point.x = -dest_center.x;
-
-        for (int x_end = point.x + bitmap_size_.x; point.x != x_end; ) {
-            std::uint64_t entry = 0;
-
-            for (auto entry_end = point.x + 64; point.x != entry_end; ++point.x) {
-                Vector2i source_point
-                { 
-                    ((cos * point.x - sin * point.y + 0x8000) >> 16) + source_center.x,
-                    ((cos * point.y + sin * point.x + 0x8000) >> 16) + source_center.y
-                };
-
-                entry <<= 1;
-                if (source_point.x >= 0 && source_point.x < size.x &&
-                    source_point.y >= 0 && source_point.y < size.y &&
-                    source_pattern(source_point.x, source_point.y) != 0)
-                {
-                    entry |= 1;
-                }
-            }
-
-            *bitmap_ptr++ = entry;
-        }
-    }
 }
 
 const ts::Vector2u& ts::world::Collision_bitmap::size() const
@@ -107,6 +116,18 @@ const ts::Vector2u& ts::world::Collision_bitmap::size() const
 const std::vector<std::uint64_t>& ts::world::Collision_bitmap::bitmap() const
 {
     return bitmap_;
+}
+
+const std::shared_ptr<ts::world::Collision_bitmap>& ts::world::Collision_bitmap_store::operator[]
+    (const std::shared_ptr<resources::Pattern>& pattern)
+{
+    auto it = bitmap_lookup_.find(pattern);
+    if (it == bitmap_lookup_.end()) 
+    {
+        it = bitmap_lookup_.insert(std::make_pair(pattern, std::make_shared<Collision_bitmap>(pattern))).first;
+    }
+
+    return it->second;
 }
 
 ts::world::Static_collision_bitmap::Static_collision_bitmap(const resources::Pattern& pattern, 
@@ -167,133 +188,179 @@ bool ts::world::Static_collision_bitmap::operator()(Vector2u point, std::size_t 
     return (entry << (point.x & 63) >> 63) != 0;
 }
 
-/*
-bool ts::world::collision_test(const Collision_bitmap& subject, const Collision_bitmap& object)
+ts::world::Collision_point ts::world::collision_test_impl(const std::uint64_t* subject_data, const std::uint64_t* object_data,
+                                                          Vector2i subject_size, Vector2i object_size,
+                                                          Vector2i subject_position, Vector2i object_position,
+                                                          Vector2i subject_center, Vector2i object_center)
 {
-    return false;
+    Rect<int> subject_area(subject_position.x - subject_center.x, subject_position.y - subject_center.y,
+                           subject_size.x, subject_size.y);
+
+    Rect<int> object_area(object_position.x - object_center.x, object_position.y - object_center.y,
+                           object_size.x, object_size.y);
+
+    auto intersect_area = intersection(subject_area, object_area);
+    if (intersect_area.left < 0)
+    {
+        intersect_area.width += intersect_area.left;
+        intersect_area.left = 0;
+    }
+
+    if (intersect_area.top < 0)
+    {
+        intersect_area.height += intersect_area.top;
+        intersect_area.top = 0;
+    }
+
+    if (intersect_area.width <= 0 || intersect_area.height <= 0) return{};
+
+    Rect<int> subject_local_area(intersect_area.left - subject_position.x + subject_center.x,
+                                 intersect_area.top - subject_position.y + subject_center.y,
+                                 intersect_area.width, intersect_area.height);
+
+    Rect<int> object_local_area(intersect_area.left - object_position.x + object_center.x,
+                                intersect_area.top - object_position.y + object_center.y,
+                                intersect_area.width, intersect_area.height);
+
+    auto subject_offset = static_cast<unsigned>(subject_area.left) & 63;
+    auto object_offset = static_cast<unsigned>(object_area.left) & 63;
+    auto intersect_offset = static_cast<unsigned>(intersect_area.left) & 63;
+
+    auto subject_inverse_offset = (64 - subject_offset) & 63;
+    auto object_inverse_offset = (64 - object_offset) & 63;    
+
+    auto subject_row_width = subject_size.x >> 6;
+    auto object_row_width = object_size.x >> 6;
+
+    auto x_begin = intersect_area.left >> 6 << 6;
+    auto x_end = intersect_area.right();
+    if ((x_end & 63) != 0) x_end = (x_end | 63) + 1;
+
+    auto subject_row_begin = subject_data + (subject_row_width * subject_local_area.top);
+    auto object_row_begin = object_data + (object_row_width * object_local_area.top);
+
+    auto subject_begin = subject_row_begin;
+    if (x_begin >= subject_area.left) subject_begin += (x_begin - subject_area.left) >> 6;
+    else --subject_begin;
+
+    auto object_begin = object_row_begin;
+    if (x_begin >= object_area.left) object_begin += (x_begin - object_area.left) >> 6;
+    else --object_begin;
+
+    for (auto y = intersect_area.top; y != intersect_area.bottom(); ++y)
+    {
+        auto subject_ptr = subject_begin;
+        auto object_ptr = object_begin;
+
+        auto subject_row_end = subject_row_begin + subject_row_width;
+        auto object_row_end = object_row_begin + object_row_width;
+
+        for (auto x = x_begin; x != x_end; x += 64)
+        {
+            std::uint64_t subject_mask = 0, object_mask = 0;
+
+            if (subject_offset)
+            {
+                if (subject_ptr >= subject_row_begin)
+                    subject_mask |= *subject_ptr << subject_inverse_offset;
+
+                if (++subject_ptr < subject_row_end)
+                    subject_mask |= *subject_ptr >> subject_offset;
+            }
+
+            else {
+                subject_mask |= *subject_ptr++;
+            }
+
+            if (object_offset) {
+                if (object_ptr >= object_row_begin)
+                    object_mask |= *object_ptr << object_inverse_offset;
+
+                if (++object_ptr < object_row_end)
+                    object_mask |= *object_ptr >> object_offset;
+            }
+
+            else {
+                object_mask |= *object_ptr++;
+            }
+
+            if (auto mask = subject_mask & object_mask)
+            {
+                Collision_point result;
+                result.collided = true;
+                result.point.x = x; result.point.y = y;
+                while ((mask & (std::uint64_t(1) << 63)) == 0)
+                {
+                    mask <<= 1;
+                    ++result.point.x;
+                }
+                
+                return result;
+            }
+        }
+
+        subject_begin += subject_row_width;
+        object_begin += object_row_width;
+
+        subject_row_begin = subject_row_end;
+        object_row_begin = object_row_end;
+    }
+
+        
+    return{};
 }
-*/
+
+ts::world::Collision_point ts::world::collision_test(const Collision_bitmap& subject, const Collision_bitmap& object,
+                                                     Vector2i subject_position, Vector2i object_position,
+                                                     Rotation<double> subject_rotation, Rotation<double> object_rotation,
+                                                     std::size_t subject_level, std::size_t object_level)
+{
+    if (subject_level != object_level) return {};
+    
+    const auto& subject_bitmap = subject.bitmap();
+    const auto& object_bitmap = object.bitmap();
+
+    Vector2i subject_size = subject.size();
+    Vector2i object_size = object.size();
+   
+    auto subject_data_size = subject_size.y * (subject_size.x >> 6);
+    auto object_data_size = object_size.y * (object_size.x >> 6);
+
+    Vector2i subject_center(subject_size.x >> 1, subject_size.y >> 1);
+    Vector2i object_center(object_size.x >> 1, object_size.y >> 1);
+
+    auto subject_frame_id = rotation_frame(subject_rotation);
+    auto object_frame_id = rotation_frame(object_rotation);
+
+    auto subject_data = &subject_bitmap[subject_frame_id * subject_data_size];
+    auto object_data = &object_bitmap[object_frame_id * object_data_size];
+
+    return collision_test_impl(subject_data, object_data, subject_size, object_size, 
+                               subject_position, object_position, subject_center, object_center);
+}
 
 ts::world::Collision_point ts::world::collision_test(const Collision_bitmap& subject, const Static_collision_bitmap& scenery,
-                                                     Vector2i subject_position, std::size_t subject_level)                                                     
+                                                     Vector2i subject_position, Rotation<double> subject_rotation, std::size_t subject_level)
 {
+    const auto& bitmap = subject.bitmap();
+    const auto& scenery_bitmap = scenery.bitmap();
     Vector2i subject_size = subject.size();
-    const auto& subject_bitmap = subject.bitmap();
-
     Vector2i scenery_size = scenery.size();
-    const auto& scenery_bitmap = scenery.bitmap();    
 
     Vector2i subject_center(subject_size.x >> 1, subject_size.y >> 1);
 
-    auto left_edge = subject_position.x - subject_center.x;
-    auto top_edge = subject_position.y - subject_center.y;
+    Vector2i scenery_center(0, 0);
+    Vector2i scenery_position(0, 0);
 
-    auto right_edge = std::min(left_edge + subject_size.x, scenery_size.x);
-    auto bottom_edge = std::min(top_edge + subject_size.y, scenery_size.y);
+    auto scenery_data_size = scenery_size.y * (scenery_size.x >> 6);
+    auto subject_data_size = subject_size.y * (subject_size.x >> 6);
 
-    auto scenery_row_width = scenery_size.x >> 6;
-    auto subject_row_width = subject_size.x >> 6;
+    auto frame_id = rotation_frame(subject_rotation);
 
-    auto subject_top_edge = (top_edge >= 0 ? 0 : -top_edge);
+    auto subject_data = &bitmap[frame_id * subject_data_size];
+    auto scenery_data = &scenery_bitmap[subject_level * scenery_data_size];
 
-    auto level_size = subject_row_width * scenery_size.y * subject_level;
+    return collision_test_impl(subject_data, scenery_data, subject_size, scenery_size, 
+                               subject_position, scenery_position, subject_center, scenery_center);
     
-    auto subject_row_begin = &subject_bitmap[level_size + subject_top_edge * subject_row_width];
-    auto subject_begin = subject_row_begin;
-    auto subject_end = subject_begin + subject_row_width;
-
-    top_edge = std::max(top_edge, 0);
-    auto scenery_row_begin = &scenery_bitmap[scenery_row_width * top_edge];
-    auto scenery_begin = scenery_row_begin;
-    auto scenery_end = scenery_row_begin + (right_edge >> 6);
-
-    if (left_edge >= 0) {
-        scenery_begin += left_edge >> 6;
-    }
-
-    else {
-        subject_begin += -left_edge >> 6;
-    }
-
-    auto offset = (left_edge + subject_size.x) & 63;
-    auto inverse_offset = (64 - offset) & 63;
-
-    auto collision = [](std::int32_t base_x, std::int32_t y, std::uint64_t mask)
-    {
-
-        Collision_point result;
-        result.collided = true;
-        result.point = { base_x, y };
-
-        while ((mask & (std::uint64_t(1) << 63)) == 0) {
-            mask <<= 1;
-            ++result.point.x;
-        }
-
-        return result;
-    };
-
-    auto base_x = (std::max(left_edge, 0) >> 6) << 6;
-
-    for (auto scenery_y = top_edge; scenery_y != bottom_edge; ++scenery_y)
-    {
-        auto scenery_x = base_x;
-
-        const auto* scenery_ptr = scenery_begin;
-        const auto* subject_ptr = subject_begin;
-
-        if (left_edge < 0)
-        {
-            if (auto mask = (inverse_offset ? (*subject_ptr << inverse_offset) & *scenery_ptr : 0))
-            {
-                return collision(scenery_x, scenery_y, mask);
-            }
-
-            ++subject_ptr;
-        }
-
-        else
-        {            
-            if (auto mask = (*subject_ptr >> offset) & *scenery_ptr)
-                return collision(scenery_x, scenery_y, mask);
-
-            ++scenery_ptr;
-            scenery_x += 64;
-        }
-
-        for (; scenery_ptr != scenery_end; ++subject_ptr, ++scenery_ptr)
-        {
-            if (const auto scenery = *scenery_ptr) {
-                auto mask = (inverse_offset ? (subject_ptr[0] << inverse_offset) & scenery : 0) |
-                    ((*subject_ptr >> offset) & scenery);
-
-                if (mask) {
-                    return collision(scenery_x, scenery_y, mask);
-                }
-
-            }
-
-            scenery_x += 64;
-        }
-
-        scenery_row_begin += scenery_row_width;
-        subject_row_begin += subject_row_width;
-
-        if (scenery_ptr != scenery_row_begin && subject_ptr != subject_row_begin)
-        {
-            if (auto mask = (inverse_offset ? (*subject_ptr << inverse_offset) & *scenery_ptr : 0))
-            {
-                return collision(scenery_x, scenery_y, mask);                
-            }
-                
-        }
-
-        scenery_begin += scenery_row_width;
-        scenery_end += scenery_row_width;
-        
-        subject_begin += subject_row_width;
-        subject_end += subject_row_width;
-    }
-
-    return Collision_point();
 }

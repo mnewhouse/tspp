@@ -68,7 +68,7 @@ ts::world::Car* ts::world::World::create_car(const resources::Car_definition& ca
         }
     );
 
-    car.set_position({ 739.0 / 2.0, 511.0 / 2.0 });
+    car.set_position({ 200.0, 511.0 / 2.0 });
 
     entity_list_.push_back(&car);
 
@@ -129,13 +129,7 @@ void ts::world::World::update(std::size_t frame_duration)
         Entity_state result;
         result.entity = entity;
         result.position = clamp_position(compute_new_position(*entity, fd));
-
         result.rotation = compute_new_rotation(*entity, fd);
-
-        auto delta_rotation = result.rotation - entity->rotation();
-        if (std::abs(delta_rotation.degrees()) >= 1.0) {
-            entity->collision_bitmap().set_rotation(result.rotation);
-        }
 
         return result;
     });
@@ -150,7 +144,11 @@ void ts::world::World::update(std::size_t frame_duration)
     }
 }
 
-std::ofstream debug("debug.txt");
+const std::shared_ptr<ts::world::Collision_bitmap> ts::world::World::dynamic_collision_bitmap
+    (const std::shared_ptr<resources::Pattern>& pattern)
+{
+    return dynamic_bitmap_store_[pattern];
+}
 
 void ts::world::World::handle_collisions(double frame_duration)
 {
@@ -188,23 +186,21 @@ void ts::world::World::handle_collisions(double frame_duration)
 
     auto get_new_collision = [this](const Entity_state& entity_state, double current_time_point)
     {
-        auto collision = detect_scenery_collision(entity_state, scenery_bitmap_);        
+        auto collision = detect_scenery_collision(entity_state, scenery_bitmap_);
+        auto entity_collision = detect_entity_collision(entity_state, state_buffer_.begin(), state_buffer_.end());
 
-        if (collision) {
+        if (entity_collision && (!collision || entity_collision.time_point < collision.time_point))
+        {
+            collision = entity_collision;
+        }
+
+        if (collision) 
+        {
             collision.time_point = current_time_point + collision.time_point * (1.0 - current_time_point);
         }
 
         return collision;
     };
-    
-    debug << "NEW COLLISION FRAME" << std::endl;
-
-    for (const auto& entity_state : state_buffer_)
-    {
-        debug << "R1: " << entity_state.entity->rotation().radians() << std::endl;
-        debug << "R2: " << entity_state.rotation.radians() << std::endl;
-        entity_state.entity->collision_bitmap().set_rotation(entity_state.rotation);
-    }
 
     for (const auto& entity_state : state_buffer_) 
     {
@@ -231,15 +227,14 @@ void ts::world::World::handle_collisions(double frame_duration)
 
         subject->set_position(subject_state.position);
         subject->set_rotation(subject_state.rotation);
-        subject->collision_bitmap().set_rotation(subject_state.rotation);
-        debug << "R: " << subject_state.rotation.radians() << std::endl;
-        debug << "T: " << collision.time_point << std::endl;
 
         if (object)
         {
             object->set_position(object_state.position);
             object->set_rotation(object_state.rotation);
-            object->collision_bitmap().set_rotation(object_state.rotation);
+
+            subject->set_velocity({});
+            object->set_velocity({});
         }
 
         else {

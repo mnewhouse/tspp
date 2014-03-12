@@ -90,7 +90,7 @@ namespace ts
             double elasticity_;
             double mass_;
 
-            Collision_bitmap collision_bitmap_;
+            std::shared_ptr<Collision_bitmap> collision_bitmap_;
         };
 
         struct Entity_state

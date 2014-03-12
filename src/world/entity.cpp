@@ -30,7 +30,7 @@ ts::world::Entity::Entity(World* world, const std::shared_ptr<resources::Pattern
       z_position_(0),
       velocity_(0, 0),
       angular_velocity_(0),      
-      collision_bitmap_(pattern)
+      collision_bitmap_(world->dynamic_collision_bitmap(pattern))
 {
 }
 
@@ -103,12 +103,12 @@ const ts::resources::Terrain_definition& ts::world::Entity::current_terrain() co
 
 const ts::world::Collision_bitmap& ts::world::Entity::collision_bitmap() const
 {
-    return collision_bitmap_;
+    return *collision_bitmap_;
 }
 
 ts::world::Collision_bitmap& ts::world::Entity::collision_bitmap()
 {
-    return collision_bitmap_;
+    return *collision_bitmap_;
 }
 
 void ts::world::Entity::set_elasticity(double elasticity)

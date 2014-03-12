@@ -158,6 +158,14 @@ ts::states::Action_state::Action_state(resources::Track&& track, const cup::Stag
             action_scene_.camera().set_target(&*car);
         }
     }
+
+    resources::Car_store car_store;
+    auto car_def = car_store->get_car_by_name("punaball");
+    if (car_def) {
+        auto ball = world_.create_car(*car_def);
+        ball->set_position({ 739 / 2.0, 511 / 2.0 });
+    }
+
 }
 
 void ts::states::Action_state::handle_event(const sf::Event& event)

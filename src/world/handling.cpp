@@ -241,9 +241,11 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
         current_traction /= total_required_traction * std::max(traction_loss.multiplier, 1.0);
     }
 
-    acceleration_force -= acceleration_force * (1.0 - current_traction) * traction_loss.accelerate_effect;
-    braking_force -= braking_force * (1.0 - current_traction) * traction_loss.brake_effect;
-    steering_speed -= steering_speed * (1.0 - current_traction) * traction_loss.steering_effect;
+    // Multiplier = 2.0 for traction = 0.0
+    // Multiplier = 1.0 for traction = 1.0
+    acceleration_force *= 1.0 - (1.0 - current_traction) * (1.0 - traction_loss.accelerate_effect);
+    braking_force *= 1.0 - (1.0 - current_traction) * (1.0 - traction_loss.brake_effect);
+    steering_speed *= 1.0 - (1.0 - current_traction) * (1.0 - traction_loss.steering_effect);
 
     auto net_force = acceleration_force + braking_force + resistance;
     
@@ -265,11 +267,10 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
         auto max_correction = std::abs(new_reverse_oversteer.radians()) < std::abs(new_oversteer.radians()) ?
             new_reverse_oversteer : new_oversteer;
 
-
         auto antislide = (properties.antislide / new_speed);
-        antislide -= antislide * (1.0 - current_traction) * traction_loss.antislide_effect;
+        antislide *= 1.0 - (1.0 - current_traction) * (1.0 - traction_loss.antislide_effect);
 
-        auto correction = std::min((properties.antislide / new_speed) * frame_duration, std::abs(max_correction.radians()));
+        auto correction = std::min(antislide * frame_duration, std::abs(max_correction.radians()));
         if (max_correction.radians() < 0.0) correction = -correction;
 
         new_heading += Rotation<double>::radians(correction);
