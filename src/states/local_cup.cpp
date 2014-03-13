@@ -83,7 +83,7 @@ void ts::states::Local_cup_scene::render(graphics::Render_target& render_target)
 
     gui::elements::Rectangular_button<float> button(make_id(0), rect);
     if (button(context()).clicked) {
-        if (track_handle) {
+        if (track_handle && !cup_state_->is_loading()) {
             cup_state_->async_load();
         }
 

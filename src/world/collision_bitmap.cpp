@@ -7,6 +7,8 @@
 #include <cmath>
 #include <algorithm>
 #include <fstream>
+#include <iostream>
+#include <iomanip>
 
 namespace
 {
@@ -166,6 +168,23 @@ ts::world::Static_collision_bitmap::Static_collision_bitmap(const resources::Pat
             }
         }
     }
+
+    std::ofstream debug("debug.txt");
+    auto ptr = &bitmap_[0];
+
+    for (auto y = 0; y != bitmap_size_.y; ++y)
+    {
+        for (auto x = 0; x != bitmap_size_.x; x += 64)
+        {
+            auto entry = *ptr++;
+            for (auto i = 63; i >= 0; --i)
+            {
+                debug << ((entry >> i) & 1);
+            }
+        }
+
+        debug << "\n";
+    }
 }
 
 const ts::Vector2u& ts::world::Static_collision_bitmap::size() const
@@ -289,6 +308,7 @@ ts::world::Collision_point ts::world::collision_test_impl(const std::uint64_t* s
                 Collision_point result;
                 result.collided = true;
                 result.point.x = x; result.point.y = y;
+
                 while ((mask & (std::uint64_t(1) << 63)) == 0)
                 {
                     mask <<= 1;
@@ -305,9 +325,8 @@ ts::world::Collision_point ts::world::collision_test_impl(const std::uint64_t* s
         subject_row_begin = subject_row_end;
         object_row_begin = object_row_end;
     }
-
         
-    return{};
+    return {};
 }
 
 ts::world::Collision_point ts::world::collision_test(const Collision_bitmap& subject, const Collision_bitmap& object,

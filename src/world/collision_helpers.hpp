@@ -26,6 +26,7 @@
 #include <cmath>
 #include <array>
 #include <utility>
+#include <cassert>
 
 namespace ts
 {
@@ -96,58 +97,6 @@ auto ts::world::test_trajectory(Vector2<double> start, Vector2<double> end, Coll
 
     return result;
 }
-
-#ifdef DISABLED
-template <typename CollisionTest>
-auto ts::world::test_trajectory(Vector2i point, Vector2i end, CollisionTest test_func) ->
-    ts::world::Trajectory_point<typename std::decay<decltype(test_func(point, 0.0))>::type>
-{
-    using result_type = typename std::decay<decltype(test_func(point, 0.0))>::type;
-
-    Trajectory_point<result_type> result;
-    result.point = point;
-    result.valid_point = point;
-    result.time_point = 0.0;
-    result.valid_time_point = -1.0;
-
-    const auto dx = std::abs(result.point.x - end.x);
-    const auto dy = std::abs(point.y - end.y);
-
-    const auto sx = result.point.x < end.x ? 1 : -1;
-    const auto sy = result.point.y < end.y ? 1 : -1;
-
-    auto e = dx - dy;
-
-    const double time_step = (dx || dy ? 1.0 / std::max(dx, dy) : 0.0);
-
-    while (result.point != end)
-    {
-        result.result = test_func(result.point, result.time_point);
-        if (result.result) return result;
-
-        result.valid_point = result.point;        
-        result.valid_time_point = result.time_point;        
-
-        auto e2 = e * 2;
-        if (e2 > -dy) 
-        {
-            e -= dy;
-            result.point.x += sx;
-        }
-
-        else
-        {
-            e += dx;
-            result.point.y += sy;
-        }
-
-        result.time_point += time_step;
-    }
-
-    result.result = test_func(result.point, 1.0);
-    return result;
-}
-#endif
 
 template <typename WallTest>
 ts::Vector2<double> ts::world::get_edge_normal(Vector2i point, Vector2<double> heading, WallTest is_wall)

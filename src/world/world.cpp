@@ -134,26 +134,7 @@ void ts::world::World::update(std::size_t frame_duration)
         return result;
     });
 
-    handle_collisions(fd);
-
-    // Finally, set the entities' new states
-    for (auto& state : state_buffer_) 
-    {
-        state.entity->set_position(state.position);
-        state.entity->set_rotation(state.rotation);
-    }
-}
-
-const std::shared_ptr<ts::world::Collision_bitmap> ts::world::World::dynamic_collision_bitmap
-    (const std::shared_ptr<resources::Pattern>& pattern)
-{
-    return dynamic_bitmap_store_[pattern];
-}
-
-void ts::world::World::handle_collisions(double frame_duration)
-{
-    Vector2i track_size = track_.size();
-
+    
     auto insert_collision = [this](const Collision_result& collision)
     {
         auto conflict_predicate = [&collision](const Collision_result& other)
@@ -243,8 +224,8 @@ void ts::world::World::handle_collisions(double frame_duration)
             resolve_scenery_collision(collision, terrain.wall_definition.elasticity);
         }
 
-        auto time_left = 1.0 - collision.time_point, real_time_left = time_left * frame_duration;
-        auto time_passed = time_left - last_time_point, real_time_passed = time_passed * frame_duration;
+        auto time_left = 1.0 - collision.time_point, real_time_left = time_left * fd;
+        auto time_passed = time_left - last_time_point, real_time_passed = time_passed * fd;
 
         // Update all entities
         for (auto& target_state : state_buffer_)
@@ -277,7 +258,20 @@ void ts::world::World::handle_collisions(double frame_duration)
             insert_collision(new_collision);
         }
 
-        last_time_point = collision.time_point;        
+        last_time_point = collision.time_point;
     }
+
+    // Finally, set the entities' new states
+    for (auto& state : state_buffer_) 
+    {
+        state.entity->set_position(state.position);
+        state.entity->set_rotation(state.rotation);
+    }
+}
+
+const std::shared_ptr<ts::world::Collision_bitmap> ts::world::World::dynamic_collision_bitmap
+    (const std::shared_ptr<resources::Pattern>& pattern)
+{
+    return dynamic_bitmap_store_[pattern];
 }
 

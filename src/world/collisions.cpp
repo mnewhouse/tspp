@@ -20,6 +20,38 @@
 #include "collisions.hpp"
 #include "collision_helpers.hpp"
 
+namespace ts
+{
+    namespace world
+    {
+        Vector2<double> adjust_position(const Vector2<double>& position, const Vector2<double>& heading);
+    }
+}
+
+ts::Vector2<double> ts::world::adjust_position(const Vector2<double>& position, const Vector2<double>& heading)
+{    
+    auto target_position = position;
+    if (std::abs(heading.x) > std::abs(heading.y))
+    {
+        target_position.x = std::floor(target_position.x) + 0.5;
+        if (heading.x > 0.0) target_position.x = std::min(target_position.x, position.x);
+        else target_position.x = std::max(target_position.x, position.x);
+
+        target_position.y += (target_position.x - position.x) / heading.x * heading.y;
+    }
+        
+    else if (heading.y != 0.0)
+    {
+        target_position.y = std::floor(target_position.y) + 0.5;
+        if (heading.y > 0.0) target_position.y = std::min(target_position.y, position.y);
+        else target_position.y = std::max(target_position.y, position.y);
+
+        target_position.x += (target_position.y - position.y) / heading.y * heading.x;
+    }
+
+    return target_position;
+}
+
 ts::world::Collision_result ts::world::detect_entity_collision(const Entity_state& subject_state, const Entity_state& object_state)
 {
     auto subject = subject_state.entity;
@@ -97,6 +129,8 @@ ts::world::Collision_result ts::world::detect_scenery_collision(const Entity_sta
         return scenery(point, level);
     };
 
+    auto heading = normalize(entity->velocity());
+
     result.rotate = true;
     result.deflect = true;
     result.collided = true;
@@ -104,8 +138,8 @@ ts::world::Collision_result ts::world::detect_scenery_collision(const Entity_sta
     result.global_point = collision_point.result.point;
 
     result.subject_state = entity_state;
-    result.subject_state.position = collision_point.valid_point;
-    result.subject_state.rotation = entity_state.rotation;
+    result.subject_state.position = adjust_position(collision_point.valid_point, heading);
+    result.subject_state.rotation = entity_state.rotation;    
 
     if (collision_point.valid_time_point < 0.0)
     {
@@ -115,7 +149,7 @@ ts::world::Collision_result ts::world::detect_scenery_collision(const Entity_sta
         result.time_point = 0.0;
     }
 
-    result.normal = get_edge_normal(result.global_point, entity->velocity(), is_wall);
+    result.normal = get_edge_normal(result.global_point, heading, is_wall);
     
     return result;    
 }
@@ -126,7 +160,7 @@ void ts::world::resolve_scenery_collision(const Collision_result& collision, dou
     if (collision.deflect)
     {
         const auto& subject_state = collision.subject_state;
-        auto entity = subject_state.entity;
+        auto entity = subject_state.entity;        
 
         const auto& normal = collision.normal;
         const auto& velocity = entity->velocity();
