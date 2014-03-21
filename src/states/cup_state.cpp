@@ -40,10 +40,9 @@ void ts::states::Cup_state::async_load()
     auto stg_data = stage_data();
 
     auto loader = [=]()
-    {
-        resources::Track track(track_handle);
-
-        return make_unique<Action_state>(std::move(track), stg_data, state_machine_handle, context_handle);
+    { 
+        auto result = make_unique<Action_state>(resources::Track(track_handle), stg_data, state_machine_handle, context_handle);
+        return result;
     };
 
     future_state_ = std::async(std::launch::async, loader);

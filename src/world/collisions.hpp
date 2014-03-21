@@ -32,6 +32,7 @@ namespace ts
             bool collided = false;
             bool rotate = false;
             bool deflect = false;
+            bool stuck = false;
 
             Entity_state subject_state;
             Entity_state object_state;            
@@ -49,7 +50,7 @@ namespace ts
         template <typename InputIt>
         Collision_result detect_entity_collision(const Entity_state& subject, InputIt it, InputIt end);
 
-        Collision_result detect_entity_collision(const Entity_state& subject, const Entity_state& object);
+        Collision_result detect_entity_collision(Entity_state subject, Entity_state object);
         Collision_result detect_scenery_collision(const Entity_state& entity_state, const Static_collision_bitmap& scenery);
 
         void resolve_entity_collision(const Collision_result& collision);
@@ -60,6 +61,8 @@ namespace ts
 template <typename InputIt>
 ts::world::Collision_result ts::world::detect_entity_collision(const Entity_state& subject, InputIt it, InputIt end)
 {
+    if (it == end) return {};
+
     auto collision = detect_entity_collision(subject, *it);
     while (++it != end)
     {

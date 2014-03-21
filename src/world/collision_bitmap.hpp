@@ -46,9 +46,12 @@ namespace ts
             const Vector2u& size() const;
             const std::vector<std::uint64_t>& bitmap() const;
 
-        private:
-            void update(Rotation<double> rotation);
-            
+            bool operator()(Vector2i point) const;
+            bool operator()(Vector2i point, Rotation<double> rotation) const;
+
+            Vector2i base_point(Vector2i point, Rotation<double> rotation) const;
+
+        private:            
             Vector2u bitmap_size_;
             std::vector<std::uint64_t> bitmap_;
         };
@@ -62,7 +65,6 @@ namespace ts
             std::map<std::shared_ptr<resources::Pattern>, std::shared_ptr<Collision_bitmap>> bitmap_lookup_;
         };
 
-
         class Static_collision_bitmap
         {
         public:
@@ -72,7 +74,7 @@ namespace ts
             const std::vector<std::uint64_t>& bitmap() const;
             std::size_t num_levels() const;
 
-            bool operator()(Vector2u point, std::size_t level = 0) const;
+            bool operator()(const Vector2u& point, std::size_t level = 0) const;
 
         private:
             std::vector<std::uint64_t> bitmap_;
@@ -90,8 +92,7 @@ namespace ts
 
         Collision_point collision_test(const Collision_bitmap& subject, const Collision_bitmap& object,
                                        Vector2i subject_position, Vector2i object_position,
-                                       Rotation<double> subject_rotation, Rotation<double> object_rotation,
-                                       std::size_t subject_level, std::size_t object_level);
+                                       Rotation<double> subject_rotation, Rotation<double> object_rotation);
 
         Collision_point collision_test(const Collision_bitmap& subject, const Static_collision_bitmap& scenery,
                                        Vector2i subject_position, Rotation<double> subject_rotation, std::size_t subject_level);

@@ -45,7 +45,10 @@ namespace ts
         };
         
         template <typename WallTest>
-        ts::Vector2<double> get_edge_normal(Vector2i point, Vector2<double> heading, WallTest is_wall);
+        Vector2<double> get_edge_normal(Vector2i point, Vector2<double> heading, WallTest is_wall);
+
+        Vector2<double> adjust_normal_to_heading(Vector2<double> normal, Vector2<double> heading);
+        Vector2<double> adjust_normal_to_rotation(Vector2<double> normal, Rotation<double> rotation);
 
         template <typename CollisionTest>
         auto test_trajectory(Vector2<double> point, Vector2<double> end, CollisionTest test_func) ->
@@ -154,6 +157,53 @@ ts::Vector2<double> ts::world::get_edge_normal(Vector2i point, Vector2<double> h
     return dot_product(normal, -heading) >= dot_product(-normal, -heading) ? normal : -normal;
 }
 
+inline ts::Vector2<double> ts::world::adjust_normal_to_heading(Vector2<double> normal, Vector2<double> heading)
+{
+    auto rotation = Rotation<double>::radians(std::atan2(heading.x, -heading.y));
+    return adjust_normal_to_rotation(normal, rotation);
+}
+
+inline ts::Vector2<double> ts::world::adjust_normal_to_rotation(Vector2<double> normal, Rotation<double> rotation)
+{
+    auto normal_angle = std::atan2(normal.x, -normal.y);
+    auto deviation = std::fmod(rotation.radians() - normal_angle, 1.570796326794896557998981734272);
+
+    // This is pretty abysmal, with all these hardcoded rotations. I'm fully aware of that.
+
+    if (deviation < 0.0)
+    {
+        deviation += 1.570796326794896557998981734272;
+    }
+    
+    if (deviation < 0.23182380450040304675773938924976391717791557312012)
+    {
+    	normal_angle += deviation;
+    }
+    
+    else if (deviation < 0.624522886199127214013060438446700572967529296875)
+    {
+    	normal_angle += deviation - 0.4636476090008060935154787784;
+    }
+    
+    else if (deviation < 0.9462734405957693439859212958253920078277587890625)
+    {
+    	normal_angle += deviation - 0.7853981633974482789994908671;
+    }
+    
+    else if (deviation < 1.3389725222944934834856667293934151530265808105469)
+    {
+    	normal_angle += deviation - 1.1071487177940904089723517245;
+    }
+    
+    else {
+    	normal_angle += deviation - 1.5707963267948965579989817342;
+    }
+    
+    normal.x = std::sin(normal_angle);
+    normal.y = -std::cos(normal_angle);
+
+    return normal;
+}
 
 
 #endif

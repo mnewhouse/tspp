@@ -226,8 +226,8 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
 
     auto current_traction = 1.0;
     if (speed != 0.0) {
-    //    current_traction = std::abs(std::abs(oversteer.radians()) < std::abs(reverse_oversteer.radians()) ?
-    //                                std::cos(oversteer.radians()) : std::cos(reverse_oversteer.radians()));
+        current_traction = std::abs(std::abs(oversteer.radians()) < std::abs(reverse_oversteer.radians()) ?
+                                    std::cos(oversteer.radians()) : std::cos(reverse_oversteer.radians()));
     }
 
     auto required_lateral_traction = (steering_speed != 0.0 ? properties.steering * speed : 0.0);
@@ -241,8 +241,6 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
         current_traction /= total_required_traction * std::max(traction_loss.multiplier, 1.0);
     }
 
-    // Multiplier = 2.0 for traction = 0.0
-    // Multiplier = 1.0 for traction = 1.0
     acceleration_force *= 1.0 - (1.0 - current_traction) * (1.0 - traction_loss.accelerate_effect);
     braking_force *= 1.0 - (1.0 - current_traction) * (1.0 - traction_loss.brake_effect);
     steering_speed *= 1.0 - (1.0 - current_traction) * (1.0 - traction_loss.steering_effect);
@@ -258,11 +256,11 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
         heading_vec = new_heading;
     }
     
-    if (speed != 0.0) {
+    auto new_speed = magnitude(velocity);
+    if (new_speed != 0.0) {
         auto new_heading = Rotation<double>::radians(std::atan2(velocity.x, -velocity.y));
         auto new_oversteer = rotation - new_heading;
         auto new_reverse_oversteer = reverse_rotation - new_heading;
-        auto new_speed = magnitude(velocity);
 
         auto max_correction = std::abs(new_reverse_oversteer.radians()) < std::abs(new_oversteer.radians()) ?
             new_reverse_oversteer : new_oversteer;

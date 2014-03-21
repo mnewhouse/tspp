@@ -35,7 +35,7 @@ namespace ts
 std::size_t ts::world::rotation_frame(Rotation<double> rotation)
 {
     const double frame_factor = num_rotations / 360.0;
-    auto frame_id = static_cast<int>(std::floor(90 * frame_factor + 0.5)) + num_rotations;
+    auto frame_id = static_cast<int>(std::floor(rotation.degrees() * frame_factor + 0.5)) + num_rotations;
     if (frame_id >= num_rotations) frame_id -= num_rotations;
 
     return frame_id;
@@ -77,6 +77,46 @@ std::vector<std::uint64_t> ts::world::generate_rotated_bitmaps(const resources::
         auto sin = std::sin(rotation.radians());
         auto cos = std::cos(rotation.radians());
 
+        Vector2<double> dest_point(-dest_center.x, -dest_center.y);
+
+        auto entry_ptr = &bitmap[bitmap_size.y * row_width * r];
+        
+        for (std::size_t y = 0; y != bitmap_size.y; ++y, dest_point.y += 1.0)
+        {
+            dest_point.x = -dest_center.x;
+
+            for (std::size_t x = 0; x != bitmap_size.x; )
+            {
+                std::uint64_t entry = 0;
+
+                for (std::size_t x_end = x + 64; x != x_end; ++x, dest_point.x += 1.0)
+                {
+                    auto transformed = transform_point(dest_point, -sin, cos);
+                    transformed.x = std::floor(transformed.x + 0.5);
+                    transformed.y = std::floor(transformed.y + 0.5);
+
+                    auto source_point = transformed;
+                    source_point += source_center;
+
+                    entry <<= 1;
+                    
+                    if (source_point.x >= 0 && source_point.y >= 0 &&
+                        source_point.x < pattern_size.x && source_point.y < pattern_size.y &&
+                        pattern(source_point.x, source_point.y))
+                    {
+                        entry |= 1;
+                    }
+                }
+
+                *entry_ptr++ = entry;
+            }
+        }
+
+        /*
+        
+        auto sin = std::sin(rotation.radians());
+        auto cos = std::cos(rotation.radians());
+
         Vector2<double> source_point(-source_center.x, -source_center.y);
 
         auto base_ptr = &bitmap[bitmap_size.y * row_width * r];
@@ -98,6 +138,20 @@ std::vector<std::uint64_t> ts::world::generate_rotated_bitmaps(const resources::
                 entry |= std::uint64_t(1) << (63 - (dest_point.x & 63));
             }
         }
+        */
+    }
+
+    std::ofstream debug("fuck.txt");
+
+    auto ptr = &bitmap[0];
+    for (auto y = 0; y != bitmap_size.y; ++y)
+    {
+        for (auto x = 0; x != bitmap_size.x; x += 64)
+        {
+            debug << std::hex << std::setw(16) << std::setfill('0') << *ptr++;
+        }
+
+        debug << std::endl;
     }
 
     return bitmap;    
@@ -119,6 +173,71 @@ const std::vector<std::uint64_t>& ts::world::Collision_bitmap::bitmap() const
 {
     return bitmap_;
 }
+
+bool ts::world::Collision_bitmap::operator()(Vector2i point) const
+{
+    point.x += bitmap_size_.x >> 1;
+    point.y += bitmap_size_.y >> 1;
+
+    if (point.x < 0 || point.y < 0 || point.x >= int(bitmap_size_.x) || point.y >= int(bitmap_size_.y))
+        return false;
+
+    auto row_width = bitmap_size_.x >> 6;
+    auto entry = bitmap_[point.y * row_width + (point.x >> 6)];
+
+    return (entry << (point.x & 63) >> 63) != 0;
+}
+
+bool ts::world::Collision_bitmap::operator()(Vector2i point, Rotation<double> rotation) const
+{
+    point.x += bitmap_size_.x >> 1;
+    point.y += bitmap_size_.y >> 1;
+
+    if (point.x < 0 || point.y < 0 || point.x >= int(bitmap_size_.x) || point.y >= int(bitmap_size_.y))
+        return false;
+
+    auto frame_id = rotation_frame(rotation);
+
+    auto row_width = bitmap_size_.x >> 6;
+    auto base_ptr = &bitmap_[bitmap_size_.y * row_width * frame_id];
+    auto entry = base_ptr[point.y * row_width + (point.x >> 6)];
+
+    return (entry << (point.x & 63) >> 63) != 0;
+}
+
+ts::Vector2i ts::world::Collision_bitmap::base_point(Vector2i point, Rotation<double> rotation) const
+{
+    const double frame_factor = num_rotations / 360.0;
+
+    auto id = rotation_frame(rotation);
+    auto frame_rotation = Rotation<double>::degrees(frame_factor * id);
+
+    auto sin = std::sin(frame_rotation.radians());
+    auto cos = std::cos(frame_rotation.radians());
+
+    auto transformed = transform_point(point, -sin, cos);
+    transformed.x = std::floor(transformed.x + 0.5);
+    transformed.y = std::floor(transformed.y + 0.5);
+    return transformed;
+}
+
+/*
+bool ts::world::Collision_bitmap::operator()(Vector2i point, double sin, double cos) const
+{
+    Vector2i source_point = transform_point(point, -sin, -cos);
+    source_point.x += bitmap_size_.x >> 1;
+    source_point.y += bitmap_size_.y >> 1;
+
+   if (source_point.x < 0 || source_point.y < 0 || 
+       source_point.x >= bitmap_size_.x || source_point.y >= bitmap_size_.y) 
+       return false;
+    
+    auto row_width = bitmap_size_.x >> 6;
+    auto entry = bitmap_[source_point.y * row_width + (source_point.x >> 6)];
+
+    return (entry << (source_point.x & 63) >> 63) != 0;
+}
+*/
 
 const std::shared_ptr<ts::world::Collision_bitmap>& ts::world::Collision_bitmap_store::operator[]
     (const std::shared_ptr<resources::Pattern>& pattern)
@@ -168,23 +287,6 @@ ts::world::Static_collision_bitmap::Static_collision_bitmap(const resources::Pat
             }
         }
     }
-
-    std::ofstream debug("debug.txt");
-    auto ptr = &bitmap_[0];
-
-    for (auto y = 0; y != bitmap_size_.y; ++y)
-    {
-        for (auto x = 0; x != bitmap_size_.x; x += 64)
-        {
-            auto entry = *ptr++;
-            for (auto i = 63; i >= 0; --i)
-            {
-                debug << ((entry >> i) & 1);
-            }
-        }
-
-        debug << "\n";
-    }
 }
 
 const ts::Vector2u& ts::world::Static_collision_bitmap::size() const
@@ -198,7 +300,7 @@ const std::vector<std::uint64_t>& ts::world::Static_collision_bitmap::bitmap() c
     return bitmap_;
 }
 
-bool ts::world::Static_collision_bitmap::operator()(Vector2u point, std::size_t level) const
+bool ts::world::Static_collision_bitmap::operator()(const Vector2u& point, std::size_t level) const
 {
     if (point.x >= bitmap_size_.x || point.y >= bitmap_size_.y) return false;
 
@@ -331,11 +433,8 @@ ts::world::Collision_point ts::world::collision_test_impl(const std::uint64_t* s
 
 ts::world::Collision_point ts::world::collision_test(const Collision_bitmap& subject, const Collision_bitmap& object,
                                                      Vector2i subject_position, Vector2i object_position,
-                                                     Rotation<double> subject_rotation, Rotation<double> object_rotation,
-                                                     std::size_t subject_level, std::size_t object_level)
-{
-    if (subject_level != object_level) return {};
-    
+                                                     Rotation<double> subject_rotation, Rotation<double> object_rotation)
+{    
     const auto& subject_bitmap = subject.bitmap();
     const auto& object_bitmap = object.bitmap();
 
