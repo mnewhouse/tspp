@@ -61,7 +61,7 @@ namespace ts
             const resources::Terrain_definition& terrain_at(Vector2d point) const;
             const resources::Terrain_definition& terrain_at(Vector2d point, std::size_t level) const;
 
-            const std::shared_ptr<Collision_bitmap> dynamic_collision_bitmap
+            const std::shared_ptr<Collision_bitmap>& collision_bitmap
                 (const std::shared_ptr<resources::Pattern>& pattern);
 
         private:

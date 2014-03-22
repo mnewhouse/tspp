@@ -41,8 +41,7 @@ void ts::states::Cup_state::async_load()
 
     auto loader = [=]()
     { 
-        auto result = make_unique<Action_state>(resources::Track(track_handle), stg_data, state_machine_handle, context_handle);
-        return result;
+        return std::make_unique<Action_state>(resources::Track(track_handle), stg_data, state_machine_handle, context_handle);
     };
 
     future_state_ = std::async(std::launch::async, loader);

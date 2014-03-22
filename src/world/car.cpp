@@ -60,3 +60,7 @@ void ts::world::Car::set_current_traction(double traction)
     current_traction_ = traction;
 }
 
+double ts::world::Car::top_speed() const
+{
+    return 300.0;
+}

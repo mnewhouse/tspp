@@ -25,6 +25,7 @@
 #include <vector>
 #include <memory>
 
+#include "include_path.hpp"
 #include "image_type.hpp"
 #include "wall_definition.hpp"
 
@@ -44,20 +45,26 @@ namespace ts
             std::string file_path;
 
             std::string car_name;
+
+            std::string pattern_file;
+            Int_rect pattern_rect;
+
+            std::shared_ptr<Pattern> pattern;
+
             Int_rect image_rect;
             float image_scale;
             std::string image_file;
             Image_type image_type;
 
-            std::shared_ptr<Pattern> pattern;
             Wall_definition wall_definition;
 
             world::Handling_properties handling;
+
+            std::string engine_sample;
         };
 
-        std::istream& operator>>(std::istream& stream, Car_definition& car_definition);
-
-        std::vector<Car_definition> load_car_definitions(std::istream& stream);
+        Car_definition load_car_definition(std::istream& stream, const std::string& directory);
+        std::vector<Car_definition> load_car_definitions(std::istream& stream, const std::string& directory);
 
     }
 

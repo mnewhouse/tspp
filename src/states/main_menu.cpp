@@ -86,7 +86,7 @@ void ts::states::Main_menu_scene::render(graphics::Render_target& render_target)
 
         const auto& state_machine = main_menu_->state_machine();
 
-        auto cup_state = make_unique<Local_cup_state>(state_machine, context());
+        auto cup_state = std::make_unique<Local_cup_state>(state_machine, context());
         cup_state->set_background(main_menu_->background());
 
         cup::Player player;

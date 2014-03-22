@@ -31,6 +31,7 @@ namespace ts
         static const char* const track_root_directory = "tracks";
         static const char* const data_directory = "data";
         static const char* const car_directory = "cars";
+        static const char* const sound_directory = "sound";
 
     }
 

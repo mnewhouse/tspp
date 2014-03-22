@@ -26,7 +26,6 @@
 #include "resources/car_store.hpp"
 #include "graphics/texture.hpp"
 
-#include <boost/filesystem.hpp>
 #include <iostream>
 
 ts::states::Action_scene::Action_scene(const resources::Track& track, const cup::Stage_data& stage_data)
@@ -51,28 +50,27 @@ ts::graphics::Camera& ts::states::Action_scene::camera()
     return camera_;
 }
 
-void ts::states::Action_scene::on_car_create(const world::Car& car)
+void ts::states::Action_scene::on_car_create(world::Car* car)
 {
-    const auto& car_definition = car.car_definition();
-    boost::filesystem::path image_path = config::car_directory;
-    image_path /= car_definition.image_file;
+    const auto& car_definition = car->car_definition();
 
     sf::Image image;
-    image.loadFromFile(image_path.string());
+    if (image.loadFromFile(car_definition.image_file)) {
+        graphics::Texture texture(image, car_definition.image_rect);
+        drawable_entities_.emplace_back(car, Handle<graphics::Texture>(std::move(texture)), car_definition.image_type);
 
-    graphics::Texture texture(image, car_definition.image_rect);
-    drawable_entities_.emplace_back(&car, Handle<graphics::Texture>(std::move(texture)), car_definition.image_type);
+        Vector2f scale(car_definition.image_scale, car_definition.image_scale);
 
-    Vector2f scale(car_definition.image_scale, car_definition.image_scale);
-    drawable_entities_.back().set_scale(scale);
+        drawable_entities_.back().set_scale(scale);
+    }
 }
 
-void ts::states::Action_scene::on_entity_destroy(const world::Entity& entity)
+void ts::states::Action_scene::on_entity_destroy(world::Entity* entity)
 {
     auto it = std::remove_if(drawable_entities_.begin(), drawable_entities_.end(), 
         [&](const graphics::Drawable_entity& object)
         {
-            return object.entity() == &entity;
+            return object.entity() == entity;
         }
     );
 
@@ -129,7 +127,7 @@ void ts::states::Action_scene::render(graphics::Render_target& render_target)
         }
 
         render_states.texture = component.texture;
-        render_target.draw(&component.vertices[0], component.vertices.size(), sf::Quads, render_states);
+        render_target.draw(&component.vertices[0], static_cast<unsigned>(component.vertices.size()), sf::Quads, render_states);
     }
 
     for (; entity_it != entity_end; ++entity_it) {
@@ -149,6 +147,7 @@ ts::states::Action_state::Action_state(resources::Track&& track, const cup::Stag
       key_mapping_(controls::default_key_mapping())
 {
     world_.add_entity_listener(&action_scene_);
+    world_.add_entity_listener(&engine_sound_controller_);
 
     for (const auto& player : stage_data.players) {
         auto car = world_.create_car(player.car);
@@ -210,4 +209,6 @@ void ts::states::Action_state::update(std::size_t frame_duration)
 {
     action_scene_.update(frame_duration);
     world_.update(frame_duration);
+
+    engine_sound_controller_.update(frame_duration);
 }

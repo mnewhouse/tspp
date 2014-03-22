@@ -28,8 +28,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
-std::istream& ts::resources::operator>>(std::istream& stream, Car_definition& car_def)
+ts::resources::Car_definition ts::resources::load_car_definition(std::istream& stream, const std::string& directory)
 {
+    Car_definition car_def;
+
     for (std::string line, directive; directive != "end" && std::getline(stream, line); ) {
         boost::trim(line);
         std::istringstream line_stream(line);
@@ -42,7 +44,7 @@ std::istream& ts::resources::operator>>(std::istream& stream, Car_definition& ca
 
             if (line_stream >> file >> rect >> scale)
             {
-                car_def.image_file = std::move(file);
+                car_def.image_file = find_include_path(file, { directory });
                 car_def.image_scale = scale;
                 car_def.image_rect = rect;                
                 car_def.image_type = Image_type::Default;
@@ -60,10 +62,10 @@ std::istream& ts::resources::operator>>(std::istream& stream, Car_definition& ca
             std::string pattern_file;
             Int_rect pattern_rect;
             if (line_stream >> pattern_file >> pattern_rect) {
-                boost::filesystem::path path = config::car_directory;
-                path /= pattern_file;
+                car_def.pattern_file = find_include_path(pattern_file, { directory });
+                car_def.pattern_rect = pattern_rect;
 
-                car_def.pattern = std::make_shared<Pattern>(path.string(), pattern_rect);
+                car_def.pattern = std::make_shared<Pattern>(car_def.pattern_file);
             }
         }
 
@@ -74,12 +76,20 @@ std::istream& ts::resources::operator>>(std::istream& stream, Car_definition& ca
         else if (directive == "elasticity") {
             line_stream >> car_def.wall_definition.elasticity;
         }
+
+        else if (directive == "enginesample") {
+            std::string file_name;
+            if (line_stream >> file_name)
+            {
+                car_def.engine_sample = find_include_path(file_name, { directory, config::sound_directory });
+            }
+        }
     }
 
-    return stream;
+    return car_def;
 }
 
-std::vector<ts::resources::Car_definition> ts::resources::load_car_definitions(std::istream& stream)
+std::vector<ts::resources::Car_definition> ts::resources::load_car_definitions(std::istream& stream, const std::string& directory)
 {
     std::vector<Car_definition> result;
 
@@ -93,11 +103,11 @@ std::vector<ts::resources::Car_definition> ts::resources::load_car_definitions(s
             Car_definition car_def;
 
             boost::trim(line);
-            car_def.car_name = line;
+            const auto& car_name = line;
 
             try {
-                stream >> car_def;
-                result.push_back(std::move(car_def));
+                result.push_back(load_car_definition(stream, directory));
+                result.back().car_name = car_name;
             }
 
             catch (...) {

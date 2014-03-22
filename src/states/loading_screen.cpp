@@ -103,7 +103,7 @@ void ts::states::Loading_state::display_main_menu()
 {
     const auto& sm_handle = state_machine();
 
-    auto main_menu = make_unique<Main_menu>(sm_handle, context());
+    auto main_menu = std::make_unique<Main_menu>(sm_handle, context());
     main_menu->set_background(background());
 
     sm_handle->change_state();

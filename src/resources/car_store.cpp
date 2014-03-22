@@ -36,7 +36,7 @@ void ts::resources::impl::Car_store::scan_directory(const std::string& directory
         for (boost::filesystem::directory_iterator it(dir_path), end; it != end; ++it) {
             if (it->path().extension() != ".car") continue;
 
-            load_car_file(it->path().string());
+            load_car_file(it->path().string(), directory);
         }
     }
     
@@ -46,11 +46,11 @@ void ts::resources::impl::Car_store::scan_directory(const std::string& directory
     }
 }
 
-void ts::resources::impl::Car_store::load_car_file(const std::string& file_name)
+void ts::resources::impl::Car_store::load_car_file(const std::string& file_name, const std::string& directory)
 {
     std::ifstream stream(file_name, std::ifstream::in);
     if (stream) {
-        for (const auto& car_def : load_car_definitions(stream)) {
+        for (const auto& car_def : load_car_definitions(stream, directory)) {
             auto car_name = car_def.car_name;
             boost::to_lower(car_name);
 

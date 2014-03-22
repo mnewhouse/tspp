@@ -30,7 +30,7 @@ ts::world::Entity::Entity(World* world, const std::shared_ptr<resources::Pattern
       z_position_(0),
       velocity_(0, 0),
       angular_velocity_(0),      
-      collision_bitmap_(world->dynamic_collision_bitmap(pattern))
+      collision_bitmap_(world->collision_bitmap(pattern))
 {
 }
 
@@ -129,4 +129,9 @@ void ts::world::Entity::set_mass(double mass)
 double ts::world::Entity::mass() const
 {
     return mass_;
+}
+
+double ts::world::Entity::speed() const
+{
+    return magnitude(velocity_);
 }

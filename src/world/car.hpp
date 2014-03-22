@@ -49,6 +49,8 @@ namespace ts
             double current_traction() const;
             void set_current_traction(double traction);
 
+            double top_speed() const;
+
         private:
             resources::Car_definition car_definition_;
             Handling handling_;

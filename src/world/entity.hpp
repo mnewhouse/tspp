@@ -51,6 +51,8 @@ namespace ts
             const Vector2d& velocity() const;
             double angular_velocity() const;
 
+            double speed() const;
+
             void set_rotation(Rotation<double> rotation);
             void set_position(Vector2d position);
             void set_velocity(Vector2d velocity);

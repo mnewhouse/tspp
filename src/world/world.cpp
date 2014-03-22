@@ -58,9 +58,9 @@ ts::world::World::World(resources::Track&& track)
 
 ts::world::Car* ts::world::World::create_car(const resources::Car_definition& car_def)
 {
-    car_list_.push_back(make_unique<Car>(this, car_def));
+    car_list_.push_back(std::make_unique<Car>(this, car_def));
 
-    auto& car = *car_list_.back();
+    auto car = &*car_list_.back();
     std::for_each(entity_listeners_.begin(), entity_listeners_.end(), 
         [&](Entity_listener* listener)
         {
@@ -68,11 +68,11 @@ ts::world::Car* ts::world::World::create_car(const resources::Car_definition& ca
         }
     );
 
-    car.set_position({ 200.0, 511.0 / 2.0 });
+    car->set_position({ 200.0, 511.0 / 2.0 });
 
-    entity_list_.push_back(&car);
+    entity_list_.push_back(car);
 
-    return &car;
+    return car;
 }
 
 void ts::world::World::add_entity_listener(Entity_listener* entity_listener)
@@ -277,7 +277,7 @@ void ts::world::World::update(std::size_t frame_duration)
     }
 }
 
-const std::shared_ptr<ts::world::Collision_bitmap> ts::world::World::dynamic_collision_bitmap
+const std::shared_ptr<ts::world::Collision_bitmap>& ts::world::World::collision_bitmap
     (const std::shared_ptr<resources::Pattern>& pattern)
 {
     return dynamic_bitmap_store_[pattern];

@@ -33,6 +33,7 @@
 #include "controls/key_mapping.hpp"
 #include "controls/control_center.hpp"
 
+#include "audio/engine_sounds.hpp"
 
 
 
@@ -63,8 +64,8 @@ namespace ts
             graphics::Camera& camera();
 
 
-            virtual void on_car_create(const world::Car& car) override;
-            virtual void on_entity_destroy(const world::Entity& entity) override;
+            virtual void on_car_create(world::Car* car) override;
+            virtual void on_entity_destroy(world::Entity* entity) override;
 
         private:
             graphics::Track_builder_result build_track(const cup::Stage_data& stage_data);
@@ -97,6 +98,8 @@ namespace ts
 
             controls::Control_center control_center_;
             controls::Key_mapping key_mapping_;
+
+            audio::Engine_sound_controller engine_sound_controller_;
         };
 
     }

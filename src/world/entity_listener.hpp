@@ -30,8 +30,8 @@ namespace ts
         class Entity_listener
         {
         public:
-            virtual void on_car_create(const Car& car) = 0;
-            virtual void on_entity_destroy(const Entity& entity) = 0;
+            virtual void on_car_create(Car* car) = 0;
+            virtual void on_entity_destroy(Entity* entity) = 0;
         };
     }
 }

@@ -40,7 +40,7 @@ namespace ts
                 const Car_definition* get_car_by_name(std::string car_name) const;
 
             private:
-                void load_car_file(const std::string& file_name);
+                void load_car_file(const std::string& file_name, const std::string& directory);
 
                 std::map<std::string, Car_definition> car_map_;
             };

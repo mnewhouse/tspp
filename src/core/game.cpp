@@ -62,7 +62,7 @@ void ts::core::Game::main()
     {
         auto star_field = std::make_shared<graphics::Star_field>(150, sf::Color(0, 0, 5));
 
-        auto state = make_unique<states::Loading_state>(state_machine_handle, gui_context_handle);
+        auto state = std::make_unique<states::Loading_state>(state_machine_handle, gui_context_handle);
         state->set_background(star_field);
 
         state_machine.change_state(std::move(state));
