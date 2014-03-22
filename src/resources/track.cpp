@@ -33,6 +33,8 @@
 #include "terrain_definition.hpp"
 #include "track_handle.hpp"
 
+#include "resources/include_path.hpp"
+
 ts::resources::Track::Track()
   : num_levels_(0)
 {
@@ -278,16 +280,7 @@ void ts::resources::Track::add_tile(Level_tile level_tile)
     tile_list_.insert(it, level_tile);
 }
 
-std::string ts::resources::Track::find_include_path(const std::string& file_path) const
+std::string ts::resources::Track::find_include_path(const std::string& file_name) const
 {
-	auto file_name = boost::filesystem::path(file_path).filename();
-
-	boost::filesystem::path path = track_directory_;
-	path /= file_name;
-
-	if (is_regular_file(path)) return path.string();
-
-	path = config::data_directory;
-	path /= file_name;
-	return path.string();
+    return resources::find_include_path(file_name, { track_directory_, config::data_directory });
 }

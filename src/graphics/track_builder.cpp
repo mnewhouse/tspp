@@ -22,6 +22,9 @@
 #include "texture.hpp"
 
 #include "resources/track.hpp"
+#include "resources/include_path.hpp"
+
+#include "core/config.hpp"
 
 #include <array>
 #include <algorithm>
