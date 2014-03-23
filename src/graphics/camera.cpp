@@ -37,6 +37,16 @@ void ts::graphics::Camera::set_target(const world::Entity* target)
     last_position_ = target->position();
 }
 
+void ts::graphics::Camera::set_mode(Mode mode)
+{
+    mode_ = mode;
+}
+
+ts::graphics::Camera::Mode ts::graphics::Camera::mode() const
+{
+    return mode_;
+}
+
 void ts::graphics::Camera::update_view(graphics::Render_target& render_target, double frame_time)
 {
     update_transform(frame_time);

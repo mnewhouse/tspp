@@ -18,34 +18,39 @@
  */
 
 
-#ifndef AUDIO_AUDIO_STORE_HPP
-#define AUDIO_AUDIO_STORE_HPP
+#ifndef GRAPHICS_PARTICLE_GENERATOR_HPP
+#define GRAPHICS_PARTICLE_GENERATOR_HPP
 
-#include "core/handle.hpp"
+#include "particle_drawer.hpp"
 
-#include <map>
+#include "world/entity_listener.hpp"
 
-#include <SFML/Audio.hpp>
+#include <vector>
+#include <random>
 
 namespace ts
 {
-    namespace audio
+    namespace graphics
     {
-        using Audio_handle = std::shared_ptr<sf::SoundBuffer>;
-        struct Load_error
-            : std::exception
-        {
-            Load_error(const std::string& file_name) {}
-        };
-
-        class Audio_store
+        class Particle_generator
+            : public Particle_drawer, public world::Entity_listener
         {
         public:
-            Audio_handle operator[](const std::string& file_name);
+            virtual void on_car_create(world::Car* car) override;
+            virtual void on_entity_destroy(world::Entity* entity) override;
+
+            void update(std::size_t ticks_passed);
 
         private:
-            std::map<std::string, Audio_handle> loaded_samples_;
-            
+            struct Car_info
+            {
+                const world::Car* car;
+                std::size_t current_tire = 0;
+                std::size_t last_ticks = 0;
+            };
+
+            std::vector<Car_info> car_list_;
+            std::mt19937 random_engine_;
         };
     }
 }

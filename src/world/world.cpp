@@ -205,8 +205,8 @@ void ts::world::World::update(std::size_t frame_duration)
         auto collision = collision_queue_.front();
         collision_queue_.pop_front();
 
-        auto& subject_state = collision.subject_state;
-        auto& object_state = collision.object_state;
+        auto subject_state = collision.subject_state;
+        auto object_state = collision.object_state;
 
         auto subject = subject_state.entity;
         auto object = object_state.entity;
@@ -265,6 +265,11 @@ void ts::world::World::update(std::size_t frame_duration)
                 insert_collision(new_collision);
             }
         }
+        
+        for (auto listener : collision_listeners_)
+        {
+            listener->on_collision(collision);
+        }
 
         last_time_point = collision.time_point;
     }
@@ -283,3 +288,7 @@ const std::shared_ptr<ts::world::Collision_bitmap>& ts::world::World::collision_
     return dynamic_bitmap_store_[pattern];
 }
 
+void ts::world::World::add_collision_listener(Collision_listener* collision_listener)
+{
+    collision_listeners_.push_back(collision_listener);
+}

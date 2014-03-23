@@ -77,6 +77,9 @@ namespace ts
         struct Handling
         {
             void update(const Handling_properties& properties, Car& car, double frame_duration);
+
+            static double top_speed(const Handling_properties& properties);
+
         };
 
         std::istream& operator>>(std::istream& stream, Handling_properties& properties);

@@ -26,12 +26,13 @@
 ts::resources::Terrain_definition::Terrain_definition()
 : id(0),
   acceleration(1.0f),
-  viscosity(1.0f),  
+  roughness(0.0f),  
   steering(1.0f),
-  grip(1.0f),
-  anti_slide(1.0f),  
+  traction(1.0f),
+  antislide(1.0f),  
   braking(1.0f),  
-  is_wall(false)
+  is_wall(false),
+  color()
 {
 }
 
@@ -44,44 +45,82 @@ std::istream& ts::resources::operator>>(std::istream& stream, Terrain_definition
 
         read_directive(line_stream, directive);
 
-        if (directive == "id") {
-            int id;
-            if (line_stream >> id) {
+        if (directive == "id") 
+        {
+            std::uint32_t id;
+            if (line_stream >> id) 
+            {
                 terrain_def.id = id;
             }
         }
 
-        else if (directive == "steering") {
+        else if (directive == "steering") 
+        {
             line_stream >> terrain_def.steering;
         }
 
-        else if (directive == "antislide") {
-            line_stream >> terrain_def.anti_slide;
+        else if (directive == "antislide") 
+        {
+            line_stream >> terrain_def.antislide;
         }
 
-        else if (directive == "acceleration") {
+        else if (directive == "acceleration") 
+        {
             line_stream >> terrain_def.acceleration;
         }
 
-        else if (directive == "viscosity") {
-            line_stream >> terrain_def.viscosity;
+        else if (directive == "roughness") 
+        {
+            line_stream >> terrain_def.roughness;
         }
 
-        else if (directive == "grip") {
-            line_stream >> terrain_def.grip;
+        else if (directive == "grip") 
+        {
+            line_stream >> terrain_def.traction;
         }
 
-        else if (directive == "braking") {
+        else if (directive == "braking") 
+        {
             line_stream >> terrain_def.braking;
         }
 
-        else if (directive == "bounciness") {
+        else if (directive == "bounciness") 
+        {
             line_stream >> terrain_def.wall_definition.elasticity;
         }
 
-        else if (directive == "iswall") {
-            int value;
-            if (line_stream >> value) {
+        else if (directive == "red")
+        {
+            std::uint32_t value;
+            if (line_stream >> value)
+            {
+                terrain_def.color.red = value;
+            }
+        }
+
+        else if (directive == "green")
+        {
+            std::uint32_t value;
+            if (line_stream >> value)
+            {
+                terrain_def.color.green = value;
+            }     
+        }
+
+        else if (directive == "blue")
+        {
+            std::uint32_t value;
+            if (line_stream >> value)
+            {
+                terrain_def.color.blue = value;
+            }
+        }
+
+        else if (directive == "iswall") 
+        {
+            std::uint32_t value;
+            if (line_stream >> value) 
+            {
                 terrain_def.is_wall = (value != 0);
             }
         }

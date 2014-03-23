@@ -69,12 +69,17 @@ ts::resources::Car_definition ts::resources::load_car_definition(std::istream& s
             }
         }
 
-        else if (directive == "friction") {
-            line_stream >> car_def.wall_definition.friction;
-        }
-
         else if (directive == "elasticity") {
             line_stream >> car_def.wall_definition.elasticity;
+        }
+
+        else if (directive == "tire")
+        {
+            Vector2<double> tire_position;
+            if (line_stream >> tire_position)
+            {
+                car_def.tire_positions.push_back(tire_position);
+            }
         }
 
         else if (directive == "enginesample") {

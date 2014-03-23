@@ -26,6 +26,7 @@
 #include "graphics/track_builder.hpp"
 #include "graphics/camera.hpp"
 #include "graphics/drawable_entity.hpp"
+#include "graphics/particle_generator.hpp"
 
 #include "world/world.hpp"
 #include "world/entity_listener.hpp"
@@ -34,6 +35,7 @@
 #include "controls/control_center.hpp"
 
 #include "audio/engine_sounds.hpp"
+#include "audio/collision_sounds.hpp"
 
 
 
@@ -62,7 +64,7 @@ namespace ts
             void zoom_out();
 
             graphics::Camera& camera();
-
+            graphics::Particle_generator& particle_generator();
 
             virtual void on_car_create(world::Car* car) override;
             virtual void on_entity_destroy(world::Entity* entity) override;
@@ -78,6 +80,7 @@ namespace ts
             double frame_duration_;
 
             graphics::Camera camera_;
+            graphics::Particle_generator particle_generator_;
         };
 
         class Action_state
@@ -100,6 +103,7 @@ namespace ts
             controls::Key_mapping key_mapping_;
 
             audio::Engine_sound_controller engine_sound_controller_;
+            audio::Collision_sound_controller collision_sound_controller_;
         };
 
     }

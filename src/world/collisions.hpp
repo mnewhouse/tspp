@@ -41,7 +41,14 @@ namespace ts
             Vector2<double> normal;
             Vector2<int> global_point;
 
+            double impact;
+
             operator bool() const { return collided; }
+        };
+
+        struct Collision_listener
+        {
+            virtual void on_collision(const Collision_result& collision) = 0;
         };
 
         struct Entity_state;

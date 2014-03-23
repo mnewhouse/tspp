@@ -74,6 +74,7 @@ std::vector<std::uint64_t> ts::world::generate_rotated_bitmaps(const resources::
 
     for (int r = 0; r != num_rotations; ++r, rotation += increment)
     {
+        /*
         auto sin = std::sin(rotation.radians());
         auto cos = std::cos(rotation.radians());
 
@@ -111,8 +112,7 @@ std::vector<std::uint64_t> ts::world::generate_rotated_bitmaps(const resources::
                 *entry_ptr++ = entry;
             }
         }
-
-        /*
+        */
         
         auto sin = std::sin(rotation.radians());
         auto cos = std::cos(rotation.radians());
@@ -138,23 +138,9 @@ std::vector<std::uint64_t> ts::world::generate_rotated_bitmaps(const resources::
                 entry |= std::uint64_t(1) << (63 - (dest_point.x & 63));
             }
         }
-        */
     }
 
-    std::ofstream debug("fuck.txt");
-
-    auto ptr = &bitmap[0];
-    for (auto y = 0; y != bitmap_size.y; ++y)
-    {
-        for (auto x = 0; x != bitmap_size.x; x += 64)
-        {
-            debug << std::hex << std::setw(16) << std::setfill('0') << *ptr++;
-        }
-
-        debug << std::endl;
-    }
-
-    return bitmap;    
+    return bitmap;
 }
 
 
@@ -220,24 +206,6 @@ ts::Vector2i ts::world::Collision_bitmap::base_point(Vector2i point, Rotation<do
     transformed.y = std::floor(transformed.y + 0.5);
     return transformed;
 }
-
-/*
-bool ts::world::Collision_bitmap::operator()(Vector2i point, double sin, double cos) const
-{
-    Vector2i source_point = transform_point(point, -sin, -cos);
-    source_point.x += bitmap_size_.x >> 1;
-    source_point.y += bitmap_size_.y >> 1;
-
-   if (source_point.x < 0 || source_point.y < 0 || 
-       source_point.x >= bitmap_size_.x || source_point.y >= bitmap_size_.y) 
-       return false;
-    
-    auto row_width = bitmap_size_.x >> 6;
-    auto entry = bitmap_[source_point.y * row_width + (source_point.x >> 6)];
-
-    return (entry << (source_point.x & 63) >> 63) != 0;
-}
-*/
 
 const std::shared_ptr<ts::world::Collision_bitmap>& ts::world::Collision_bitmap_store::operator[]
     (const std::shared_ptr<resources::Pattern>& pattern)

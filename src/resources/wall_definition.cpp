@@ -23,8 +23,7 @@
 #include <sstream>
 
 ts::resources::Wall_definition::Wall_definition()
-: friction(1.0),
-  elasticity(1.0),
+: elasticity(1.0),
   level_start(0),
   num_levels(1)
 {

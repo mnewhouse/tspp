@@ -60,6 +60,8 @@ namespace ts
 
             world::Handling_properties handling;
 
+            std::vector<Vector2<double>> tire_positions;
+
             std::string engine_sample;
         };
 

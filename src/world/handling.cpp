@@ -152,7 +152,7 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
     auto reverse_oversteer = reverse_rotation - heading;
 
     auto grip = properties.grip;
-    auto steering = std::min(properties.steering, properties.grip / speed);
+    auto steering = std::min(properties.steering, properties.grip / speed) * terrain.steering;
 
     Vector2<double> rotation_vec(std::sin(rotation.radians()), -std::cos(rotation.radians()));
 
@@ -186,6 +186,8 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
 
         // lateral friction
         resistance += lateral_vec * dot_product(lateral_vec, -heading_vec) * properties.lateral_friction * 1000.0;
+
+        resistance += -velocity * terrain.roughness * 100.0;
     }
 
     const auto& traction_limit = properties.traction_limit;
@@ -193,20 +195,20 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
     double required_traction = 0.0;
 
     if (car.control_state(Control::Accelerate)) {
-        auto force = rotation_vec * properties.power * 1000.0;
+        auto force = rotation_vec * properties.power * 1000.0 * terrain.acceleration;
         acceleration_force += force;
-        required_traction += magnitude(force + resistance);
+        required_traction += magnitude(force + force + resistance) * 0.5;
     }
 
     if (car.control_state(Control::Brake)) {
         if (speed == 0.0 || car.is_reversing()) {
-            auto force = -rotation_vec * properties.reverse_power * 1000.0;
+            auto force = -rotation_vec * properties.reverse_power * 1000.0 * terrain.acceleration;
             acceleration_force += force;
             required_traction += magnitude(force + resistance);
         }
 
         else {
-            auto force = -heading_vec * properties.braking * 1000.0;
+            auto force = -heading_vec * properties.braking * 1000.0 * terrain.braking;
             braking_force += force;
             required_traction += magnitude(force + resistance) * (traction_limit.accelerate / traction_limit.brake);
         }
@@ -224,7 +226,7 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
     }
 
 
-    auto current_traction = 1.0;
+    auto current_traction = terrain.traction;
     if (speed != 0.0) {
         current_traction = std::abs(std::abs(oversteer.radians()) < std::abs(reverse_oversteer.radians()) ?
                                     std::cos(oversteer.radians()) : std::cos(reverse_oversteer.radians()));
@@ -265,7 +267,7 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
         auto max_correction = std::abs(new_reverse_oversteer.radians()) < std::abs(new_oversteer.radians()) ?
             new_reverse_oversteer : new_oversteer;
 
-        auto antislide = (properties.antislide / new_speed);
+        auto antislide = ((properties.antislide * terrain.antislide) / new_speed);
         antislide *= 1.0 - (1.0 - current_traction) * (1.0 - traction_loss.antislide_effect);
 
         auto correction = std::min(antislide * frame_duration, std::abs(max_correction.radians()));
@@ -280,4 +282,9 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
     car.set_current_traction(current_traction);
     car.set_angular_velocity(steering_speed);
     car.set_velocity(velocity);
+}
+
+double ts::world::Handling::top_speed(const Handling_properties& properties)
+{
+    return std::sqrt((properties.power - properties.roll_resistance) * 1000.0 / (0.5 * properties.drag_coefficient));
 }

@@ -21,6 +21,7 @@
 #define VECTOR2_HPP
 
 #include <cmath>
+#include <cstdint>
 #include <istream>
 
 namespace ts
@@ -219,8 +220,8 @@ namespace ts
         return a.x * b.x + a.y * b.y;
     }
 
-    using Vector2u = Vector2<unsigned>;
-    using Vector2i = Vector2<int>;
+    using Vector2u = Vector2<std::uint32_t>;
+    using Vector2i = Vector2<std::int32_t>;
     using Vector2f = Vector2<float>;
     using Vector2d = Vector2<double>;
 

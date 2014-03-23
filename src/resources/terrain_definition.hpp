@@ -32,6 +32,13 @@ namespace ts
     {
         using Terrain_id = std::uint8_t;
 
+        struct Terrain_color
+        {
+            std::uint8_t red;
+            std::uint8_t green;
+            std::uint8_t blue;
+        };
+
         struct Terrain_definition
         {
             explicit Terrain_definition();
@@ -39,16 +46,16 @@ namespace ts
             Terrain_id id;
 
             double acceleration;
-            double viscosity;
+            double roughness;
             double steering;
-            double grip;
-            double anti_slide;
+            double traction;
+            double antislide;
             double braking;
 
             bool is_wall;
             Wall_definition wall_definition;
             
-            std::uint32_t color[3];
+            Terrain_color color;
         };
 
         std::istream& operator>>(std::istream& stream, Terrain_definition& terrain_def);

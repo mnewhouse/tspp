@@ -42,9 +42,10 @@ namespace ts
 
     namespace world
     {
-        class Entity_listener;
-        class Entity;
+        struct Entity_listener;
         struct Entity_state;
+
+        class Entity;        
         class Car;        
 
         class World
@@ -55,6 +56,7 @@ namespace ts
             Car* create_car(const resources::Car_definition& car_def);
 
             void add_entity_listener(Entity_listener* entity_listener);
+            void add_collision_listener(Collision_listener* collision_listener);
 
             void update(std::size_t frame_duration);
 
@@ -77,7 +79,7 @@ namespace ts
             std::vector<Entity*> entity_list_;
 
             std::vector<Entity_listener*> entity_listeners_;
-                
+            std::vector<Collision_listener*> collision_listeners_;                
 
             std::vector<Entity_state> state_buffer_;
             std::deque<Collision_result> collision_queue_;

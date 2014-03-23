@@ -18,34 +18,32 @@
  */
 
 
-#ifndef AUDIO_AUDIO_STORE_HPP
-#define AUDIO_AUDIO_STORE_HPP
+#ifndef AUDIO_COLLISION_SOUNDS_HPP
+#define AUDIO_COLLISION_SOUNDS_HPP
 
-#include "core/handle.hpp"
+#include "audio_store.hpp"
 
-#include <map>
+#include "world/collisions.hpp"
 
-#include <SFML/Audio.hpp>
+#include <list>
 
 namespace ts
 {
     namespace audio
     {
-        using Audio_handle = std::shared_ptr<sf::SoundBuffer>;
-        struct Load_error
-            : std::exception
-        {
-            Load_error(const std::string& file_name) {}
-        };
-
-        class Audio_store
+        class Collision_sound_controller
+            : public world::Collision_listener
         {
         public:
-            Audio_handle operator[](const std::string& file_name);
+            Collision_sound_controller(const std::string& entity_collision_file, const std::string& scenery_collision_file);
+            
+            virtual void on_collision(const world::Collision_result& collision) override;
 
         private:
-            std::map<std::string, Audio_handle> loaded_samples_;
-            
+            std::vector<std::unique_ptr<sf::Sound>> sound_list_;
+
+            Audio_handle entity_collision_sound_;
+            Audio_handle scenery_collision_sound_;
         };
     }
 }

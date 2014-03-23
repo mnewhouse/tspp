@@ -1,12 +1,3 @@
-#ifndef AUDIO_ENGINE_SOUNDS_HPP
-#define AUDIO_ENGINE_SOUNDS_HPP
-
-#include "audio_store.hpp"
-#include "world/entity_listener.hpp"
-
-#include <vector>
-#include <memory>
-
 /*
  * Turbo Sliders++
  * Copyright (C) 2013-2014 Martin Newhouse
@@ -27,26 +18,45 @@
  */
 
 
+#ifndef GRAPHICS_PARTICLE_DRAWER
+#define GRAPHICS_PARTICLE_DRAWER
+
+#include "render_scene.hpp"
+
+#include "core/vector2.hpp"
+
+#include <cstddef>
+#include <deque>
+#include <vector>
+
 namespace ts
 {
-    namespace audio
+    namespace graphics
     {
-        class Engine_sound_controller
-            : public world::Entity_listener
+        class Particle_drawer
+            : public Render_scene
         {
         public:
-            virtual void on_car_create(world::Car* car) override;
-            virtual void on_entity_destroy(world::Entity* entity) override;
+            void create_particle(Vector2<double> position, double radius, sf::Color color, std::size_t ticks_visible);
+
+            virtual void render(Render_target& render_target) override;
 
             void update(std::size_t ticks);
+            std::size_t current_ticks() const;
 
         private:
-            // pair hack - I would use a struct, but MSVC still doesn't have 
-            // compiler-generated move operations. 
-            using Engine_sound = std::pair<const world::Car*, std::unique_ptr<sf::Sound>>;
+            struct Particle
+            {
+                Vector2<double> position;
+                double radius;
+                sf::Color color;
+                std::size_t deletion_time;                
+            };
 
-            std::vector<Engine_sound> engine_sounds_;
-            Audio_store audio_store_;
+            std::deque<Particle> particles_;
+            std::size_t current_ticks_ = 0;
+
+            std::vector<sf::Vertex> vertex_buffer_;
         };
     }
 }

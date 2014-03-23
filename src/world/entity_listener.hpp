@@ -27,9 +27,8 @@ namespace ts
         class Car;
         class Entity;
 
-        class Entity_listener
+        struct Entity_listener
         {
-        public:
             virtual void on_car_create(Car* car) = 0;
             virtual void on_entity_destroy(Entity* entity) = 0;
         };

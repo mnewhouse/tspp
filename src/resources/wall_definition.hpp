@@ -31,7 +31,6 @@ namespace ts
         {
             Wall_definition();
 
-            double friction;
             double elasticity;
 
             std::size_t level_start;

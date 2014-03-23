@@ -50,6 +50,11 @@ ts::graphics::Camera& ts::states::Action_scene::camera()
     return camera_;
 }
 
+ts::graphics::Particle_generator& ts::states::Action_scene::particle_generator()
+{
+    return particle_generator_;
+}
+
 void ts::states::Action_scene::on_car_create(world::Car* car)
 {
     const auto& car_definition = car->car_definition();
@@ -98,6 +103,8 @@ void ts::states::Action_scene::update(std::size_t frame_duration)
     });
 
     camera_.update_position();
+
+    particle_generator_.update(frame_duration);
 }
 
 void ts::states::Action_scene::render(graphics::Render_target& render_target)
@@ -134,6 +141,8 @@ void ts::states::Action_scene::render(graphics::Render_target& render_target)
         entity_it->draw(render_target, render_states, frame_time);
     }
 
+    particle_generator_.render(render_target);
+
     auto default_view = render_target.getDefaultView();
     default_view.setSize(float(render_target.getSize().x), float(render_target.getSize().y));
     render_target.setView(default_view);
@@ -144,10 +153,15 @@ ts::states::Action_state::Action_state(resources::Track&& track, const cup::Stag
     : gui::State(state_machine, context), 
       action_scene_(track, stage_data), 
       world_(std::move(track)),
-      key_mapping_(controls::default_key_mapping())
+      key_mapping_(controls::default_key_mapping()),
+      collision_sound_controller_(resources::find_include_path("carcollision.wav", { config::sound_directory }),
+                                  resources::find_include_path("collision.wav", { config::sound_directory }))
 {
     world_.add_entity_listener(&action_scene_);
     world_.add_entity_listener(&engine_sound_controller_);
+    world_.add_entity_listener(&action_scene_.particle_generator());
+
+    world_.add_collision_listener(&collision_sound_controller_);
 
     for (const auto& player : stage_data.players) {
         auto car = world_.create_car(player.car);
@@ -164,37 +178,55 @@ ts::states::Action_state::Action_state(resources::Track&& track, const cup::Stag
         auto ball = world_.create_car(*car_def);
         ball->set_position({ 739 / 2.0, 511 / 2.0 });
     }
-
 }
 
 void ts::states::Action_state::handle_event(const sf::Event& event)
 {
-    auto update_state = [&](bool state) {
+    auto update_state = [&](bool state) 
+    {
         auto range = key_mapping_.equal_range(event.key.code);
-        for (auto it = range.first; it != range.second; ++it) {
+        for (auto it = range.first; it != range.second; ++it) 
+        {
             const auto& key_bind = it->second;
 
             control_center_.set_control_state(key_bind.slot, key_bind.control, state);
         }
     };
 
-    if (event.type == sf::Event::KeyPressed) {
+    if (event.type == sf::Event::KeyPressed) 
+    {
         update_state(true);
     }
 
-    else if (event.type == sf::Event::KeyReleased) {
+    else if (event.type == sf::Event::KeyReleased) 
+    {
         update_state(false);
 
-        if (event.key.code == sf::Keyboard::Escape) {
+        if (event.key.code == sf::Keyboard::Escape) 
+        {
             state_machine()->change_state();
         }        
 
-        else if (event.key.code == sf::Keyboard::Add) {
+        else if (event.key.code == sf::Keyboard::Add) 
+        {
             action_scene_.zoom_in();
         }
 
-        else if (event.key.code == sf::Keyboard::Subtract) {
+        else if (event.key.code == sf::Keyboard::Subtract) 
+        {
             action_scene_.zoom_out();
+        }
+
+        else if (event.key.code == sf::Keyboard::F12) {
+            if (action_scene_.camera().mode() == graphics::Camera::Mode::Fixed) 
+            {
+                action_scene_.camera().set_mode(graphics::Camera::Mode::Rotational);
+            }
+
+            else 
+            {
+                action_scene_.camera().set_mode(graphics::Camera::Mode::Fixed);
+            }
         }
     }
 }
@@ -202,6 +234,7 @@ void ts::states::Action_state::handle_event(const sf::Event& event)
 void ts::states::Action_state::render(graphics::Render_target& render_target)
 {
     render_target.clear();
+
     action_scene_.render_if_visible(render_target);
 }
 
