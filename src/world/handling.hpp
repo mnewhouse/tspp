@@ -72,6 +72,7 @@ namespace ts
             Traction_loss traction_loss;           
 
             double reverse_threshold;
+            double slide_threshold;
         };
 
         struct Handling

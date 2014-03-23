@@ -52,6 +52,8 @@ namespace ts
             double antislide;
             double braking;
 
+            bool tire_mark;
+
             bool is_wall;
             Wall_definition wall_definition;
             

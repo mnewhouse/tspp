@@ -47,7 +47,8 @@ ts::world::Handling_properties::Handling_properties()
   traction_limit({ 0.0, 0.0, 0.0 }),
   traction_loss({ 0.0, 0.0, 0.0, 0.0, 0.0 }),
 
-  reverse_threshold(0.1)
+  reverse_threshold(0.1),
+  slide_threshold(0.9)
 {
 }
 
@@ -126,6 +127,16 @@ std::istream& ts::world::operator>>(std::istream& stream, Handling_properties& p
                 properties.traction_loss.antislide_effect = antislide;
             }
         }
+
+        else if (directive == "slidethreshold")
+        {
+            line_stream >> properties.slide_threshold;
+        }
+
+        else if (directive == "reversethreshold")
+        {
+            line_stream >> properties.reverse_threshold;
+        }
     }
 
     return stream;
@@ -187,7 +198,7 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
         // lateral friction
         resistance += lateral_vec * dot_product(lateral_vec, -heading_vec) * properties.lateral_friction * 1000.0;
 
-        resistance += -velocity * terrain.roughness * 100.0;
+        resistance += -velocity * terrain.roughness * mass * 0.1;
     }
 
     const auto& traction_limit = properties.traction_limit;
@@ -210,7 +221,7 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
         else {
             auto force = -heading_vec * properties.braking * 1000.0 * terrain.braking;
             braking_force += force;
-            required_traction += magnitude(force + resistance) * (traction_limit.accelerate / traction_limit.brake);
+            required_traction += magnitude(force) * (traction_limit.accelerate / traction_limit.brake);
         }
     }
 

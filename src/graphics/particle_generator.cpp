@@ -53,14 +53,16 @@ void ts::graphics::Particle_generator::update(std::size_t ticks)
     {
         auto car = car_info.car;
         auto current_traction = car->current_traction();
-        auto& terrain = car->current_terrain();
+        const auto& terrain = car->current_terrain();
+        const auto& car_definition = car->car_definition();
+
+        auto slide_threshold = car_definition.handling.slide_threshold;
 
         auto time_passed = current_ticks() - car_info.last_ticks;
 
-        if (car->speed() > 0.0 && (terrain.roughness > 0.0 && time_passed >= std::size_t(50.0 / terrain.roughness)) ||
-            current_traction < 0.8 && time_passed >= 30U)
+        if (car->speed() > 0.0 && (terrain.roughness > 0.0 ? time_passed >= std::size_t(50.0 / terrain.roughness) :
+            terrain.tire_mark && current_traction < slide_threshold && time_passed >= 30U))
         {
-            const auto& car_definition = car->car_definition();
             const auto& tire_positions = car_definition.tire_positions;
 
             if (car_info.current_tire >= tire_positions.size()) car_info.current_tire = 0;
@@ -70,8 +72,15 @@ void ts::graphics::Particle_generator::update(std::size_t ticks)
                 auto tire_position = car_definition.tire_positions[car_info.current_tire];
                 tire_position = world::transform_point(tire_position, car->rotation());
 
-                const auto& terrain_color = terrain.color;
-                sf::Color color(terrain_color.red * 0.67, terrain_color.green * 0.67, terrain_color.blue * 0.67);
+                sf::Color color(200, 200, 200, 150);
+                
+
+                if (terrain.roughness > 0.0)
+                {
+                    const auto& terrain_color = terrain.color;
+                    color = sf::Color(terrain_color.red * 0.67, terrain_color.green * 0.67, terrain_color.blue * 0.67);
+                }
+
 
                 auto offset = offset_dist(random_engine_);
                 auto size = size_dist(random_engine_);

@@ -30,7 +30,8 @@ ts::resources::Terrain_definition::Terrain_definition()
   steering(1.0f),
   traction(1.0f),
   antislide(1.0f),  
-  braking(1.0f),  
+  braking(1.0f),
+  tire_mark(true),
   is_wall(false),
   color()
 {
@@ -113,6 +114,15 @@ std::istream& ts::resources::operator>>(std::istream& stream, Terrain_definition
             if (line_stream >> value)
             {
                 terrain_def.color.blue = value;
+            }
+        }
+
+        else if (directive == "tiremark")
+        {
+            std::uint32_t value;
+            if (line_stream >> value)
+            {
+                terrain_def.tire_mark = (value != 0);
             }
         }
 
