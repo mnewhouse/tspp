@@ -32,36 +32,33 @@ namespace ts
     namespace resources
     {
 
-        namespace impl
+        class Track_store
         {
+        public:
+            void scan_directory(const std::string& directory);
+            ~Track_store() { printf("wtfff\n"); }
 
-            class Track_store
+            Track_handle get_track_by_name(std::string track_name) const;
+            std::vector<Track_handle> get_matching_tracks(std::string partial_name) const;
+
+            Track_handle random_track(const std::string& path) const;
+            Track_handle random_track() const;
+
+        private:
+            struct Track_directory
             {
-            public:
-                void scan_directory(const std::string& directory);
-
-                Track_handle get_track_by_name(std::string track_name) const;
-                std::vector<Track_handle> get_matching_tracks(std::string partial_name) const;
-
-                Track_handle random_track(const std::string& path) const;
-                Track_handle random_track() const;
-
-            private:
-                struct Track_directory
-                {
-                    std::string path;
-                    std::map<std::string, Track_directory> sub_directories;
-                    std::vector<std::string> track_files;
-                };
-
-                void scan_directory(Track_directory& dir_contents, const std::string& directory);
-
-                Track_directory root_directory_;
-                std::map<std::string, std::string> lookup_map_;
+                std::string path;
+                std::map<std::string, Track_directory> sub_directories;
+                std::vector<std::string> track_files;
             };
 
-        }
+            void scan_directory(Track_directory& dir_contents, const std::string& directory);
 
+            Track_directory root_directory_;
+            std::map<std::string, std::string> lookup_map_;
+        };
+
+    /*
         class Track_store
         {
         public:
@@ -72,6 +69,8 @@ namespace ts
         private:
             static impl::Track_store track_store_;
         };
+
+        */
     }
 
 }

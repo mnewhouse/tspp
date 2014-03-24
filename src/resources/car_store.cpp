@@ -27,9 +27,7 @@
 
 #include "pattern.hpp"
 
-ts::resources::impl::Car_store ts::resources::Car_store::car_store_;
-
-void ts::resources::impl::Car_store::scan_directory(const std::string& directory)
+void ts::resources::Car_store::scan_directory(const std::string& directory)
 {
     boost::filesystem::path dir_path(directory);
     try {
@@ -46,7 +44,7 @@ void ts::resources::impl::Car_store::scan_directory(const std::string& directory
     }
 }
 
-void ts::resources::impl::Car_store::load_car_file(const std::string& file_name, const std::string& directory)
+void ts::resources::Car_store::load_car_file(const std::string& file_name, const std::string& directory)
 {
     std::ifstream stream(file_name, std::ifstream::in);
     if (stream) {
@@ -59,7 +57,7 @@ void ts::resources::impl::Car_store::load_car_file(const std::string& file_name,
     }
 }
 
-const ts::resources::Car_definition* ts::resources::impl::Car_store::get_car_by_name(std::string car_name) const
+const ts::resources::Car_definition* ts::resources::Car_store::get_car_by_name(std::string car_name) const
 {
     boost::to_lower(car_name);
 
@@ -68,9 +66,4 @@ const ts::resources::Car_definition* ts::resources::impl::Car_store::get_car_by_
         return &it->second;
 
     return nullptr;
-}
-
-void ts::resources::Car_store::load(const std::string& directory)
-{
-    car_store_.scan_directory(directory);
 }

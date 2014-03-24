@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <memory>
+#include <deque>
 
 /*
  * Turbo Sliders++
@@ -31,7 +32,7 @@ namespace ts
 {
     namespace audio
     {
-        class Engine_sound_controller
+        class Car_sound_controller
             : public world::Entity_listener
         {
         public:
@@ -46,6 +47,7 @@ namespace ts
             using Engine_sound = std::pair<const world::Car*, std::unique_ptr<sf::Sound>>;
 
             std::vector<Engine_sound> engine_sounds_;
+
             Audio_store audio_store_;
         };
     }

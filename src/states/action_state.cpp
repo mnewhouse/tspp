@@ -154,11 +154,10 @@ ts::states::Action_state::Action_state(resources::Track&& track, const cup::Stag
       action_scene_(track, stage_data), 
       world_(std::move(track)),
       key_mapping_(controls::default_key_mapping()),
-      collision_sound_controller_(resources::find_include_path("carcollision.wav", { config::sound_directory }),
-                                  resources::find_include_path("collision.wav", { config::sound_directory }))
+      collision_sound_controller_()
 {
     world_.add_entity_listener(&action_scene_);
-    world_.add_entity_listener(&engine_sound_controller_);
+    world_.add_entity_listener(&car_sound_controller_);
     world_.add_entity_listener(&action_scene_.particle_generator());
 
     world_.add_collision_listener(&collision_sound_controller_);
@@ -170,13 +169,6 @@ ts::states::Action_state::Action_state(resources::Track&& track, const cup::Stag
             control_center_.assume_control(player.control_slot, car);
             action_scene_.camera().set_target(&*car);
         }
-    }
-
-    resources::Car_store car_store;
-    auto car_def = car_store->get_car_by_name("punaball");
-    if (car_def) {
-        auto ball = world_.create_car(*car_def);
-        ball->set_position({ 739 / 2.0, 511 / 2.0 });
     }
 }
 
@@ -243,5 +235,5 @@ void ts::states::Action_state::update(std::size_t frame_duration)
     action_scene_.update(frame_duration);
     world_.update(frame_duration);
 
-    engine_sound_controller_.update(frame_duration);
+    car_sound_controller_.update(frame_duration);
 }

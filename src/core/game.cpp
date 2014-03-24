@@ -22,6 +22,7 @@
 #include "game.hpp"
 #include "handle.hpp"
 #include "utility.hpp"
+#include "config.hpp"
 
 #include "states/loading_screen.hpp"
 #include "user_interface/context.hpp"
@@ -33,6 +34,8 @@
 #include "graphics/fonts/font_loader.hpp"
 #include "graphics/fonts/font.hpp"
 #include "graphics/fonts/sans.hpp"
+
+#include "resources/resource_store.hpp"
 
 #include <memory>
 
@@ -59,10 +62,12 @@ void ts::core::Game::main()
     auto& state_machine = *state_machine_handle;
     auto& gui_context = *gui_context_handle;
 
+    auto resource_holder = std::make_shared<resources::Resource_store>();
+
     {
         auto star_field = std::make_shared<graphics::Star_field>(150, sf::Color(0, 0, 5));
 
-        auto state = std::make_unique<states::Loading_state>(state_machine_handle, gui_context_handle);
+        auto state = std::make_unique<states::Loading_state>(state_machine_handle, gui_context_handle, resource_holder);
         state->set_background(star_field);
 
         state_machine.change_state(std::move(state));

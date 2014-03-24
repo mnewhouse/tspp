@@ -53,7 +53,7 @@ const ts::cup::Stage_data& ts::cup::Cup::stage_data() const
 
 void ts::cup::Cup::add_track(resources::Track_handle track_handle)
 {
-    track_list_.push_back(std::move(track_handle));
+    track_list_.push_back(track_handle);
 }
 
 void ts::cup::Cup::set_car(const resources::Car_definition& car_def)

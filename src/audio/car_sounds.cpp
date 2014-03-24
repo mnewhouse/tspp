@@ -18,7 +18,7 @@
  */
 
 
-#include "engine_sounds.hpp"
+#include "car_sounds.hpp"
 
 #include <SFML/Audio.hpp>
 
@@ -27,7 +27,7 @@ namespace {
     static const double base_pitch = 0.33;
 }
 
-void ts::audio::Engine_sound_controller::on_car_create(world::Car* car)
+void ts::audio::Car_sound_controller::on_car_create(world::Car* car)
 {
     const auto& car_definition = car->car_definition();
     auto audio_buffer = audio_store_[car_definition.engine_sample];
@@ -47,7 +47,7 @@ void ts::audio::Engine_sound_controller::on_car_create(world::Car* car)
     }
 }
 
-void ts::audio::Engine_sound_controller::update(std::size_t ticks)
+void ts::audio::Car_sound_controller::update(std::size_t ticks)
 {
     auto frame_duration = ticks * 0.001;
 
@@ -68,7 +68,7 @@ void ts::audio::Engine_sound_controller::update(std::size_t ticks)
     }
 }
 
-void ts::audio::Engine_sound_controller::on_entity_destroy(world::Entity* entity)
+void ts::audio::Car_sound_controller::on_entity_destroy(world::Entity* entity)
 {
     auto pred = [entity](const Engine_sound& sound)
     {

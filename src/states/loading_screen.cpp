@@ -25,12 +25,16 @@
 #include "graphics/fonts/font.hpp"
 #include "graphics/fonts/sans.hpp"
 
-#include "resources/track_store.hpp"
-#include "resources/car_store.hpp"
+#include "resources/resource_store.hpp"
 
 #include "core/config.hpp"
 
 #include <thread>
+
+ts::states::Loading_scene::Loading_scene(const Handle<gui::Context>& context)
+  : gui::Scene(context)
+{
+}
 
 void ts::states::Loading_scene::render(graphics::Render_target& render_target)
 {
@@ -48,10 +52,12 @@ void ts::states::Loading_scene::render(graphics::Render_target& render_target)
     render_target.draw(loading_text);
 }
 
-ts::states::Loading_state::Loading_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context)
+ts::states::Loading_state::Loading_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context,
+                                         std::shared_ptr<resources::Resource_store> resource_store)
     : gui::State(state_machine, context),
       scene_(context),
       start_time_(std::chrono::high_resolution_clock::now()),
+      resource_store_(std::move(resource_store)),
       future_(async_load_resources())      
 {
 }
@@ -81,13 +87,10 @@ void ts::states::Loading_state::update(std::size_t frame_duration)
 
 std::future<void> ts::states::Loading_state::async_load_resources()
 {
-    auto loader = []()
+    auto loader = [this]()
     {
-        resources::Track_store track_store;
-        track_store.load(config::track_root_directory);
-
-        resources::Car_store car_store;
-        car_store.load(config::car_directory);
+        resource_store_->tracks.scan_directory(config::track_root_directory);
+        resource_store_->cars.scan_directory(config::car_directory);
     };
 
     return std::async(std::launch::async, loader);
@@ -103,7 +106,7 @@ void ts::states::Loading_state::display_main_menu()
 {
     const auto& sm_handle = state_machine();
 
-    auto main_menu = std::make_unique<Main_menu>(sm_handle, context());
+    auto main_menu = std::make_unique<Main_menu>(sm_handle, context(), resource_store_);
     main_menu->set_background(background());
 
     sm_handle->change_state();

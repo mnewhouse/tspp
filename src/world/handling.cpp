@@ -163,7 +163,15 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
     auto reverse_oversteer = reverse_rotation - heading;
 
     auto grip = properties.grip;
-    auto steering = std::min(properties.steering, properties.grip / speed) * terrain.steering;
+    auto steering = properties.steering;
+
+    if (grip != 0.0 && speed != 0.0)
+    {
+        auto grip_steering = std::min(steering, grip / speed);
+        steering -= std::min(properties.antislide / grip, 1.0) * (properties.steering - grip_steering);
+    }
+
+    steering *= terrain.steering;    
 
     Vector2<double> rotation_vec(std::sin(rotation.radians()), -std::cos(rotation.radians()));
 
@@ -208,14 +216,14 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
     if (car.control_state(Control::Accelerate)) {
         auto force = rotation_vec * properties.power * 1000.0 * terrain.acceleration;
         acceleration_force += force;
-        required_traction += magnitude(force + force + resistance) * 0.5;
+        required_traction += std::sqrt(magnitude(force) / speed * magnitude(force));
     }
 
     if (car.control_state(Control::Brake)) {
         if (speed == 0.0 || car.is_reversing()) {
             auto force = -rotation_vec * properties.reverse_power * 1000.0 * terrain.acceleration;
             acceleration_force += force;
-            required_traction += magnitude(force + resistance);
+            required_traction += std::sqrt(magnitude(force) / speed * magnitude(force));
         }
 
         else {
@@ -246,7 +254,7 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
     auto required_lateral_traction = (steering_speed != 0.0 ? properties.steering * speed : 0.0);
 
     auto total_required_traction = std::pow(required_traction / traction_limit.accelerate, 2) +
-        std::pow(required_lateral_traction / traction_limit.lateral, 2);
+        std::pow(required_lateral_traction / traction_limit.lateral, 2);    
 
     if (total_required_traction >= 1.0)
     {

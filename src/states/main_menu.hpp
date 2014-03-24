@@ -23,6 +23,8 @@
 #include "user_interface/gui_state.hpp"
 #include "user_interface/gui_scene.hpp"
 
+#include "resources/resource_store.hpp"
+
 namespace ts
 {
 
@@ -52,12 +54,16 @@ namespace ts
             : public gui::State
         {
         public:
-            Main_menu(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& gui_context);
+            Main_menu(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& gui_context,
+                      std::shared_ptr<resources::Resource_store> resource_store);
 
             virtual void render(graphics::Render_target& render_target) override;
             virtual void update(std::size_t frame_duration) override;
 
+            const resources::Resource_store& resource_store() const;
+
         private:
+            std::shared_ptr<resources::Resource_store> resource_store_;
             Main_menu_scene scene_;
         };
 

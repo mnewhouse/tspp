@@ -31,18 +31,7 @@ namespace {
 	std::mt19937 random_engine(std::random_device{}());
 }
 
-ts::resources::impl::Track_store ts::resources::Track_store::track_store_;
-
-void ts::resources::Track_store::load(const std::string& root_directory)
-{
-    try {
-        track_store_.scan_directory(root_directory);
-    } 
-
-    catch (const boost::filesystem::filesystem_error&) {}
-}
-
-ts::resources::Track_handle ts::resources::impl::Track_store::random_track() const
+ts::resources::Track_handle ts::resources::Track_store::random_track() const
 {
     if (lookup_map_.size() == 0) return Track_handle();
 
@@ -51,7 +40,7 @@ ts::resources::Track_handle ts::resources::impl::Track_store::random_track() con
     return Track_handle(&it->second);
 }
 
-void ts::resources::impl::Track_store::scan_directory(const std::string& directory)
+void ts::resources::Track_store::scan_directory(const std::string& directory)
 {
     root_directory_.sub_directories.clear();
     root_directory_.track_files.clear();
@@ -59,7 +48,7 @@ void ts::resources::impl::Track_store::scan_directory(const std::string& directo
     scan_directory(root_directory_, directory);
 }
 
-void ts::resources::impl::Track_store::scan_directory(Track_directory& dir_contents, const std::string& directory)
+void ts::resources::Track_store::scan_directory(Track_directory& dir_contents, const std::string& directory)
 {
     using boost::filesystem::directory_iterator;
     using boost::filesystem::directory_entry;
@@ -84,6 +73,7 @@ void ts::resources::impl::Track_store::scan_directory(Track_directory& dir_conte
 
             auto track_name = basename(file_name);
             boost::to_lower(track_name);
+
             lookup_map_.insert(std::make_pair(track_name, dir_contents.track_files.back()));
         }
     }
@@ -91,7 +81,7 @@ void ts::resources::impl::Track_store::scan_directory(Track_directory& dir_conte
     std::sort(dir_contents.track_files.begin(), dir_contents.track_files.end());
 }
 
-ts::resources::Track_handle ts::resources::impl::Track_store::get_track_by_name(std::string track_name) const
+ts::resources::Track_handle ts::resources::Track_store::get_track_by_name(std::string track_name) const
 {
     boost::to_lower(track_name);
     auto it = lookup_map_.find(track_name);
@@ -103,7 +93,7 @@ ts::resources::Track_handle ts::resources::impl::Track_store::get_track_by_name(
 }
 
 
-std::vector<ts::resources::Track_handle> ts::resources::impl::Track_store::get_matching_tracks(std::string partial_name) const
+std::vector<ts::resources::Track_handle> ts::resources::Track_store::get_matching_tracks(std::string partial_name) const
 {
     std::vector<Track_handle> result;
 

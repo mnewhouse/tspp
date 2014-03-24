@@ -34,7 +34,7 @@
 #include "controls/key_mapping.hpp"
 #include "controls/control_center.hpp"
 
-#include "audio/engine_sounds.hpp"
+#include "audio/car_sounds.hpp"
 #include "audio/collision_sounds.hpp"
 
 
@@ -102,7 +102,7 @@ namespace ts
             controls::Control_center control_center_;
             controls::Key_mapping key_mapping_;
 
-            audio::Engine_sound_controller engine_sound_controller_;
+            audio::Car_sound_controller car_sound_controller_;
             audio::Collision_sound_controller collision_sound_controller_;
         };
 

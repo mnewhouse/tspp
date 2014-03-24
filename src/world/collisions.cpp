@@ -53,25 +53,6 @@ ts::world::Collision_result ts::world::detect_entity_collision(Entity_state subj
     auto subject_heading = normalize(subject->velocity());
     auto object_heading = normalize(object->velocity());
 
-    /*
-
-    {
-        auto position_diff = subject->position() - object->position();
-        auto subject_dot = dot_product(-position_diff, subject_heading);
-        auto object_dot = dot_product(position_diff, object_heading);
-
-        if (subject_dot < object_dot)
-        {
-            std::swap(subject_state, object_state);
-            std::swap(subject, object);
-            std::swap(subject_offset, object_offset);
-            std::swap(subject_heading, object_heading);
-
-            relative_offset = -relative_offset;
-        }
-    }
-    */
-
     const auto& subject_bitmap = subject->collision_bitmap();
     const auto& object_bitmap = object->collision_bitmap();
 

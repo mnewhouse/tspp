@@ -23,6 +23,8 @@
 #include "user_interface/gui_state.hpp"
 #include "user_interface/gui_scene.hpp"
 
+#include "resources/resource_store.hpp"
+
 #include <future>
 
 namespace ts
@@ -37,9 +39,7 @@ namespace ts
             : public gui::Scene
         {
         public:
-            explicit Loading_scene(const Handle<gui::Context>& context)
-                : gui::Scene(context)
-            {}
+            explicit Loading_scene(const Handle<gui::Context>& context);
 
             virtual void render(graphics::Render_target& render_target) override;
         };
@@ -48,7 +48,9 @@ namespace ts
             : public gui::State
         {
         public:
-            Loading_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context);
+            Loading_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context, 
+                          std::shared_ptr<resources::Resource_store> resource_store);
+
             virtual ~Loading_state();
 
             virtual void render(graphics::Render_target&) override;
@@ -63,6 +65,7 @@ namespace ts
 
             Loading_scene scene_;
             std::chrono::time_point<std::chrono::high_resolution_clock> start_time_;
+            std::shared_ptr<resources::Resource_store> resource_store_;
             std::future<void> future_;
         };
 

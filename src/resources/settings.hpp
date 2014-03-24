@@ -17,34 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef RESOURCES_CAR_STORE_HPP
-#define RESOURCES_CAR_STORE_HPP
-
-#include <string>
-#include <map>
-
-#include "car_definition.hpp"
+#ifndef RESOURCES_SETTINGS_HPP
+#define RESOURCES_SETTINGS_HPP
 
 namespace ts
 {
-
     namespace resources
     {
-        class Car_store
+        class Settings
         {
-        public:
-            void scan_directory(const std::string& directory);
 
-            const Car_definition* get_car_by_name(std::string car_name) const;
-
-        private:
-            void load_car_file(const std::string& file_name, const std::string& directory);
-
-            std::map<std::string, Car_definition> car_map_;
         };
-
     }
-
 }
 
 #endif

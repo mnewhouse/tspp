@@ -35,15 +35,23 @@ namespace ts
             : public world::Collision_listener
         {
         public:
-            Collision_sound_controller(const std::string& entity_collision_file, const std::string& scenery_collision_file);
+            Collision_sound_controller();
             
             virtual void on_collision(const world::Collision_result& collision) override;
+
+            void update(std::size_t ticks);
+
+            void set_entity_collision_sound(const Audio_handle& sound_handle);
+            void set_scenery_collision_sound(const Audio_handle& sound_handle);
 
         private:
             std::vector<std::unique_ptr<sf::Sound>> sound_list_;
 
             Audio_handle entity_collision_sound_;
             Audio_handle scenery_collision_sound_;
+
+            std::size_t current_ticks_ = 0;
+            std::size_t last_collision_ticks_ = 0;
         };
     }
 }
