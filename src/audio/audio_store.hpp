@@ -41,9 +41,12 @@ namespace ts
         class Audio_store
         {
         public:
-            Audio_handle operator[](const std::string& file_name);
+            Audio_store(std::string search_directory = "");
+
+            Audio_handle operator[](std::string file_name);
 
         private:
+            std::string search_directory_;
             std::map<std::string, Audio_handle> loaded_samples_;
             
         };

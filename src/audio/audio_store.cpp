@@ -20,8 +20,22 @@
 
 #include "audio_store.hpp"
 
-ts::audio::Audio_handle ts::audio::Audio_store::operator[](const std::string& file_name)
+#include <boost/filesystem.hpp>
+#include <iostream>
+
+ts::audio::Audio_store::Audio_store(std::string search_directory)
+: search_directory_(std::move(search_directory))
 {
+}
+
+ts::audio::Audio_handle ts::audio::Audio_store::operator[](std::string file_name)
+{
+    if (!search_directory_.empty())
+    {
+        const auto& path = boost::filesystem::path(search_directory_) / file_name;
+        file_name = path.string();
+    }
+
     auto it = loaded_samples_.find(file_name);
     if (it != loaded_samples_.end()) return it->second;
 

@@ -1,13 +1,3 @@
-#ifndef AUDIO_ENGINE_SOUNDS_HPP
-#define AUDIO_ENGINE_SOUNDS_HPP
-
-#include "audio_store.hpp"
-#include "world/entity_listener.hpp"
-
-#include <vector>
-#include <memory>
-#include <deque>
-
 /*
  * Turbo Sliders++
  * Copyright (C) 2013-2014 Martin Newhouse
@@ -27,6 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#ifndef AUDIO_ENGINE_SOUNDS_HPP
+#define AUDIO_ENGINE_SOUNDS_HPP
+
+#include "audio_store.hpp"
+
+#include "world/entity_listener.hpp"
+
+#include <vector>
+#include <memory>
+#include <deque>
+
 
 namespace ts
 {
@@ -41,14 +42,26 @@ namespace ts
 
             void update(std::size_t ticks);
 
+            void set_skid_sound(Audio_handle skid_sound);
+
         private:
             // pair hack - I would use a struct, but MSVC still doesn't have 
             // compiler-generated move operations. 
-            using Engine_sound = std::pair<const world::Car*, std::unique_ptr<sf::Sound>>;
+            struct Car_sound
+            {
+                Car_sound() = default;
+                Car_sound(Car_sound&&);
+                Car_sound& operator=(Car_sound&&);
 
-            std::vector<Engine_sound> engine_sounds_;
+                const world::Car* car;
+                std::unique_ptr<sf::Sound> engine_sound;
+                std::unique_ptr<sf::Sound> skid_sound;
+            };
+
+            std::vector<Car_sound> car_sounds_;
 
             Audio_store audio_store_;
+            Audio_handle skid_sound_;
         };
     }
 }
