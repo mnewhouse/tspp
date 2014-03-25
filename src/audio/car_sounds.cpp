@@ -81,7 +81,6 @@ void ts::audio::Car_sound_controller::update(std::size_t ticks)
 
         if (auto& skid_sound = entry.skid_sound)
         {
-            std::cout << "ROFL!\n";
             auto traction = car->current_traction();
             const auto& terrain = car->current_terrain();
 
@@ -124,7 +123,6 @@ ts::audio::Car_sound_controller::Car_sound::Car_sound(Car_sound&& other)
   engine_sound(std::move(other.engine_sound)),
   skid_sound(std::move(other.skid_sound))  
 {
-
 }
 
 ts::audio::Car_sound_controller::Car_sound& ts::audio::Car_sound_controller::Car_sound::operator=(Car_sound&& other)

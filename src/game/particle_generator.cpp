@@ -20,7 +20,7 @@
 #include "particle_generator.hpp"
 
 #include "world/car.hpp"
-#include "world/world_utility.hpp"
+#include "core/transform.hpp"
 
 #include "resources/terrain_definition.hpp"
 

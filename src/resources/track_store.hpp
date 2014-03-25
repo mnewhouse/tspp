@@ -36,7 +36,6 @@ namespace ts
         {
         public:
             void scan_directory(const std::string& directory);
-            ~Track_store() { printf("wtfff\n"); }
 
             Track_handle get_track_by_name(std::string track_name) const;
             std::vector<Track_handle> get_matching_tracks(std::string partial_name) const;
@@ -58,19 +57,6 @@ namespace ts
             std::map<std::string, std::string> lookup_map_;
         };
 
-    /*
-        class Track_store
-        {
-        public:
-            impl::Track_store* operator->() { return &track_store_; }
-
-            void load(const std::string& track_path);
-
-        private:
-            static impl::Track_store track_store_;
-        };
-
-        */
     }
 
 }

@@ -60,10 +60,7 @@ namespace ts
             virtual void render(graphics::Render_target& render_target) override;
             virtual void update(std::size_t frame_duration) override;
 
-            const resources::Resource_store& resource_store() const;
-
         private:
-            std::shared_ptr<resources::Resource_store> resource_store_;
             Main_menu_scene scene_;
         };
 

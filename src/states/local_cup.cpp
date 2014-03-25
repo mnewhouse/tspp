@@ -29,11 +29,11 @@
 
 #include <iostream>
 
-ts::states::Local_cup_state::Local_cup_state(const Handle<state_machine_type>& state_machine,
-                                             const Handle<gui::Context>& context)
+ts::states::Local_cup_state::Local_cup_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context, 
+                                             std::shared_ptr<resources::Resource_store> resource_store)
 
-    : Cup_state(state_machine, context),
-    scene_(this, context)
+    : Cup_state(state_machine, context, std::move(resource_store)),
+      scene_(this, context)
 {
 }
 

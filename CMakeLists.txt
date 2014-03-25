@@ -21,6 +21,13 @@ set(EXECUTABLE_NAME "tspp")
 
 set(SRC src/main.cpp
 
+        src/audio/audio_store.cpp
+        src/audio/audio_store.hpp
+        src/audio/collision_sounds.cpp
+        src/audio/collision_sounds.hpp
+        src/audio/car_sounds.cpp
+        src/audio/car_sounds.hpp
+
         src/core/directive_reader.hpp
         src/core/game.hpp
         src/core/game.cpp        
@@ -29,6 +36,7 @@ set(SRC src/main.cpp
         src/core/rect.hpp
         src/core/rotation.hpp
         src/core/state_machine.hpp
+        src/core/transform.hpp
         src/core/utility.hpp
         src/core/vector2.hpp
                
@@ -40,19 +48,25 @@ set(SRC src/main.cpp
         src/controls/key_mapping.hpp
         src/controls/key_mapping.cpp
 
-        src/cup/cup.hpp
-        src/cup/cup.cpp
-        src/cup/player.hpp
-        src/cup/stage_data.hpp
+        src/game/camera.hpp
+        src/game/camera.cpp
+        src/game/cup.hpp
+        src/game/cup.cpp
+        src/game/drawable_entity.hpp
+        src/game/drawable_entity.cpp
+        src/game/particle_generator.hpp
+        src/game/particle_generator.cpp
+        src/game/player.hpp
+        src/game/stage_data.hpp
+        src/game/track_builder.hpp
+        src/game/track_builder.cpp
 
-        src/graphics/camera.hpp
-        src/graphics/camera.cpp
-        src/graphics/drawable_entity.hpp
-        src/graphics/drawable_entity.cpp
         src/graphics/fps_counter.hpp
         src/graphics/fps_counter.cpp
         src/graphics/fps_display.hpp
         src/graphics/fps_display.cpp
+        src/graphics/particle_drawer.hpp
+        src/graphics/particle_drawer.cpp
         src/graphics/render_scene.hpp
         src/graphics/renderer.hpp
         src/graphics/star_field.hpp        
@@ -61,8 +75,6 @@ set(SRC src/main.cpp
         src/graphics/texture.cpp
         src/graphics/texture_loader.hpp
         src/graphics/texture_loader.cpp
-        src/graphics/track_builder.hpp
-        src/graphics/track_builder.cpp
 
         src/graphics/fonts/font.hpp
 		src/graphics/fonts/font.cpp
@@ -78,12 +90,15 @@ set(SRC src/main.cpp
         src/resources/car_definition.cpp
         src/resources/car_store.hpp
         src/resources/car_store.cpp
-        src/resources/collision_mask.hpp
         src/resources/image_type.hpp
+        src/resources/include_path.hpp
+        src/resources/include_path.cpp
         src/resources/pattern.hpp
         src/resources/pattern.cpp
         src/resources/pattern_loader.hpp
         src/resources/pattern_loader.cpp
+        src/resources/resource_store.hpp
+        src/resources/settings.hpp
         src/resources/terrain_definition.hpp
         src/resources/terrain_definition.cpp
         src/resources/terrain_library.hpp
@@ -127,6 +142,9 @@ set(SRC src/main.cpp
         
         src/world/car.hpp
         src/world/car.cpp
+        src/world/collision_bitmap.hpp
+        src/world/collision_bitmap.cpp
+        src/world/collision_helpers.hpp
         src/world/collisions.hpp
         src/world/collisions.cpp
         src/world/entity.hpp

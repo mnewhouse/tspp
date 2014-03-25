@@ -19,8 +19,9 @@
 
 #include "gui_state.hpp"
 
-ts::gui::State::State(const Handle<state_machine_type>& state_machine, const Handle<Context>& context)
-    : core::Game_state(state_machine), 
+ts::gui::State::State(const Handle<state_machine_type>& state_machine, const Handle<Context>& context,
+                      std::shared_ptr<resources::Resource_store> resource_store)
+    : core::Game_state(state_machine, std::move(resource_store)), 
       context_(context)
 {}
 

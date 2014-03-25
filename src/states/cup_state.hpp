@@ -20,7 +20,7 @@
 #ifndef STATES_CUP_STATE_HPP
 #define STATES_CUP_STATE_HPP
 
-#include "cup/cup.hpp"
+#include "game/cup.hpp"
 
 #include "user_interface/gui_state.hpp"
 
@@ -34,11 +34,11 @@ namespace ts
         class Action_state;
 
         class Cup_state
-            : public gui::State, public cup::Cup
+            : public gui::State, public game::Cup
         {
         public:
-            Cup_state(const Handle<state_machine_type>& state_machine,
-                      const Handle<gui::Context>& context);
+            Cup_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context,
+                      std::shared_ptr<resources::Resource_store> resource_store);
 
             void async_load();
             bool is_loading() const;

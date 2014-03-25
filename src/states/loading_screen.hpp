@@ -65,7 +65,6 @@ namespace ts
 
             Loading_scene scene_;
             std::chrono::time_point<std::chrono::high_resolution_clock> start_time_;
-            std::shared_ptr<resources::Resource_store> resource_store_;
             std::future<void> future_;
         };
 

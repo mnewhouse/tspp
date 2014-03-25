@@ -25,6 +25,7 @@
 #include "state_machine.hpp"
 #include "handle.hpp"
 #include "graphics/renderer.hpp"
+#include "resources/resource_store.hpp"
 
 namespace sf
 {
@@ -46,8 +47,9 @@ namespace ts
         public:
             using state_machine_type = State_machine<Game_state>;
 
-            Game_state(const Handle<state_machine_type>& state_machine)
-                : state_machine_(state_machine)
+            Game_state(const Handle<state_machine_type>& state_machine, std::shared_ptr<resources::Resource_store> resource_store)
+                : state_machine_(state_machine),
+                  resource_store_(resource_store)
             {}
 
             virtual ~Game_state() {}
@@ -59,8 +61,11 @@ namespace ts
             virtual void update(std::size_t frame_duration) {}
             virtual void handle_event(const sf::Event& event) {}
 
+            const std::shared_ptr<resources::Resource_store>& resource_store() const { return resource_store_; }
+
         private:
             Handle<state_machine_type> state_machine_;
+            std::shared_ptr<resources::Resource_store> resource_store_;
         };
 
     }

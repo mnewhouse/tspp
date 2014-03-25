@@ -38,16 +38,11 @@
 
 ts::states::Main_menu::Main_menu(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& gui_context,
                                  std::shared_ptr<resources::Resource_store> resource_store)
-    : gui::State(state_machine, gui_context),
-      scene_(this, gui_context),
-      resource_store_(std::move(resource_store))
+    : gui::State(state_machine, gui_context, std::move(resource_store)),
+      scene_(this, gui_context)
 {
 }
 
-const ts::resources::Resource_store& ts::states::Main_menu::resource_store() const
-{
-    return *resource_store_;
-}
 
 void ts::states::Main_menu::render(graphics::Render_target& render_target)
 {
@@ -89,20 +84,21 @@ void ts::states::Main_menu_scene::render(graphics::Render_target& render_target)
 
     if (menu_item("Play").clicked) {
         const auto& state_machine = main_menu_->state_machine();
+        const auto& resource_store = main_menu_->resource_store();
 
-        auto cup_state = std::make_unique<Local_cup_state>(state_machine, context());
+        auto cup_state = std::make_unique<Local_cup_state>(state_machine, context(), resource_store);
         cup_state->set_background(main_menu_->background());
 
-        cup::Player player;
+        game::Player player;
         player.nickname = "Iziwyn";
         player.control_slot = 1;
 
         cup_state->add_player(player);
 
-        const auto& resource_store = main_menu_->resource_store();
+        
 
-        const auto& car_store = resource_store.cars;
-        const auto& track_store = resource_store.tracks;
+        const auto& car_store = resource_store->cars;
+        const auto& track_store = resource_store->tracks;
 
         for (std::size_t n = 0; n != 1; ++n) {
             cup_state->add_track(track_store.get_track_by_name("tse_arenberg"));

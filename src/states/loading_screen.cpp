@@ -54,10 +54,9 @@ void ts::states::Loading_scene::render(graphics::Render_target& render_target)
 
 ts::states::Loading_state::Loading_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context,
                                          std::shared_ptr<resources::Resource_store> resource_store)
-    : gui::State(state_machine, context),
+    : gui::State(state_machine, context, std::move(resource_store)),
       scene_(context),
       start_time_(std::chrono::high_resolution_clock::now()),
-      resource_store_(std::move(resource_store)),
       future_(async_load_resources())      
 {
 }
@@ -89,8 +88,10 @@ std::future<void> ts::states::Loading_state::async_load_resources()
 {
     auto loader = [this]()
     {
-        resource_store_->tracks.scan_directory(config::track_root_directory);
-        resource_store_->cars.scan_directory(config::car_directory);
+        resource_store()->tracks.scan_directory(config::track_root_directory);
+        resource_store()->cars.scan_directory(config::car_directory);
+
+        resource_store()->sounds = audio::Audio_store(config::sound_directory);
     };
 
     return std::async(std::launch::async, loader);
@@ -106,7 +107,7 @@ void ts::states::Loading_state::display_main_menu()
 {
     const auto& sm_handle = state_machine();
 
-    auto main_menu = std::make_unique<Main_menu>(sm_handle, context(), resource_store_);
+    auto main_menu = std::make_unique<Main_menu>(sm_handle, context(), resource_store());
     main_menu->set_background(background());
 
     sm_handle->change_state();

@@ -23,10 +23,11 @@
 #include "user_interface/gui_state.hpp"
 #include "user_interface/gui_scene.hpp"
 
-#include "graphics/track_builder.hpp"
-#include "graphics/camera.hpp"
-#include "graphics/drawable_entity.hpp"
-#include "graphics/particle_generator.hpp"
+#include "game/track_builder.hpp"
+#include "game/camera.hpp"
+#include "game/drawable_entity.hpp"
+#include "game/particle_generator.hpp"
+#include "game/stage_data.hpp"
 
 #include "world/world.hpp"
 #include "world/entity_listener.hpp"
@@ -55,7 +56,7 @@ namespace ts
             : public graphics::Render_scene, public world::Entity_listener
         {
         public:
-            Action_scene(const resources::Track& track, const cup::Stage_data& stage_data);
+            Action_scene(const resources::Track& track, const game::Stage_data& stage_data);
 
             virtual void render(graphics::Render_target& render_target) override;
             void update(std::size_t frame_duration);
@@ -63,32 +64,33 @@ namespace ts
             void zoom_in();
             void zoom_out();
 
-            graphics::Camera& camera();
-            graphics::Particle_generator& particle_generator();
+            game::Camera& camera();
+            game::Particle_generator& particle_generator();
 
             virtual void on_car_create(world::Car* car) override;
             virtual void on_entity_destroy(world::Entity* entity) override;
 
         private:
-            graphics::Track_builder_result build_track(const cup::Stage_data& stage_data);
+            game::Track_builder_result build_track(const cup::Stage_data& stage_data);
 
-            graphics::Track_builder_result track_components_;
+            game::Track_builder_result track_components_;
 
-            std::vector<graphics::Drawable_entity> drawable_entities_;
+            std::vector<game::Drawable_entity> drawable_entities_;
 
             sf::Clock frame_time_;
             double frame_duration_;
 
-            graphics::Camera camera_;
-            graphics::Particle_generator particle_generator_;
+            game::Camera camera_;
+            game::Particle_generator particle_generator_;
         };
 
         class Action_state
             : public gui::State
         {
         public:
-            Action_state(resources::Track&& track, const cup::Stage_data& stage_data, 
-                         const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context);
+            Action_state(resources::Track&& track, const game::Stage_data& stage_data, 
+                         const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context,
+                         std::shared_ptr<resources::Resource_store> resource_store);
 
             virtual void render(graphics::Render_target& render_target) override;
             virtual void handle_event(const sf::Event& event) override;

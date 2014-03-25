@@ -20,16 +20,16 @@
 #include "action_state.hpp"
 #include "core/config.hpp"
 #include "world/car.hpp"
-#include "cup/stage_data.hpp"
-#include "graphics/drawable_entity.hpp"
+#include "game/stage_data.hpp"
+#include "game/drawable_entity.hpp"
 #include "resources/track.hpp"
 #include "resources/car_store.hpp"
 #include "graphics/texture.hpp"
 
 #include <iostream>
 
-ts::states::Action_scene::Action_scene(const resources::Track& track, const cup::Stage_data& stage_data)
-: track_components_(graphics::build_track(track)), frame_duration_(0.0f), camera_(track.size())
+ts::states::Action_scene::Action_scene(const resources::Track& track, const game::Stage_data& stage_data)
+: track_components_(game::build_track(track)), frame_duration_(0.0f), camera_(track.size())
 {
 }
 
@@ -45,12 +45,12 @@ void ts::states::Action_scene::zoom_out()
     camera_.setScale(scale / 1.05f);
 }
 
-ts::graphics::Camera& ts::states::Action_scene::camera()
+ts::game::Camera& ts::states::Action_scene::camera()
 {
     return camera_;
 }
 
-ts::graphics::Particle_generator& ts::states::Action_scene::particle_generator()
+ts::game::Particle_generator& ts::states::Action_scene::particle_generator()
 {
     return particle_generator_;
 }
@@ -73,7 +73,7 @@ void ts::states::Action_scene::on_car_create(world::Car* car)
 void ts::states::Action_scene::on_entity_destroy(world::Entity* entity)
 {
     auto it = std::remove_if(drawable_entities_.begin(), drawable_entities_.end(), 
-        [&](const graphics::Drawable_entity& object)
+        [&](const game::Drawable_entity& object)
         {
             return object.entity() == entity;
         }
@@ -92,7 +92,7 @@ void ts::states::Action_scene::update(std::size_t frame_duration)
         drawable_entity.update_position();
     }
 
-    using graphics::Drawable_entity;
+    using game::Drawable_entity;
 
     // Sort drawable_entities. This will usually be O(n) because there's not much
     // shifting in height levels.
@@ -148,9 +148,10 @@ void ts::states::Action_scene::render(graphics::Render_target& render_target)
     render_target.setView(default_view);
 }
 
-ts::states::Action_state::Action_state(resources::Track&& track, const cup::Stage_data& stage_data, 
-                                       const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context)
-    : gui::State(state_machine, context), 
+ts::states::Action_state::Action_state(resources::Track&& track, const game::Stage_data& stage_data, 
+                                       const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context,
+                                       std::shared_ptr<resources::Resource_store> resource_store)
+    : gui::State(state_machine, context, resource_store), 
       action_scene_(track, stage_data), 
       world_(std::move(track)),
       key_mapping_(controls::default_key_mapping()),
@@ -170,6 +171,11 @@ ts::states::Action_state::Action_state(resources::Track&& track, const cup::Stag
             action_scene_.camera().set_target(&*car);
         }
     }
+
+    car_sound_controller_.set_skid_sound(resource_store->sounds["skid.wav"]);
+    
+    collision_sound_controller_.set_entity_collision_sound(resource_store->sounds["carcollision.wav"]);
+    collision_sound_controller_.set_scenery_collision_sound(resource_store->sounds["collision.wav"]);
 }
 
 void ts::states::Action_state::handle_event(const sf::Event& event)
@@ -210,14 +216,14 @@ void ts::states::Action_state::handle_event(const sf::Event& event)
         }
 
         else if (event.key.code == sf::Keyboard::F12) {
-            if (action_scene_.camera().mode() == graphics::Camera::Mode::Fixed) 
+            if (action_scene_.camera().mode() == game::Camera::Mode::Fixed) 
             {
-                action_scene_.camera().set_mode(graphics::Camera::Mode::Rotational);
+                action_scene_.camera().set_mode(game::Camera::Mode::Rotational);
             }
 
             else 
             {
-                action_scene_.camera().set_mode(graphics::Camera::Mode::Fixed);
+                action_scene_.camera().set_mode(game::Camera::Mode::Fixed);
             }
         }
     }

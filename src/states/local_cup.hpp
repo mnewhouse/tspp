@@ -46,8 +46,8 @@ namespace ts
             : public Cup_state
         {
         public:
-            Local_cup_state(const Handle<state_machine_type>& state_machine,
-                            const Handle<gui::Context>& context);
+            Local_cup_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context,
+                            std::shared_ptr<resources::Resource_store> resource_store);
 
             virtual void render(graphics::Render_target& render_target) override;
             virtual void update(std::size_t frame_duration) override;

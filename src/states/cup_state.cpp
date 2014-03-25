@@ -24,9 +24,9 @@
 #include "resources/track.hpp"
 
 
-ts::states::Cup_state::Cup_state(const Handle<state_machine_type>& state_machine,
-                                 const Handle<gui::Context>& context)
-                                 : gui::State(state_machine, context)
+ts::states::Cup_state::Cup_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context,
+                                 std::shared_ptr<resources::Resource_store> resource_store)
+                                 : gui::State(state_machine, context, std::move(resource_store))
 {
 }
 
@@ -37,11 +37,12 @@ void ts::states::Cup_state::async_load()
     auto context_handle = context();
     
     make_stage_data();
-    auto stg_data = stage_data();
 
-    auto loader = [=]()
+    auto loader = [this]()
     { 
-        return std::make_unique<Action_state>(resources::Track(track_handle), stg_data, state_machine_handle, context_handle);
+        return std::make_unique<Action_state>(resources::Track(current_track()), stage_data(), 
+                                              state_machine(), context(), resource_store());
+
     };
 
     future_state_ = std::async(std::launch::async, loader);
