@@ -292,3 +292,8 @@ void ts::world::World::add_collision_listener(Collision_listener* collision_list
 {
     collision_listeners_.push_back(collision_listener);
 }
+
+const ts::resources::Track& ts::world::World::track() const
+{
+    return track_;
+}

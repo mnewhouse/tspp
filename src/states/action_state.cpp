@@ -163,12 +163,25 @@ ts::states::Action_state::Action_state(resources::Track&& track, const game::Sta
 
     world_.add_collision_listener(&collision_sound_controller_);
 
-    for (const auto& player : stage_data.players) {
-        auto car = world_.create_car(player.car);
+    const auto& start_points = world_.track().start_points();
 
-        if (player.control_slot) {
-            control_center_.assume_control(player.control_slot, car);
-            action_scene_.camera().set_target(&*car);
+    for (const auto& player : stage_data.players) {
+        if (start_points.size() >= player.start_pos)
+        {
+            /*
+            auto car = world_.create_car(player.car);
+
+            if (player.control_slot) 
+            {
+                control_center_.assume_control(player.control_slot, car);
+                action_scene_.camera().set_target(&*car);
+            }
+
+            auto& start_point = start_points[player.start_pos];
+            car->set_position(start_point.position);
+            car->set_rotation(start_point.rotation);
+            car->set_z_position(start_point.level);
+            */
         }
     }
 

@@ -135,7 +135,7 @@ void ts::game::Camera::clamp_view(sf::View& view)
 
 void ts::game::Camera::update_position()
 {
-    last_position_ = camera_target_->position();
+    if (camera_target_) last_position_ = camera_target_->position();
 }
 
 void ts::game::Camera::update_transform(double frame_time)

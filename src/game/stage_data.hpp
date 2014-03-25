@@ -44,6 +44,7 @@ namespace ts
         {
             controls::Slot control_slot;
             resources::Car_definition car;
+            std::size_t start_pos;
         };
 
     }

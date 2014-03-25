@@ -88,6 +88,11 @@ const std::vector<ts::resources::Level_tile>& ts::resources::Track::tile_list() 
 	return tile_list_;
 }
 
+const std::vector<ts::resources::Track::Start_point>& ts::resources::Track::start_points() const
+{
+    return start_points_;
+}
+
 ts::Vector2u ts::resources::Track::size() const
 {
     return track_size_;
@@ -216,6 +221,14 @@ void ts::resources::Track::parse_start_points(std::istream& stream, std::size_t 
     for (std::string line, directive; directive != "end" && std::getline(stream, line);) {
         std::istringstream line_stream(line);
         if (!read_directive(line_stream, directive)) continue;
+
+        Start_point start_point;
+        if (line_stream >> start_point.position >> start_point.rotation)
+        {
+            if (!(line_stream >> start_point.level)) start_point.level = 0;
+
+            start_points_.push_back(start_point);
+        }
     }
 }
 

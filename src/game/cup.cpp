@@ -29,10 +29,15 @@ void ts::game::Cup::make_stage_data()
 {
     auto count = player_count();
     stage_data_.players.resize(count);
-    for (std::size_t id = 0; id != count; ++id)
+
+    std::size_t id = 0;
+    for (auto& player : stage_data_.players)
     {
-        stage_data_.players[id].car = car_list_.front();
-        stage_data_.players[id].control_slot = player_list_[id].control_slot;
+        player.car = car_list_.front();
+        player.control_slot = player_list_[id].control_slot;
+        player.start_pos = id;
+
+        ++id;
     }
 }
 

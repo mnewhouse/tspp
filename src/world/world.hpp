@@ -66,6 +66,8 @@ namespace ts
             const std::shared_ptr<Collision_bitmap>& collision_bitmap
                 (const std::shared_ptr<resources::Pattern>& pattern);
 
+            const resources::Track& track() const;
+
         private:
             Vector2d clamp_position(Vector2d position) const;
 

@@ -101,7 +101,7 @@ void ts::states::Main_menu_scene::render(graphics::Render_target& render_target)
         const auto& track_store = resource_store->tracks;
 
         for (std::size_t n = 0; n != 1; ++n) {
-            cup_state->add_track(track_store.get_track_by_name("tse_arenberg"));
+            cup_state->add_track(track_store.get_track_by_name("lvp-arena2"));
         }
 
         auto car = car_store.get_car_by_name("Test-car");

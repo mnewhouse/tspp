@@ -38,6 +38,13 @@ namespace ts
         class Track
         {
         public:
+            struct Start_point
+            {
+                Vector2<double> position;
+                Rotation<double> rotation;
+                std::size_t level;
+            };
+
             Track();
             explicit Track(const Track_handle& track_handle);
 
@@ -48,6 +55,8 @@ namespace ts
 
             const std::vector<Level_tile>& tile_list() const;
             Vector2u size() const;
+
+            const std::vector<Start_point>& start_points() const;
 
             std::size_t num_levels() const;
 
@@ -68,6 +77,8 @@ namespace ts
             void parse_start_points(std::istream& stream, std::size_t count);
 
             std::vector<Level_tile> tile_list_;
+            std::vector<Start_point> start_points_;
+
             Vector2u track_size_;
             std::size_t num_levels_;
 
