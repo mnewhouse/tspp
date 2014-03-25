@@ -237,9 +237,17 @@ void ts::world::World::update(std::size_t frame_duration)
             auto entity = target_state.entity;
             if (entity == subject || entity == object)
             {
-                target_state.position = compute_new_position(*entity, real_time_left);
+                if (!collision.stuck)
+                {
+                    target_state.position = compute_new_position(*entity, real_time_left);
+                    if (!collision.rotate) target_state.rotation = entity->rotation();
+                }
 
-                if (!collision.rotate) target_state.rotation = entity->rotation();
+                else
+                {
+                    target_state.position = entity->position();
+                    target_state.rotation = entity->rotation();
+                }
 
                 (entity == subject ? subject_state : object_state) = target_state;
             }

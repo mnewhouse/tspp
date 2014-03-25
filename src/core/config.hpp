@@ -33,6 +33,10 @@ namespace ts
         static const char* const car_directory = "cars";
         static const char* const sound_directory = "sound";
 
+        static const char* const default_collision_sound = "collision.wav";
+        static const char* const default_entity_collision_sound = "carcollision.wav";
+        static const char* const default_skid_sound = "skid.wav";
+
     }
 
 }

@@ -56,7 +56,7 @@ namespace ts
             : public graphics::Render_scene, public world::Entity_listener
         {
         public:
-            Action_scene(const resources::Track& track, const game::Stage_data& stage_data);
+            Action_scene(const resources::Track& track);
 
             virtual void render(graphics::Render_target& render_target) override;
             void update(std::size_t frame_duration);
@@ -97,6 +97,9 @@ namespace ts
             virtual void update(std::size_t frame_duration) override;
 
         private:
+            void create_stage_entities(const game::Stage_data& stage_data);
+            void register_sounds();
+
             Action_scene action_scene_;
 
             world::World world_;

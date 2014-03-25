@@ -218,6 +218,8 @@ void ts::resources::Track::include(std::istream& stream, std::size_t recursion_d
 
 void ts::resources::Track::parse_start_points(std::istream& stream, std::size_t count)
 {
+    start_points_.reserve(count);
+
     for (std::string line, directive; directive != "end" && std::getline(stream, line);) {
         std::istringstream line_stream(line);
         if (!read_directive(line_stream, directive)) continue;

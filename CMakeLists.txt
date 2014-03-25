@@ -10,7 +10,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(TSPP_OS_LINUX 1)
-    add_definitions(-std=c++11)
+    add_definitions(-std=c++1y)
     add_definitions(-g)
     add_definitions(-Wall)
 endif()
@@ -28,6 +28,7 @@ set(SRC src/main.cpp
         src/audio/car_sounds.cpp
         src/audio/car_sounds.hpp
 
+        src/core/config.hpp
         src/core/directive_reader.hpp
         src/core/game.hpp
         src/core/game.cpp        
@@ -189,10 +190,12 @@ if(TSPP_OS_LINUX)
   endif()
 endif()
 
-
 find_package(SFML 2 REQUIRED system window graphics network audio)
 if(SFML_FOUND)
   include_directories(${SFML_INCLUDE_DIR})
   target_link_libraries(${EXECUTABLE_NAME} ${SFML_LIBRARIES})
 endif()
 
+if (TSPP_OS_WINDOWS)
+  target_link_libraries(${EXECUTABLE_NAME} "winmm.lib")
+endif()

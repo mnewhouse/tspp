@@ -28,7 +28,7 @@
 
 #include <iostream>
 
-ts::states::Action_scene::Action_scene(const resources::Track& track, const game::Stage_data& stage_data)
+ts::states::Action_scene::Action_scene(const resources::Track& track)
 : track_components_(game::build_track(track)), frame_duration_(0.0f), camera_(track.size())
 {
 }
@@ -152,7 +152,7 @@ ts::states::Action_state::Action_state(resources::Track&& track, const game::Sta
                                        const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context,
                                        std::shared_ptr<resources::Resource_store> resource_store)
     : gui::State(state_machine, context, resource_store), 
-      action_scene_(track, stage_data), 
+      action_scene_(track), 
       world_(std::move(track)),
       key_mapping_(controls::default_key_mapping()),
       collision_sound_controller_()
@@ -163,12 +163,17 @@ ts::states::Action_state::Action_state(resources::Track&& track, const game::Sta
 
     world_.add_collision_listener(&collision_sound_controller_);
 
+    register_sounds();
+    create_stage_entities(stage_data);
+}
+
+void ts::states::Action_state::create_stage_entities(const game::Stage_data& stage_data)
+{    
     const auto& start_points = world_.track().start_points();
 
     for (const auto& player : stage_data.players) {
-        if (start_points.size() >= player.start_pos)
+        if (player.start_pos < start_points.size())
         {
-            /*
             auto car = world_.create_car(player.car);
 
             if (player.control_slot) 
@@ -181,14 +186,8 @@ ts::states::Action_state::Action_state(resources::Track&& track, const game::Sta
             car->set_position(start_point.position);
             car->set_rotation(start_point.rotation);
             car->set_z_position(start_point.level);
-            */
         }
     }
-
-    car_sound_controller_.set_skid_sound(resource_store->sounds["skid.wav"]);
-    
-    collision_sound_controller_.set_entity_collision_sound(resource_store->sounds["carcollision.wav"]);
-    collision_sound_controller_.set_scenery_collision_sound(resource_store->sounds["collision.wav"]);
 }
 
 void ts::states::Action_state::handle_event(const sf::Event& event)
@@ -255,4 +254,21 @@ void ts::states::Action_state::update(std::size_t frame_duration)
     world_.update(frame_duration);
 
     car_sound_controller_.update(frame_duration);
+}
+
+void ts::states::Action_state::register_sounds()
+{
+    auto& audio_store = resource_store()->sounds;
+
+    try {
+        car_sound_controller_.set_skid_sound(audio_store[config::default_skid_sound]);
+
+        collision_sound_controller_.set_entity_collision_sound(audio_store[config::default_entity_collision_sound]);
+        collision_sound_controller_.set_scenery_collision_sound(audio_store[config::default_collision_sound]);
+    }
+
+    catch (const audio::Load_error& error)
+    {
+        std::cerr << error.what() << std::endl;
+    }
 }
