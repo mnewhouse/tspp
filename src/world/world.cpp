@@ -19,7 +19,6 @@
 
 #include "world.hpp"
 #include "car.hpp"
-#include "entity_listener.hpp"
 #include "collisions.hpp"
 
 #include "resources/track.hpp"
@@ -44,6 +43,8 @@ namespace ts
         {
             return entity.rotation() + Rotation<double>::radians(entity.angular_velocity() * frame_duration);
         }
+
+        inline Vector2<double> clamp_position(Vector2<double> position, const Vector2<double>& world_size);
     }
 }
 
@@ -61,24 +62,16 @@ ts::world::Car* ts::world::World::create_car(const resources::Car_definition& ca
     car_list_.push_back(std::make_unique<Car>(this, car_def));
 
     auto car = &*car_list_.back();
-    std::for_each(entity_listeners_.begin(), entity_listeners_.end(), 
-        [&](Entity_listener* listener)
-        {
-            listener->on_car_create(car);
-        }
-    );
-
-    car->set_position({ 200.0, 511.0 / 2.0 });
-
-    entity_list_.push_back(car);
+    register_entity(car);
+    
+    for (auto listener : world_listeners_)
+    {
+        listener->on_car_create(car);
+    }    
 
     return car;
 }
 
-void ts::world::World::add_entity_listener(Entity_listener* entity_listener)
-{
-    entity_listeners_.push_back(entity_listener);
-}
 
 const ts::resources::Terrain_definition& ts::world::World::terrain_at(Vector2d point) const
 {
@@ -99,13 +92,13 @@ const ts::resources::Terrain_definition& ts::world::World::terrain_at(Vector2d p
     return terrain_lib.terrain_by_id(sub_terrain);
 }
 
-ts::Vector2d ts::world::World::clamp_position(Vector2d position) const
+ts::Vector2<double> ts::world::clamp_position(Vector2<double> position, const Vector2<double>& world_size)
 {
     position.x = std::max(position.x, 0.0);
-    position.x = std::min<double>(position.x, std::nexttoward(double(track_.size().x), 0.0));
+    position.x = std::min<double>(position.x, std::nexttoward(world_size.x, 0.0));
 
     position.y = std::max(position.y, 0.0);
-    position.y = std::min<double>(position.y, std::nexttoward(double(track_.size().y), 0.0));
+    position.y = std::min<double>(position.y, std::nexttoward(world_size.y, 0.0));
 
     return position;
 }
@@ -114,21 +107,20 @@ void ts::world::World::update(std::size_t frame_duration)
 {
     double fd = frame_duration / 1000.0;
 
-    state_buffer_.resize(entity_list_.size());
+    auto entity_count = entity_set_.size();
+    state_buffer_.resize(entity_count);
 
-    for (auto entity : entity_list_) {
+    for (auto entity : entity_set_) {
         entity->update(fd);
     }
 
-    // Update the collision mask's rotations
-    auto entity_count = entity_list_.size();
     state_buffer_.resize(entity_count);
 
-    std::transform(entity_list_.begin(), entity_list_.end(), state_buffer_.begin(), [this, fd](Entity* entity)
+    std::transform(entity_set_.begin(), entity_set_.end(), state_buffer_.begin(), [this, fd](Entity* entity)
     {
         Entity_state result;
         result.entity = entity;
-        result.position = clamp_position(compute_new_position(*entity, fd));
+        result.position = clamp_position(compute_new_position(*entity, fd), track_.size());
         result.rotation = compute_new_rotation(*entity, fd);
 
         return result;
@@ -211,7 +203,7 @@ void ts::world::World::update(std::size_t frame_duration)
         auto subject = subject_state.entity;
         auto object = object_state.entity;
 
-        subject->set_position(clamp_position(subject_state.position));
+        subject->set_position(clamp_position(subject_state.position, track_.size()));
         subject->set_rotation(subject_state.rotation);
 
         if (object)
@@ -254,7 +246,7 @@ void ts::world::World::update(std::size_t frame_duration)
 
             else if (real_time_passed > 0.0)
             {
-                entity->set_position(clamp_position(compute_new_position(*entity, real_time_passed)));
+                entity->set_position(clamp_position(compute_new_position(*entity, real_time_passed), track_.size()));
             }
         }
 
@@ -274,7 +266,7 @@ void ts::world::World::update(std::size_t frame_duration)
             }
         }
         
-        for (auto listener : collision_listeners_)
+        for (auto listener : world_listeners_)
         {
             listener->on_collision(collision);
         }
@@ -285,9 +277,46 @@ void ts::world::World::update(std::size_t frame_duration)
     // Finally, set the entities' new states
     for (const auto& state : state_buffer_) 
     {
-        state.entity->set_position(clamp_position(state.position));
+        state.entity->set_position(clamp_position(state.position, track_.size()));
         state.entity->set_rotation(state.rotation);
     }
+
+    for (auto listener : world_listeners_)
+    {
+        listener->on_update();
+    }
+
+    auto old_game_time = game_timer_.time();
+    game_timer_.update(frame_duration);
+
+    if (game_timer_.time() != old_game_time)
+    {
+        for (auto listener : world_listeners_)
+        {
+            listener->on_tick(game_timer_.time());
+        }
+    }
+}
+
+std::size_t ts::world::World::game_time() const
+{
+    return game_timer_.time();
+}
+
+void ts::world::World::start_game_timer()
+{
+    game_timer_.start();
+}
+
+bool ts::world::World::is_entity(Entity* entity) const
+{
+    return entity_set_.find(entity) != entity_set_.end();
+}
+
+void ts::world::World::register_entity(Entity* entity)
+{
+    entity_set_.insert(entity);
+    entity_list_.push_back(entity);
 }
 
 const std::shared_ptr<ts::world::Collision_bitmap>& ts::world::World::collision_bitmap
@@ -296,12 +325,23 @@ const std::shared_ptr<ts::world::Collision_bitmap>& ts::world::World::collision_
     return dynamic_bitmap_store_[pattern];
 }
 
-void ts::world::World::add_collision_listener(Collision_listener* collision_listener)
+
+void ts::world::World::add_world_listener(World_listener* world_listener)
 {
-    collision_listeners_.push_back(collision_listener);
+    world_listeners_.push_back(world_listener);
 }
 
 const ts::resources::Track& ts::world::World::track() const
 {
     return track_;
+}
+
+const std::vector<std::unique_ptr<ts::world::Car>>& ts::world::World::car_list() const
+{
+    return car_list_;
+}
+
+const std::vector<ts::world::Entity*>& ts::world::World::entity_list() const
+{
+    return entity_list_;
 }

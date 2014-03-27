@@ -23,6 +23,7 @@
 #include "control.hpp"
 
 #include <map>
+#include <cstdint>
 
 namespace ts
 {
@@ -39,12 +40,14 @@ namespace ts
             // Harbinger-style function naming.
             void assume_control(Slot slot, Controllable* controllable);
 
-            void update_control_state(Slot slot, unsigned int new_state);
+            void update_control_state(Slot slot, std::uint32_t new_state);
             void set_control_state(Slot slot, Control control, bool state);
-            
+
+            void toggle_global_control(Control control, bool enable);
 
         private:
             std::multimap<int, Controllable*> control_mapping_;
+            std::uint32_t globally_disabled_controls_ = 0;
         };
     }
 }

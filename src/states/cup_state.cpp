@@ -40,17 +40,19 @@ void ts::states::Cup_state::async_load()
 
     auto loader = [this]()
     { 
-        return std::make_unique<Action_state>(resources::Track(current_track()), stage_data(), 
-                                              state_machine(), context(), resource_store());
+        resources::Track track(current_track());
+        return std::make_unique<Action_state>(std::move(track), stage_data(), state_machine(), 
+                                                           context(), resource_store());
 
     };
 
+    is_loading_ = true;
     future_state_ = std::async(std::launch::async, loader);
 }
 
 bool ts::states::Cup_state::is_loading() const
 {
-    return future_state_.valid();
+    return is_loading_;
 }
 
 bool ts::states::Cup_state::is_loading_finished() const
@@ -61,6 +63,7 @@ bool ts::states::Cup_state::is_loading_finished() const
 
 void ts::states::Cup_state::launch_action()
 {
+    is_loading_ = false;
     state_machine()->change_state(future_state_.get());
 
     next_track();

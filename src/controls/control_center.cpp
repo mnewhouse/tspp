@@ -20,18 +20,20 @@
 #include "control_center.hpp"
 #include "controllable.hpp"
 
-void ts::controls::Control_center::update_control_state(Slot slot, unsigned new_state)
+void ts::controls::Control_center::update_control_state(Slot slot, std::uint32_t new_state)
 {
     auto range = control_mapping_.equal_range(slot);
     for (auto it = range.first; it != range.second; ++it)
     {
         Controllable* controllable = it->second;
-        controllable->update_control_state(new_state);
+        controllable->update_control_state(new_state & ~globally_disabled_controls_);
     }
 }
 
 void ts::controls::Control_center::set_control_state(Slot slot, Control control, bool state)
 {
+    if ((globally_disabled_controls_ & std::uint32_t(control)) != 0) return;
+
     auto range = control_mapping_.equal_range(slot);
     for (auto it = range.first; it != range.second; ++it)
     {
@@ -43,4 +45,14 @@ void ts::controls::Control_center::set_control_state(Slot slot, Control control,
 void ts::controls::Control_center::assume_control(Slot slot, Controllable* controllable)
 {
     control_mapping_.insert(std::make_pair(slot, controllable));
+}
+
+void ts::controls::Control_center::toggle_global_control(Control control, bool enable)
+{
+    globally_disabled_controls_ |= static_cast<std::uint32_t>(control);
+
+    if (enable)
+    {
+        globally_disabled_controls_ ^= static_cast<std::uint32_t>(control);
+    }
 }

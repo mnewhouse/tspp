@@ -20,6 +20,8 @@
 
 #include "collision_sounds.hpp"
 
+#include "world/collisions.hpp"
+
 ts::audio::Collision_sound_controller::Collision_sound_controller()
 {
 }

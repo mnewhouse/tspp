@@ -47,6 +47,7 @@ namespace ts
             void launch_action();
 
         private:
+            bool is_loading_ = false;
             std::future<std::unique_ptr<Action_state>> future_state_;
         };
     }

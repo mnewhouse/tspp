@@ -26,6 +26,8 @@
 #include "resources/car_store.hpp"
 #include "graphics/texture.hpp"
 
+#include "script/script_definitions.hpp"
+
 #include <iostream>
 
 ts::states::Action_scene::Action_scene(const resources::Track& track)
@@ -149,21 +151,32 @@ void ts::states::Action_scene::render(graphics::Render_target& render_target)
 }
 
 ts::states::Action_state::Action_state(resources::Track&& track, const game::Stage_data& stage_data, 
-                                       const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context,
+                                       const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context, 
                                        std::shared_ptr<resources::Resource_store> resource_store)
     : gui::State(state_machine, context, resource_store), 
       action_scene_(track), 
       world_(std::move(track)),
       key_mapping_(controls::default_key_mapping()),
-      collision_sound_controller_()
+      collision_sound_controller_(),
+      gameplay_script_engine_(),
+      world_interface_(&world_, &gameplay_script_engine_)
 {
-    world_.add_entity_listener(&action_scene_);
-    world_.add_entity_listener(&car_sound_controller_);
-    world_.add_entity_listener(&action_scene_.particle_generator());
-
-    world_.add_collision_listener(&collision_sound_controller_);
+    world_.add_world_listener(&action_scene_);
+    world_.add_world_listener(&car_sound_controller_);
+    world_.add_world_listener(&action_scene_.particle_generator());
+    world_.add_world_listener(&collision_sound_controller_);
+    world_.add_world_listener(&world_interface_);
 
     register_sounds();
+
+    script::register_utility_definitions(&gameplay_script_engine_);
+    script::register_control_definitions(&gameplay_script_engine_, &control_center_);
+    script::register_world_definitions(&gameplay_script_engine_, &world_interface_);
+    script::register_display_definitions(&gameplay_script_engine_, &hud_overlay_);
+
+    auto module = gameplay_script_engine_.load_module("test", "script/test.as");
+    if (module) module.run();
+
     create_stage_entities(stage_data);
 }
 
@@ -246,6 +259,8 @@ void ts::states::Action_state::render(graphics::Render_target& render_target)
     render_target.clear();
 
     action_scene_.render_if_visible(render_target);
+
+    hud_overlay_.render(render_target);
 }
 
 void ts::states::Action_state::update(std::size_t frame_duration)

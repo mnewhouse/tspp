@@ -35,7 +35,6 @@
 #include "core/utility.hpp"
 
 
-
 ts::states::Main_menu::Main_menu(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& gui_context,
                                  std::shared_ptr<resources::Resource_store> resource_store)
     : gui::State(state_machine, gui_context, std::move(resource_store)),
@@ -101,7 +100,7 @@ void ts::states::Main_menu_scene::render(graphics::Render_target& render_target)
         const auto& track_store = resource_store->tracks;
 
         for (std::size_t n = 0; n != 1; ++n) {
-            cup_state->add_track(track_store.get_track_by_name("lvp-arena2"));
+            cup_state->add_track(track_store.get_track_by_name("tse_arenberg"));
         }
 
         auto car = car_store.get_car_by_name("Test-car");

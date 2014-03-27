@@ -51,6 +51,8 @@ void ts::states::Local_cup_state::update(std::size_t)
         catch (...) {
             std::cout << "Unknown exception." << std::endl;
         }
+
+        
     }
 }
 

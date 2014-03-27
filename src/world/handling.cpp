@@ -258,8 +258,7 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
 
     if (total_required_traction >= 1.0)
     {
-        total_required_traction = std::sqrt(total_required_traction);
-        current_traction /= total_required_traction * std::max(traction_loss.multiplier, 1.0);
+        current_traction /= std::max(std::sqrt(total_required_traction) * traction_loss.multiplier, 1.0);
     }
 
     acceleration_force *= 1.0 - (1.0 - current_traction) * (1.0 - traction_loss.accelerate_effect);

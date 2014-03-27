@@ -22,7 +22,7 @@
 
 #include "audio_store.hpp"
 
-#include "world/entity_listener.hpp"
+#include "world/world_listener.hpp"
 
 #include <vector>
 #include <memory>
@@ -34,7 +34,7 @@ namespace ts
     namespace audio
     {
         class Car_sound_controller
-            : public world::Entity_listener
+            : public world::World_listener
         {
         public:
             virtual void on_car_create(world::Car* car) override;

@@ -20,8 +20,10 @@
 #ifndef WORLD_WORLD_HPP
 #define WORLD_WORLD_HPP
 
+#include "world_listener.hpp"
 #include "collision_bitmap.hpp"
 #include "collisions.hpp"
+#include "game_timer.hpp"
 
 #include "resources/track.hpp"
 #include "resources/terrain_map.hpp"
@@ -31,6 +33,7 @@
 #include <memory>
 #include <vector>
 #include <deque>
+#include <unordered_set>
 
 namespace ts
 {
@@ -46,7 +49,7 @@ namespace ts
         struct Entity_state;
 
         class Entity;        
-        class Car;        
+        class Car;       
 
         class World
         {
@@ -55,8 +58,7 @@ namespace ts
 
             Car* create_car(const resources::Car_definition& car_def);
 
-            void add_entity_listener(Entity_listener* entity_listener);
-            void add_collision_listener(Collision_listener* collision_listener);
+            void add_world_listener(World_listener* world_listener);
 
             void update(std::size_t frame_duration);
 
@@ -67,9 +69,18 @@ namespace ts
                 (const std::shared_ptr<resources::Pattern>& pattern);
 
             const resources::Track& track() const;
+            const std::vector<std::unique_ptr<Car>>& car_list() const;
+
+            void start_game_timer();
+            std::size_t game_time() const;
+
+            bool is_entity(Entity* entity) const;
+            const std::vector<Entity*>& entity_list() const;
+
+            
 
         private:
-            Vector2d clamp_position(Vector2d position) const;
+            void register_entity(Entity* entity);
 
             void handle_collisions(double frame_duration);
 
@@ -78,10 +89,11 @@ namespace ts
             Vector2f world_size_;
 
             std::vector<std::unique_ptr<Car>> car_list_;
-            std::vector<Entity*> entity_list_;
 
-            std::vector<Entity_listener*> entity_listeners_;
-            std::vector<Collision_listener*> collision_listeners_;                
+            std::vector<Entity*> entity_list_;
+            std::unordered_set<Entity*> entity_set_;            
+
+            std::vector<World_listener*> world_listeners_;
 
             std::vector<Entity_state> state_buffer_;
             std::deque<Collision_result> collision_queue_;
@@ -91,6 +103,7 @@ namespace ts
             Static_collision_bitmap scenery_bitmap_;
 
             Collision_bitmap_store dynamic_bitmap_store_;
+            Game_timer game_timer_;
         };
 
     }

@@ -23,7 +23,7 @@
 
 #include "audio_store.hpp"
 
-#include "world/collisions.hpp"
+#include "world/world_listener.hpp"
 
 #include <list>
 
@@ -32,7 +32,7 @@ namespace ts
     namespace audio
     {
         class Collision_sound_controller
-            : public world::Collision_listener
+            : public world::World_listener
         {
         public:
             Collision_sound_controller();

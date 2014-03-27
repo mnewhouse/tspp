@@ -30,7 +30,7 @@
 #include "game/stage_data.hpp"
 
 #include "world/world.hpp"
-#include "world/entity_listener.hpp"
+#include "world/world_listener.hpp"
 
 #include "controls/key_mapping.hpp"
 #include "controls/control_center.hpp"
@@ -38,7 +38,9 @@
 #include "audio/car_sounds.hpp"
 #include "audio/collision_sounds.hpp"
 
-
+#include "script/script_engine.hpp"
+#include "script/world_interface.hpp"
+#include "script/hud_overlay.hpp"
 
 namespace ts
 {
@@ -53,7 +55,7 @@ namespace ts
     {
 
         class Action_scene
-            : public graphics::Render_scene, public world::Entity_listener
+            : public graphics::Render_scene, public world::World_listener
         {
         public:
             Action_scene(const resources::Track& track);
@@ -89,15 +91,16 @@ namespace ts
         {
         public:
             Action_state(resources::Track&& track, const game::Stage_data& stage_data, 
-                         const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context,
+                         const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context, 
                          std::shared_ptr<resources::Resource_store> resource_store);
 
             virtual void render(graphics::Render_target& render_target) override;
             virtual void handle_event(const sf::Event& event) override;
             virtual void update(std::size_t frame_duration) override;
 
-        private:
             void create_stage_entities(const game::Stage_data& stage_data);
+
+        private:
             void register_sounds();
 
             Action_scene action_scene_;
@@ -109,6 +112,10 @@ namespace ts
 
             audio::Car_sound_controller car_sound_controller_;
             audio::Collision_sound_controller collision_sound_controller_;
+
+            script::HUD_overlay hud_overlay_;
+            script::Engine gameplay_script_engine_;
+            script::World_interface world_interface_;
         };
 
     }

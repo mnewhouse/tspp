@@ -17,22 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef WORLD_ENTITY_LISTENER_HPP
-#define WORLD_ENTITY_LISTENER_HPP
+#include "game_timer.hpp"
 
-namespace ts
+std::size_t ts::world::Game_timer::time() const
 {
-    namespace world
-    {
-        class Car;
-        class Entity;
+    return game_time_;
+}
 
-        struct Entity_listener
-        {
-            virtual void on_car_create(Car* car) = 0;
-            virtual void on_entity_destroy(Entity* entity) = 0;
-        };
+void ts::world::Game_timer::update(std::size_t ticks)
+{
+    if (started_)
+    {
+        game_time_ += ticks;
     }
 }
 
-#endif
+void ts::world::Game_timer::start()
+{
+    started_ = true;
+}

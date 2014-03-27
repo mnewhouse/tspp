@@ -23,7 +23,7 @@
 
 #include "graphics/particle_drawer.hpp"
 
-#include "world/entity_listener.hpp"
+#include "world/world_listener.hpp"
 
 #include <vector>
 #include <random>
@@ -33,7 +33,7 @@ namespace ts
     namespace game
     {
         class Particle_generator
-            : public graphics::Particle_drawer, public world::Entity_listener
+            : public graphics::Particle_drawer, public world::World_listener
         {
         public:
             virtual void on_car_create(world::Car* car) override;

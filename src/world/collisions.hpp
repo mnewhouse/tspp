@@ -46,11 +46,6 @@ namespace ts
             operator bool() const { return collided; }
         };
 
-        struct Collision_listener
-        {
-            virtual void on_collision(const Collision_result& collision) = 0;
-        };
-
         struct Entity_state;
         class Static_collision_bitmap;
 

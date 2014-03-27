@@ -20,6 +20,9 @@
 #ifndef CONTROLS_CONTROL_HPP
 #define CONTROLS_CONTROL_HPP
 
+#include <cstdint>
+#include <string>
+
 namespace ts
 {
 
@@ -28,8 +31,9 @@ namespace ts
         using Slot = int;
 
         enum class Control
-            : unsigned
+            : std::uint32_t
         {
+            None = 0,
             Left = 1,
             Right = 2,
             Accelerate = 4,
@@ -37,6 +41,8 @@ namespace ts
             Fire = 16,
             Alt_fire = 32
         };
+
+        Control control_from_string(const std::string& control_string);
 
     }
 
