@@ -93,6 +93,11 @@ const std::vector<ts::resources::Track::Start_point>& ts::resources::Track::star
     return start_points_;
 }
 
+const std::vector<ts::resources::Control_point>& ts::resources::Track::control_points() const
+{
+    return control_points_;
+}
+
 ts::Vector2u ts::resources::Track::size() const
 {
     return track_size_;
@@ -239,6 +244,25 @@ void ts::resources::Track::parse_control_points(std::istream& stream, std::size_
     for (std::string line, directive; directive != "end" && std::getline(stream, line);) {
         std::istringstream line_stream(line);
         if (!read_directive(line_stream, directive)) continue;
+
+        if (directive == "point")
+        {
+            ts::Vector2i point;
+            int length;
+            int direction;
+            if (line_stream >> point >> length >> direction)
+            {
+                control_points_.emplace_back();
+
+                auto& control_point = control_points_.back();
+                control_point.type = Control_point::Type::Line;
+                control_point.start = point;
+                control_point.end = point;
+
+                if (direction == 0) control_point.end.y += length;
+                else control_point.end.x += length;               
+            }
+        }
     }
 }
 

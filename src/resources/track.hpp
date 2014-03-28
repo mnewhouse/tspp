@@ -22,6 +22,7 @@
 
 #include "tile_library.hpp"
 #include "terrain_library.hpp"
+#include "control_point.hpp"
 
 #include <istream>
 
@@ -57,6 +58,7 @@ namespace ts
             Vector2u size() const;
 
             const std::vector<Start_point>& start_points() const;
+            const std::vector<Control_point>& control_points() const;
 
             std::size_t num_levels() const;
 
@@ -78,6 +80,7 @@ namespace ts
 
             std::vector<Level_tile> tile_list_;
             std::vector<Start_point> start_points_;
+            std::vector<Control_point> control_points_;
 
             Vector2u track_size_;
             std::size_t num_levels_;

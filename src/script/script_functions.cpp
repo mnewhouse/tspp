@@ -20,6 +20,7 @@
 #include "script_functions.hpp"
 #include "world_interface.hpp"
 #include "hud_overlay.hpp"
+#include "control_point_interface.hpp"
 
 #include "world/car.hpp"
 #include "world/world.hpp"
@@ -31,9 +32,24 @@ namespace ts
     {
         namespace functions
         {
-            void assert_entity_alive(Entity_handle* entity_handle);
+            bool assert_entity_alive(Entity_handle* entity_handle);
+
+            World_interface* get_world_interface();
+            Control_point_interface* get_control_point_interface();
         }
     }
+}
+
+ts::script::World_interface* ts::script::functions::get_world_interface()
+{
+    auto context = asGetActiveContext();
+    return static_cast<World_interface*>(context->GetEngine()->GetUserData(WorldInterface_udata));
+}
+
+ts::script::Control_point_interface* ts::script::functions::get_control_point_interface()
+{
+    auto context = asGetActiveContext();
+    return static_cast<Control_point_interface*>(context->GetEngine()->GetUserData(ControlPointInterface_udata));
 }
 
 // -------------------------------------------------------------------
@@ -202,18 +218,25 @@ void ts::script::functions::Control_center_object::toggleGlobalControl(const std
     }
 }
 
+void ts::script::functions::WorldListener_onTick(void*, std::uint64_t)
+{
+}
+
+void ts::script::functions::WorldListener_onUpdate(void*)
+{
+}
+
 // -------------------------------------------------------------------
 // Entity functions
 // -------------------------------------------------------------------
 
-void ts::script::functions::assert_entity_alive(Entity_handle* entity_handle)
+bool ts::script::functions::assert_entity_alive(Entity_handle* entity_handle)
 {
-    if (entity_handle->alive) return;
-
-    std::cout << "HAUEUAHEUHAE\n";
+    if (entity_handle->alive) return true;
 
     auto context = asGetActiveContext();
     context->SetException("attempt to operate on dead entity");
+    return false;
 }
 
 ts::Vector2<double> ts::script::functions::Entity_getVelocity(Entity_handle* entity_handle)
@@ -334,4 +357,40 @@ namespace
 
     template void instantiate_entity_iterator_type<ts::world::Entity>();
     template void instantiate_entity_iterator_type<ts::world::Car>();
+}
+
+void ts::script::functions::ControlPoint_addRef(Control_point_handle* cp_handle)
+{
+    ++cp_handle->ref_count;
+}
+
+void ts::script::functions::ControlPoint_release(Control_point_handle* cp_handle)
+{
+    if (cp_handle->ref_count == 0 || --cp_handle->ref_count == 0)
+    {
+        cp_handle->cp_interface->release_control_point_handle(cp_handle);
+    }
+}
+
+std::int32_t ts::script::functions::ControlPoint_getId(Control_point_handle* cp_handle)
+{
+    return cp_handle->cp_interface->get_control_point_id(cp_handle->control_point);
+}
+
+void ts::script::functions::Entity_setControlPoint(Entity_handle* entity_handle, Control_point_handle* cp_handle)
+{
+    if (assert_entity_alive(entity_handle))
+    {
+        auto cp_interface = cp_handle->cp_interface;
+        cp_interface->set_entity_control_point(entity_handle->entity, cp_handle->control_point);
+    }
+}
+
+void ts::script::functions::Entity_ignoreControlPoints(Entity_handle* entity_handle)
+{
+    if (assert_entity_alive(entity_handle))
+    {
+        auto cp_interface = get_control_point_interface();
+        cp_interface->ignore_control_points_for_entity(entity_handle->entity);
+    }
 }

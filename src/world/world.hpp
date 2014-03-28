@@ -23,6 +23,7 @@
 #include "world_listener.hpp"
 #include "collision_bitmap.hpp"
 #include "collisions.hpp"
+#include "control_point_manager.hpp"
 #include "game_timer.hpp"
 
 #include "resources/track.hpp"
@@ -71,6 +72,8 @@ namespace ts
             const resources::Track& track() const;
             const std::vector<std::unique_ptr<Car>>& car_list() const;
 
+            Control_point_manager& control_point_manager();
+
             void start_game_timer();
             std::size_t game_time() const;
 
@@ -90,17 +93,22 @@ namespace ts
 
             std::vector<std::unique_ptr<Car>> car_list_;
 
+            
+
             std::vector<Entity*> entity_list_;
             std::unordered_set<Entity*> entity_set_;            
 
             std::vector<World_listener*> world_listeners_;
 
+            std::vector<std::pair<Entity*, Vector2<double>>> position_buffer_;
             std::vector<Entity_state> state_buffer_;
             std::deque<Collision_result> collision_queue_;
 
             resources::Track track_;
             resources::Pattern terrain_map_;
             Static_collision_bitmap scenery_bitmap_;
+
+            Control_point_manager control_point_manager_;
 
             Collision_bitmap_store dynamic_bitmap_store_;
             Game_timer game_timer_;

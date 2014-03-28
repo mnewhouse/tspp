@@ -38,10 +38,32 @@ namespace ts
     {
         class HUD_overlay;
         class World_interface;
+        class Control_point_interface;
+
+        namespace decl
+        {
+            const char* const ControlPoint = "ControlPoint";
+            const char* const ControlPoint_getId = "int32 getId() const";
+
+            const char* const ControlPointListener = "IControlPointListener";
+            const char* const ControlPointListener_onControlPointHit = "void onControlPointHit(Entity@, ControlPoint@, double)";
+            const char* const ControlPointListener_onControlAreaEnter = "void onControlAreaEnter(Entity@, ControlPoint@, double)";
+            const char* const ControlPointListener_onControlAreaLeave = "void onControlAreaLeave(Entity@, ControlPoint@, double)";
+
+            const char* const removeControlPointListener = "void removeEventListener(IControlPointListener@)";
+            const char* const addControlPointListener = "void addEventListener(IControlPointListener@)";
+
+            const char* const getControlPointById = "ControlPoint@ getControlPointById()";
+
+            const char* const Entity_setControlPoint = "void setControlPoint(ControlPoint@)";
+            const char* const Entity_ignoreControlPoints = "void ignoreControlPoints()";
+        }
 
         void register_utility_definitions(Engine* engine);
 
         void register_world_definitions(Engine* engine, World_interface* world_interface);
+        void register_control_point_definitions(Engine* engine, Control_point_interface* cp_interface);
+
         void register_control_definitions(Engine* engine, controls::Control_center* control_center);
 
         void register_display_definitions(Engine* engine, HUD_overlay* hud);

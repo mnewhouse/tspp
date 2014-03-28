@@ -52,10 +52,11 @@ namespace ts
 ts::world::World::World(resources::Track&& track)
 : track_(std::move(track)), 
   terrain_map_(resources::build_track_pattern(track_)),
-  scenery_bitmap_(terrain_map_, track_.terrain_library(), track_.num_levels())
+  scenery_bitmap_(terrain_map_, track_.terrain_library(), track_.num_levels()),
+  control_point_manager_(track_.control_points().begin(), track_.control_points().end())
 {
+    add_world_listener(&control_point_manager_);
 }
-
 
 ts::world::Car* ts::world::World::create_car(const resources::Car_definition& car_def)
 {
@@ -115,8 +116,15 @@ void ts::world::World::update(std::size_t frame_duration)
     }
 
     state_buffer_.resize(entity_count);
+    position_buffer_.resize(entity_count);
 
-    std::transform(entity_set_.begin(), entity_set_.end(), state_buffer_.begin(), [this, fd](Entity* entity)
+    std::transform(entity_list_.begin(), entity_list_.end(), position_buffer_.begin(), 
+                   [](Entity* entity)
+    {
+        return std::make_pair(entity, entity->position());
+    });
+
+    std::transform(entity_list_.begin(), entity_list_.end(), state_buffer_.begin(), [this, fd](Entity* entity)
     {
         Entity_state result;
         result.entity = entity;
@@ -281,6 +289,11 @@ void ts::world::World::update(std::size_t frame_duration)
         state.entity->set_rotation(state.rotation);
     }
 
+    for (const auto& entity_position : position_buffer_)
+    {
+        control_point_manager_.test_control_point_intersection(entity_position.first, entity_position.second);
+    }
+
     for (auto listener : world_listeners_)
     {
         listener->on_update();
@@ -308,6 +321,11 @@ void ts::world::World::start_game_timer()
     game_timer_.start();
 }
 
+ts::world::Control_point_manager& ts::world::World::control_point_manager()
+{
+    return control_point_manager_;
+}
+
 bool ts::world::World::is_entity(Entity* entity) const
 {
     return entity_set_.find(entity) != entity_set_.end();
@@ -317,6 +335,8 @@ void ts::world::World::register_entity(Entity* entity)
 {
     entity_set_.insert(entity);
     entity_list_.push_back(entity);
+
+    control_point_manager_.set_entity_control_point(entity, nullptr);
 }
 
 const std::shared_ptr<ts::world::Collision_bitmap>& ts::world::World::collision_bitmap

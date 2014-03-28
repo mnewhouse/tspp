@@ -40,7 +40,7 @@ static void MessageCallback(const asSMessageInfo *msg, void *param)
 }
 
 template <typename T>
-static void print_line(const T& arg)
+static void print_line(T arg)
 {
     std::cout << arg << std::endl;
 }
@@ -74,7 +74,7 @@ ts::script::Engine::Engine()
 
     script_engine_->SetMessageCallback(asFUNCTION(MessageCallback), nullptr, asCALL_CDECL);
 
-    script_engine_->RegisterGlobalFunction("void print(const string& in)", asFUNCTION(print_line<std::string>), asCALL_CDECL);
+    script_engine_->RegisterGlobalFunction("void print(const string& in)", asFUNCTION(print_line<const std::string&>), asCALL_CDECL);
     script_engine_->RegisterGlobalFunction("void print(double)", asFUNCTION(print_line<double>), asCALL_CDECL);
     script_engine_->RegisterGlobalFunction("void print(int)", asFUNCTION(print_line<std::int32_t>), asCALL_CDECL);
 

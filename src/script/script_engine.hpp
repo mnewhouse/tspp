@@ -100,6 +100,9 @@ namespace ts
         void push_arguments(asIScriptContext* context) {}
 
         template <int Index, typename... Args>
+        void push_arguments(asIScriptContext* context, const void* value, Args&&... args);
+
+        template <int Index, typename... Args>
         void push_arguments(asIScriptContext* context, std::size_t value, Args&&... args);
 
         template <int Index, typename... Args>
@@ -116,7 +119,18 @@ void ts::script::Engine::call_function(asIScriptFunction* function, asIScriptObj
 
     push_arguments<0>(ctx, std::forward<Args>(args)...);
 
-    ctx->Execute();
+    auto r = ctx->Execute();
+    if (r == asEXECUTION_EXCEPTION)
+    {
+        printf("ERROR: %s\n", ctx->GetExceptionString());
+    }
+}
+
+template <int Index, typename... Args>
+void ts::script::push_arguments(asIScriptContext* context, const void* value, Args&&... args)
+{
+    context->SetArgAddress(Index, const_cast<void*>(value));
+    push_arguments<Index + 1>(context, std::forward<Args>(args)...);
 }
 
 

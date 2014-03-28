@@ -50,6 +50,8 @@ namespace ts
         struct Entity_handle;
         struct Entity_iterator;
 
+        struct Control_point_handle;
+
         namespace functions
         {
             template <typename PtrType>
@@ -123,6 +125,9 @@ namespace ts
             void Vector2f_destruct(void* mem);
 
 
+            void WorldListener_onTick(void*, std::uint64_t);
+            void WorldListener_onUpdate(void*);
+
             Vector2<double> Entity_getVelocity(Entity_handle* entity_handle);
             Vector2<double> Entity_getPosition(Entity_handle* entity_handle);
             double Entity_getRotation(Entity_handle* entity_handle);
@@ -131,6 +136,9 @@ namespace ts
 
             void Entity_addRef(Entity_handle* entity_handle);
             void Entity_release(Entity_handle* entity_handle);
+
+            void Entity_setControlPoint(Entity_handle* entity_handle, Control_point_handle* cp_handle);
+            void Entity_ignoreControlPoints(Entity_handle* entity_handle);
 
             void EntityIterator_construct(void* mem);
 
@@ -142,6 +150,11 @@ namespace ts
 
             Entity_handle* EntityIterator_invoke(const Entity_iterator& entity_iterator);
             bool EntityIterator_valid(const Entity_iterator& entity_iterator);
+
+            void ControlPoint_addRef(Control_point_handle* control_point);
+            void ControlPoint_release(Control_point_handle* control_point);
+
+            std::int32_t ControlPoint_getId(Control_point_handle* control_point);         
         }
     }
 }

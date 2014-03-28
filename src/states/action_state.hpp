@@ -40,6 +40,7 @@
 
 #include "script/script_engine.hpp"
 #include "script/world_interface.hpp"
+#include "script/control_point_interface.hpp"
 #include "script/hud_overlay.hpp"
 
 namespace ts
@@ -116,6 +117,7 @@ namespace ts
             script::HUD_overlay hud_overlay_;
             script::Engine gameplay_script_engine_;
             script::World_interface world_interface_;
+            script::Control_point_interface cp_interface_;
         };
 
     }

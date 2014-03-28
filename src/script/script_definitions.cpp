@@ -20,6 +20,7 @@
 #include "script_definitions.hpp"
 #include "script_functions.hpp"
 #include "world_interface.hpp"
+#include "control_point_interface.hpp"
 
 #include <angelscript.h>
 
@@ -40,6 +41,15 @@ namespace ts
             as_engine->RegisterObjectBehaviour(type_name, asBEHAVE_ADDREF, "void f()", asFUNCTION(Entity_addRef), asCALL_CDECL_OBJFIRST);
             as_engine->RegisterObjectBehaviour(type_name, asBEHAVE_RELEASE, "void f()", asFUNCTION(Entity_release), asCALL_CDECL_OBJFIRST);
         };
+
+        void register_entity_control_point_functions(asIScriptEngine* as_engine, const char* type_name)
+        {
+            as_engine->RegisterObjectMethod(type_name, decl::Entity_setControlPoint,
+                                            asFUNCTION(Entity_setControlPoint), asCALL_CDECL_OBJFIRST);
+
+            as_engine->RegisterObjectMethod(type_name, decl::Entity_setControlPoint,
+                                            asFUNCTION(Entity_ignoreControlPoints), asCALL_CDECL_OBJFIRST);
+        }
     }
 }
 
@@ -77,6 +87,39 @@ void ts::script::register_utility_definitions(Engine* engine)
     as_engine->RegisterObjectBehaviour("Vector2f", asBEHAVE_DESTRUCT, "void f()", asFUNCTION(Vector2f_destruct), asCALL_CDECL_OBJLAST);
 }
 
+void ts::script::register_control_point_definitions(Engine* engine, Control_point_interface* cp_interface)
+{
+    auto as_engine = engine->engine();
+
+    as_engine->SetUserData(cp_interface, ControlPointInterface_udata);
+
+    as_engine->RegisterObjectType(decl::ControlPoint, 0, asOBJ_REF);
+    as_engine->RegisterObjectMethod(decl::ControlPoint, decl::ControlPoint_getId,
+                                    asFUNCTION(ControlPoint_getId), asCALL_CDECL_OBJFIRST);
+
+
+    as_engine->RegisterInterface(decl::ControlPointListener);
+    as_engine->RegisterInterfaceMethod(decl::ControlPointListener, decl::ControlPointListener_onControlPointHit);
+    as_engine->RegisterInterfaceMethod(decl::ControlPointListener, decl::ControlPointListener_onControlAreaEnter);
+    as_engine->RegisterInterfaceMethod(decl::ControlPointListener, decl::ControlPointListener_onControlAreaLeave);
+
+    as_engine->RegisterGlobalFunction(decl::addControlPointListener, asMETHOD(Control_point_interface, addEventListener),
+        asCALL_THISCALL_ASGLOBAL, cp_interface);
+
+    as_engine->RegisterGlobalFunction(decl::removeControlPointListener, asMETHOD(Control_point_interface, addEventListener),
+        asCALL_THISCALL_ASGLOBAL, cp_interface);
+
+    as_engine->RegisterObjectBehaviour(decl::ControlPoint, asBEHAVE_ADDREF, "void f()",
+                                       asFUNCTION(ControlPoint_addRef), asCALL_CDECL_OBJFIRST);
+
+    as_engine->RegisterObjectBehaviour(decl::ControlPoint, asBEHAVE_RELEASE, "void f()",
+                                       asFUNCTION(ControlPoint_release), asCALL_CDECL_OBJFIRST);
+
+    as_engine->RegisterGlobalFunction(decl::getControlPointById, asMETHOD(Control_point_interface, get_control_point_by_id),
+                                      asCALL_THISCALL_ASGLOBAL, cp_interface);
+
+}
+
 void ts::script::register_world_definitions(Engine* engine, World_interface* world_interface)
 {
     auto as_engine = engine->engine();
@@ -91,14 +134,14 @@ void ts::script::register_world_definitions(Engine* engine, World_interface* wor
     as_engine->RegisterGlobalFunction("uint64 getGameTime()", asMETHOD(World_interface_object, getGameTime),
                                       asCALL_THISCALL_ASGLOBAL, world_interface);
 
-    as_engine->RegisterInterface("WorldListener");
-    as_engine->RegisterInterfaceMethod("WorldListener", "void onTick(uint64)");
-    as_engine->RegisterInterfaceMethod("WorldListener", "void onUpdate()");
+    as_engine->RegisterInterface("IWorldListener");
+    as_engine->RegisterInterfaceMethod("IWorldListener", "void onTick(uint64)");
+    as_engine->RegisterInterfaceMethod("IWorldListener", "void onUpdate()");
 
-    as_engine->RegisterGlobalFunction("void addEventListener(WorldListener@)", asMETHOD(World_interface, addEventListener),
+    as_engine->RegisterGlobalFunction("void addEventListener(IWorldListener@)", asMETHOD(World_interface, addEventListener),
                                       asCALL_THISCALL_ASGLOBAL, world_interface);
 
-    as_engine->RegisterGlobalFunction("void removeEventListener(WorldListener@)", asMETHOD(World_interface, removeEventListener),
+    as_engine->RegisterGlobalFunction("void removeEventListener(IWorldListener@)", asMETHOD(World_interface, removeEventListener),
                                       asCALL_THISCALL_ASGLOBAL, world_interface);
 
     as_engine->RegisterObjectType("EntityIterator", sizeof(Entity_iterator), asOBJ_VALUE | asOBJ_POD);
@@ -119,7 +162,6 @@ void ts::script::register_world_definitions(Engine* engine, World_interface* wor
                                     asFUNCTION(EntityIterator_valid), asCALL_CDECL_OBJFIRST);
 
 
-  
 }
 
 void ts::script::register_control_definitions(Engine* engine, ts::controls::Control_center* control_center)

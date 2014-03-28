@@ -159,7 +159,8 @@ ts::states::Action_state::Action_state(resources::Track&& track, const game::Sta
       key_mapping_(controls::default_key_mapping()),
       collision_sound_controller_(),
       gameplay_script_engine_(),
-      world_interface_(&world_, &gameplay_script_engine_)
+      world_interface_(&world_, &gameplay_script_engine_),
+      cp_interface_(&world_.control_point_manager(), &world_interface_, &gameplay_script_engine_)
 {
     world_.add_world_listener(&action_scene_);
     world_.add_world_listener(&car_sound_controller_);
@@ -167,12 +168,17 @@ ts::states::Action_state::Action_state(resources::Track&& track, const game::Sta
     world_.add_world_listener(&collision_sound_controller_);
     world_.add_world_listener(&world_interface_);
 
+    world_.control_point_manager().add_control_point_listener(&cp_interface_);
+
     register_sounds();
 
     script::register_utility_definitions(&gameplay_script_engine_);
     script::register_control_definitions(&gameplay_script_engine_, &control_center_);
     script::register_world_definitions(&gameplay_script_engine_, &world_interface_);
+    script::register_control_point_definitions(&gameplay_script_engine_, &cp_interface_);
     script::register_display_definitions(&gameplay_script_engine_, &hud_overlay_);
+
+    
 
     auto module = gameplay_script_engine_.load_module("test", "script/test.as");
     if (module) module.run();

@@ -98,7 +98,7 @@ namespace ts
         struct Entity_state
         {
             Entity* entity = nullptr;
-            Vector2d position;
+            Vector2<double> position;
             Rotation<double> rotation;
         };
 
