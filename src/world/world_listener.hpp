@@ -33,6 +33,8 @@ namespace ts
 
         struct World_listener
         {
+            virtual void on_start() {}
+
             virtual void on_tick(std::size_t new_ticks) {};
             virtual void on_update() {};
 

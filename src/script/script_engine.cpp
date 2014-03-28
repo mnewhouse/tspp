@@ -81,6 +81,12 @@ ts::script::Engine::Engine()
     script_context_ = script_engine_->CreateContext();
 }
 
+void ts::script::Engine::append_core_code(const std::string& code)
+{
+    core_code_ += code;
+    core_code_ += "\n";
+}
+
 ts::script::Module_handle ts::script::Engine::load_module(const std::string& module_name, const std::string& script_file)
 {
     CScriptBuilder script_builder;
@@ -89,6 +95,8 @@ ts::script::Module_handle ts::script::Engine::load_module(const std::string& mod
 
     r = script_builder.AddSectionFromFile(script_file.c_str());
     if (r < 0) throw File_not_found_error();
+
+    r = script_builder.AddSectionFromMemory("__core", core_code_.data(), core_code_.size());
 
     r = script_builder.BuildModule();
     if (r < 0) {

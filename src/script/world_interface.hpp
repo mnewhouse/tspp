@@ -66,6 +66,7 @@ namespace ts
 
             virtual void on_tick(std::size_t ticks) override;
             virtual void on_update() override;
+            virtual void on_start() override;
             virtual void on_entity_destroy(world::Entity* entity) override;
 
             void addEventListener(asIScriptObject* object);

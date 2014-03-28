@@ -99,11 +99,13 @@ void ts::world::Control_point_manager::test_control_point_intersection(Entity* e
 
     double time_point = 0.0;
     Vector2i intersection;
+
     while (it != entity_points_.end() && it->second != nullptr)
     {
         if (!test_control_point(entity, it->second, old_position, new_position, intersection, time_point)) break;
 
         old_position = intersection;
+
         auto new_it = entity_points_.find(entity);
         if (new_it == it) break;
 
@@ -143,7 +145,7 @@ std::int32_t ts::world::Control_point_manager::control_point_id(const Control_po
 
     if (control_point >= data_ptr && control_point < data_ptr + static_control_points_.size())
     {
-        return control_point - data_ptr;
+        return static_cast<std::int32_t>(control_point - data_ptr);
     }
 
     return -1;
@@ -163,6 +165,7 @@ void ts::world::Control_point_manager::on_entity_destroy(Entity* entity)
 
 void ts::world::Control_point_manager::trigger_control_point_hit(Entity* entity, const Control_point* control_point, double time_point) const
 {
+    
     for (auto listener : control_point_listeners_)
     {
         listener->on_control_point_hit(entity, control_point, time_point);
@@ -223,8 +226,8 @@ double ts::calculate_time_point(Vector2i old_position, Vector2i new_position, Ve
 {
     if (std::abs(old_position.x - new_position.x) > std::abs(old_position.y - new_position.y))
     {
-        return intersection.x - old_position.x / static_cast<double>(new_position.x - old_position.x);
+        return (intersection.x - old_position.x) / static_cast<double>(new_position.x - old_position.x);
     }
 
-    return intersection.y - old_position.y / static_cast<double>(new_position.y - old_position.y);
+    return (intersection.y - old_position.y) / static_cast<double>(new_position.y - old_position.y);
 }

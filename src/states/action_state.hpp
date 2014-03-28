@@ -102,6 +102,8 @@ namespace ts
             void create_stage_entities(const game::Stage_data& stage_data);
 
         private:
+            virtual void on_activate() override;
+
             void register_sounds();
 
             Action_scene action_scene_;
@@ -114,8 +116,9 @@ namespace ts
             audio::Car_sound_controller car_sound_controller_;
             audio::Collision_sound_controller collision_sound_controller_;
 
-            script::HUD_overlay hud_overlay_;
             script::Engine gameplay_script_engine_;
+
+            script::HUD_overlay hud_overlay_;            
             script::World_interface world_interface_;
             script::Control_point_interface cp_interface_;
         };

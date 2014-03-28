@@ -176,14 +176,17 @@ ts::states::Action_state::Action_state(resources::Track&& track, const game::Sta
     script::register_control_definitions(&gameplay_script_engine_, &control_center_);
     script::register_world_definitions(&gameplay_script_engine_, &world_interface_);
     script::register_control_point_definitions(&gameplay_script_engine_, &cp_interface_);
-    script::register_display_definitions(&gameplay_script_engine_, &hud_overlay_);
-
-    
+    script::register_display_definitions(&gameplay_script_engine_, &hud_overlay_);    
 
     auto module = gameplay_script_engine_.load_module("test", "script/test.as");
     if (module) module.run();
 
     create_stage_entities(stage_data);
+}
+
+void ts::states::Action_state::on_activate()
+{
+    world_.launch_game();
 }
 
 void ts::states::Action_state::create_stage_entities(const game::Stage_data& stage_data)

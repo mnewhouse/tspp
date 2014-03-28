@@ -63,6 +63,7 @@ namespace ts
 
             Control_point_handle* get_control_point_by_id(std::int32_t id);
             std::int32_t get_control_point_id(const world::Control_point* control_point) const;
+            std::uint32_t get_control_point_count() const;
 
             void set_entity_control_point(world::Entity* entity, const world::Control_point* control_point);
             void ignore_control_points_for_entity(world::Entity* entity);

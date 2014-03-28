@@ -42,18 +42,33 @@ namespace ts
 
         namespace decl
         {
+            const char* const startGameTimer = "void startGameTimer()";
+            const char* const getGameTime = "uint64 getGameTime()";
+
+            const char* const IWorldListener = "IWorldListener";
+            const char* const addWorldListener = "void addEventListener(IWorldListener@)";
+            const char* const removeWorldListener = "void removeEventListener(IWorldListener@)";
+            const char* const IWorldListener_onStart = "void onStart()";
+            const char* const IWorldListener_onTick = "void onTick(uint64)";
+            const char* const IWorldListener_onUpdate = "void onUpdate()";
+
+            const char* const CoreCode_WorldListener = "class WorldListener : IWorldListener { void onStart() {} void onUpdate() {} void onTick(uint64) {} }";
+
             const char* const ControlPoint = "ControlPoint";
             const char* const ControlPoint_getId = "int32 getId() const";
 
-            const char* const ControlPointListener = "IControlPointListener";
-            const char* const ControlPointListener_onControlPointHit = "void onControlPointHit(Entity@, ControlPoint@, double)";
-            const char* const ControlPointListener_onControlAreaEnter = "void onControlAreaEnter(Entity@, ControlPoint@, double)";
-            const char* const ControlPointListener_onControlAreaLeave = "void onControlAreaLeave(Entity@, ControlPoint@, double)";
+            const char* const IControlPointListener = "IControlPointListener";
+            const char* const IControlPointListener_onControlPointHit = "void onControlPointHit(Entity@, ControlPoint@, double)";
+            const char* const IControlPointListener_onControlAreaEnter = "void onControlAreaEnter(Entity@, ControlPoint@, double)";
+            const char* const IControlPointListener_onControlAreaLeave = "void onControlAreaLeave(Entity@, ControlPoint@, double)";
+
+            const char* const CoreCode_ControlPointListener = "class ControlPointListener : IControlPointListener { void onControlPointHit(Entity@, ControlPoint@, double) {} void onControlAreaEnter(Entity@, ControlPoint@, double) {} void onControlAreaLeave(Entity@, ControlPoint@, double) {} }";
 
             const char* const removeControlPointListener = "void removeEventListener(IControlPointListener@)";
             const char* const addControlPointListener = "void addEventListener(IControlPointListener@)";
 
-            const char* const getControlPointById = "ControlPoint@ getControlPointById()";
+            const char* const getControlPointById = "ControlPoint@ getControlPointById(int32)";
+            const char* const getControlPointCount = "uint32 getControlPointCount()";
 
             const char* const Entity_setControlPoint = "void setControlPoint(ControlPoint@)";
             const char* const Entity_ignoreControlPoints = "void ignoreControlPoints()";

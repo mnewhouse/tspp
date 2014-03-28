@@ -154,7 +154,7 @@ namespace ts
             void ControlPoint_addRef(Control_point_handle* control_point);
             void ControlPoint_release(Control_point_handle* control_point);
 
-            std::int32_t ControlPoint_getId(Control_point_handle* control_point);         
+            std::int32_t ControlPoint_getId(Control_point_handle* control_point);
         }
     }
 }

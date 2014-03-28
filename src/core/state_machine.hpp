@@ -136,6 +136,8 @@ namespace ts
 
                 state_stack_.push_back(stack_entry);
                 state_map_[pending_state_.first] = std::move(pending_state_.second);
+
+                (*state_stack_.back().state)();
             }
         }
     }

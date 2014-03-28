@@ -74,6 +74,8 @@ namespace ts
 
             Control_point_manager& control_point_manager();
 
+            void launch_game();
+
             void start_game_timer();
             std::size_t game_time() const;
 
@@ -93,8 +95,6 @@ namespace ts
 
             std::vector<std::unique_ptr<Car>> car_list_;
 
-            
-
             std::vector<Entity*> entity_list_;
             std::unordered_set<Entity*> entity_set_;            
 
@@ -112,6 +112,7 @@ namespace ts
 
             Collision_bitmap_store dynamic_bitmap_store_;
             Game_timer game_timer_;
+            bool started_ = false;
         };
 
     }

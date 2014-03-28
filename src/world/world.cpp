@@ -73,6 +73,14 @@ ts::world::Car* ts::world::World::create_car(const resources::Car_definition& ca
     return car;
 }
 
+void ts::world::World::launch_game()
+{
+    started_ = true;
+    for (auto listener : world_listeners_)
+    {
+        listener->on_start();
+    }
+}
 
 const ts::resources::Terrain_definition& ts::world::World::terrain_at(Vector2d point) const
 {
@@ -335,8 +343,6 @@ void ts::world::World::register_entity(Entity* entity)
 {
     entity_set_.insert(entity);
     entity_list_.push_back(entity);
-
-    control_point_manager_.set_entity_control_point(entity, nullptr);
 }
 
 const std::shared_ptr<ts::world::Collision_bitmap>& ts::world::World::collision_bitmap

@@ -21,6 +21,7 @@
 #include "script_engine.hpp"
 
 #include "world/world.hpp"
+#include "script_definitions.hpp"
 
 #include <angelscript.h>
 
@@ -37,7 +38,7 @@ void ts::script::World_interface::on_tick(std::size_t ticks)
 
     for (const auto& callback : callback_list_.callbacks())
     {
-        callback(engine_, "void onTick(uint64)", ticks);
+        callback(engine_, decl::IWorldListener_onTick, ticks);
     }
 }
 
@@ -45,7 +46,15 @@ void ts::script::World_interface::on_update()
 {
     for (const auto& callback : callback_list_.callbacks())
     {
-        callback(engine_, "void onUpdate()");
+        callback(engine_, decl::IWorldListener_onUpdate);
+    }
+}
+
+void ts::script::World_interface::on_start()
+{
+    for (const auto& callback : callback_list_.callbacks())
+    {
+        callback(engine_, decl::IWorldListener_onStart);
     }
 }
 
@@ -60,12 +69,16 @@ void ts::script::World_interface::on_entity_destroy(world::Entity* entity)
 
 void ts::script::World_interface::removeEventListener(asIScriptObject* listener)
 {
+    listener->Release();
+
     callback_list_.remove(listener);
 }
 
 void ts::script::World_interface::addEventListener(asIScriptObject* listener)
 {
     callback_list_.store(listener);
+
+    listener->Release();
 }
 
 ts::script::Entity_handle* ts::script::World_interface::get_entity_handle(world::Entity* entity)

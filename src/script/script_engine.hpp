@@ -65,9 +65,15 @@ namespace ts
             asIScriptEngine* engine() const;
             asIScriptContext* context() const;
 
+            void append_core_code(const std::string& code);
+
         private:
+            
+
             asIScriptEngine* script_engine_;
             asIScriptContext* script_context_;
+
+            std::string core_code_;
         };
 
         class Script_error

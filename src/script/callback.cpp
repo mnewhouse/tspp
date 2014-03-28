@@ -23,8 +23,9 @@
 #include <iostream>
 
 ts::script::Callback_listener::Callback_listener(asIScriptObject* listener)
-    : object_(listener)
+: object_(listener)
 {
+    if (object_) object_->AddRef();
 }
 
 ts::script::Callback_listener::~Callback_listener()
@@ -44,17 +45,18 @@ ts::script::Callback_listener::Callback_listener(Callback_listener&& listener)
     listener.object_ = nullptr;
 }
 
+ts::script::Callback_listener& ts::script::Callback_listener::operator=(Callback_listener listener)
+{
+    std::swap(object_, listener.object_);
+    return *this;
+}
+
 asIScriptObject* ts::script::Callback_listener::object() const
 {
     return object_;
 }
 
-ts::script::Callback_listener& ts::script::Callback_listener::operator=(Callback_listener listener)
-{
-    if (object_ = listener.object_) object_->AddRef();
 
-    return *this;
-}
 
 const std::vector<ts::script::Callback_listener>& ts::script::Callback_list::callbacks() const
 {

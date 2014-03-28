@@ -19,6 +19,8 @@
 
 #include "game_timer.hpp"
 
+#include <iostream>
+
 std::size_t ts::world::Game_timer::time() const
 {
     return game_time_;

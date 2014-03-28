@@ -34,11 +34,15 @@ ts::script::Control_point_interface::Control_point_interface(world::Control_poin
 void ts::script::Control_point_interface::addEventListener(asIScriptObject* listener)
 {
     callback_list_.store(listener);
+
+    listener->Release();
 }
 
 void ts::script::Control_point_interface::removeEventListener(asIScriptObject* listener)
 {
     callback_list_.remove(listener);
+
+    listener->Release();
 }
 
 ts::script::Control_point_handle* ts::script::Control_point_interface::get_control_point_by_id(std::int32_t id)
@@ -50,6 +54,11 @@ ts::script::Control_point_handle* ts::script::Control_point_interface::get_contr
 std::int32_t ts::script::Control_point_interface::get_control_point_id(const world::Control_point* control_point) const
 {
     return cp_manager_->control_point_id(control_point);
+}
+
+std::uint32_t ts::script::Control_point_interface::get_control_point_count() const
+{
+    return cp_manager_->static_control_points().size();
 }
 
 ts::script::Control_point_handle* ts::script::Control_point_interface::get_control_point_handle(const world::Control_point* control_point)
@@ -65,7 +74,7 @@ ts::script::Control_point_handle* ts::script::Control_point_interface::get_contr
     Control_point_handle cp_handle;
     cp_handle.control_point = control_point;
     cp_handle.cp_interface = this;
-    cp_handle.ref_count = 1;
+    cp_handle.ref_count = 0;
     cp_handle.dynamic = cp_manager_->control_point_id(control_point) < 0;
 
     auto result = cp_handles_.insert(std::make_pair(control_point, cp_handle));
@@ -103,11 +112,13 @@ void ts::script::Control_point_interface::ignore_control_points_for_entity(world
 void ts::script::Control_point_interface::on_control_point_hit(world::Entity* entity, const world::Control_point* control_point, double time_point)
 {
     auto entity_handle = world_interface_->get_entity_handle(entity);
-    auto cp_handle = get_control_point_handle(control_point);
+    
     
     for (const auto& callback : callback_list_.callbacks())
     {
-        callback(engine_, decl::ControlPointListener_onControlPointHit, entity_handle, cp_handle, time_point);
+        auto cp_handle = get_control_point_handle(control_point);
+
+        callback(engine_, decl::IControlPointListener_onControlPointHit, entity_handle, cp_handle, time_point);
     }
 }
 

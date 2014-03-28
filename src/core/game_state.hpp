@@ -59,11 +59,16 @@ namespace ts
             virtual void render(graphics::Render_target& render_target) = 0;
 
             virtual void update(std::size_t frame_duration) {}
-            virtual void handle_event(const sf::Event& event) {}
+            virtual void handle_event(const sf::Event& event) {}            
+
+            void operator()() { on_activate(); };
 
             const std::shared_ptr<resources::Resource_store>& resource_store() const { return resource_store_; }
 
         private:
+            virtual void on_activate() {};
+
+
             Handle<state_machine_type> state_machine_;
             std::shared_ptr<resources::Resource_store> resource_store_;
         };
