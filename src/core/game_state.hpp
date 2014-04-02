@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "state_machine.hpp"
-#include "handle.hpp"
 #include "graphics/renderer.hpp"
 #include "resources/resource_store.hpp"
 
@@ -47,14 +46,14 @@ namespace ts
         public:
             using state_machine_type = State_machine<Game_state>;
 
-            Game_state(const Handle<state_machine_type>& state_machine, std::shared_ptr<resources::Resource_store> resource_store)
+            Game_state(state_machine_type* state_machine, resources::Resource_store* resource_store)
                 : state_machine_(state_machine),
                   resource_store_(resource_store)
             {}
 
             virtual ~Game_state() {}
 
-            const Handle<state_machine_type>& state_machine() const { return state_machine_; }
+            state_machine_type* state_machine() const { return state_machine_; }
 
             virtual void render(graphics::Render_target& render_target) = 0;
 
@@ -63,14 +62,13 @@ namespace ts
 
             void operator()() { on_activate(); };
 
-            const std::shared_ptr<resources::Resource_store>& resource_store() const { return resource_store_; }
+            resources::Resource_store* resource_store() const { return resource_store_; }
 
         private:
             virtual void on_activate() {};
 
-
-            Handle<state_machine_type> state_machine_;
-            std::shared_ptr<resources::Resource_store> resource_store_;
+            state_machine_type* state_machine_;
+            resources::Resource_store* resource_store_;
         };
 
     }

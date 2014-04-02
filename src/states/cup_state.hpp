@@ -37,8 +37,8 @@ namespace ts
             : public gui::State, public game::Cup
         {
         public:
-            Cup_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context,
-                      std::shared_ptr<resources::Resource_store> resource_store);
+            Cup_state(state_machine_type* state_machine, gui::Context* context,
+                      resources::Resource_store* resource_store);
 
             void async_load();
             bool is_loading() const;

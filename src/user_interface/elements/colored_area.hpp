@@ -17,8 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef GUI_MOUSE_HPP
-#define GUI_MOUSE_HPP
+#ifndef GUI_ELEMENTS_COLORED_AREA_HPP
+#define GUI_ELEMENTS_COLORED_AREA_HPP
+
+#include "../gui_element.hpp"
 
 #include "core/vector2.hpp"
 
@@ -26,24 +28,31 @@ namespace ts
 {
     namespace gui
     {
-        namespace mouse
+        namespace elements
         {
-            struct Button
+            class Colored_area
+                : public Element
             {
-                static const unsigned Left = 1;
-                static const unsigned Middle = 2;
-                static const unsigned Right = 4;
-            };
+            public:
+                Colored_area(Vector2i size, sf::Color color)
+                {
+                    set_size(size);
 
-            struct State
-            {
-                State()
-                    : position(), scroll_offset(0), button_state(0)
-                {}
+                    rect_area_.setFillColor(color);
+                }
 
-                Vector2i position;
-                int scroll_offset = 0;
-                unsigned button_state = 0;
+                virtual void draw(graphics::Render_target& render_target, graphics::Render_states render_states) const override
+                {
+                    render_target.draw(rect_area_, render_states);
+                }
+
+                virtual void on_resize(Vector2i old_size, Vector2i new_size)
+                {
+                    rect_area_.setSize(sf::Vector2f(new_size.x, new_size.y));
+                }
+
+            private:
+                sf::RectangleShape rect_area_;
             };
         }
     }

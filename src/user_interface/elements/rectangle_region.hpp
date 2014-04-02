@@ -26,32 +26,29 @@
 namespace ts
 {
 
-namespace gui
-{
-
-namespace elements
-{
-
-template <typename T>
-class Rectangle_region
-{
-public:
-    Rectangle_region(Rect<T> rect)
-        : rect(rect)
-    {}
-
-    template <typename U>
-    bool operator()(Vector2<U> point)
+    namespace gui
     {
-        return contains(rect, point);
+
+        namespace elements
+        {
+            class Rectangle_region
+            {
+            public:
+                Rectangle_region(Vector2i size)
+                    : size(size)
+                {}
+
+                bool operator()(Vector2i point) const
+                {
+                    return point.x >= 0 && point.x < size.x && point.y >= 0 && point.y < size.y;
+                }
+
+                Vector2i size;
+            };
+
+        }
+
     }
-
-    Rect<T> rect;
-};
-
-}
-
-}
 
 }
 

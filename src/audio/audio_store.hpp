@@ -21,9 +21,8 @@
 #ifndef AUDIO_AUDIO_STORE_HPP
 #define AUDIO_AUDIO_STORE_HPP
 
-#include "core/handle.hpp"
-
 #include <map>
+#include <memory>
 
 #include <SFML/Audio.hpp>
 

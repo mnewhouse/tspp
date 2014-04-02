@@ -31,7 +31,7 @@
 
 #include <thread>
 
-ts::states::Loading_scene::Loading_scene(const Handle<gui::Context>& context)
+ts::states::Loading_scene::Loading_scene(gui::Context* context)
   : gui::Scene(context)
 {
 }
@@ -52,12 +52,12 @@ void ts::states::Loading_scene::render(graphics::Render_target& render_target)
     render_target.draw(loading_text);
 }
 
-ts::states::Loading_state::Loading_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context,
-                                         std::shared_ptr<resources::Resource_store> resource_store)
-    : gui::State(state_machine, context, std::move(resource_store)),
+ts::states::Loading_state::Loading_state(state_machine_type* state_machine, gui::Context* context,
+                                         resources::Resource_store* resource_store)
+    : gui::State(state_machine, context, resource_store),
       scene_(context),
       start_time_(std::chrono::high_resolution_clock::now()),
-      future_(async_load_resources())      
+      future_(async_load_resources())
 {
 }
 

@@ -19,9 +19,8 @@
 
 #include "gui_state.hpp"
 
-ts::gui::State::State(const Handle<state_machine_type>& state_machine, const Handle<Context>& context,
-                      std::shared_ptr<resources::Resource_store> resource_store)
-    : core::Game_state(state_machine, std::move(resource_store)), 
+ts::gui::State::State(state_machine_type* state_machine, Context* context, resources::Resource_store* resource_store)
+    : core::Game_state(state_machine, resource_store), 
       context_(context)
 {}
 
@@ -40,7 +39,7 @@ void ts::gui::State::render_background(graphics::Render_target& render_target)
     if (background_) background_.render(render_target);
 }
 
-const ts::Handle<ts::gui::Context>& ts::gui::State::context() const
+ts::gui::Context* ts::gui::State::context() const
 {
     return context_;
 }

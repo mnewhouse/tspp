@@ -32,8 +32,8 @@
 #include "world/world.hpp"
 #include "world/world_listener.hpp"
 
-#include "controls/key_mapping.hpp"
 #include "controls/control_center.hpp"
+#include "controls/control_interface.hpp"
 
 #include "audio/car_sounds.hpp"
 #include "audio/collision_sounds.hpp"
@@ -92,8 +92,8 @@ namespace ts
         {
         public:
             Action_state(resources::Track&& track, const game::Stage_data& stage_data, 
-                         const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context, 
-                         std::shared_ptr<resources::Resource_store> resource_store);
+                         state_machine_type* state_machine, gui::Context* context, 
+                         resources::Resource_store* resource_store);
 
             virtual void render(graphics::Render_target& render_target) override;
             virtual void handle_event(const sf::Event& event) override;
@@ -111,7 +111,7 @@ namespace ts
             world::World world_;
 
             controls::Control_center control_center_;
-            controls::Key_mapping key_mapping_;
+            controls::Control_interface control_interface_;
 
             audio::Car_sound_controller car_sound_controller_;
             audio::Collision_sound_controller collision_sound_controller_;

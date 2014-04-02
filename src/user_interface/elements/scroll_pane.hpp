@@ -17,31 +17,35 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef GRAPHICS_TEXTURE_LOADER_HPP
-#define GRAPHICS_TEXTURE_LOADER_HPP
+#ifndef GUI_ELEMENTS_SCROLL_PANE_HPP
+#define GUI_ELEMENTS_SCROLL_PANE_HPP
 
-#include <unordered_map>
-#include <memory>
+#include "../gui_element.hpp"
 
 namespace ts
 {
-
-    namespace graphics
+    namespace gui
     {
-        class Texture;
-
-        class Texture_loader
+        namespace elements
         {
-        public:
-            std::shared_ptr<Texture> load_from_file(const std::string& file_name);
+            class Scroll_pane
+                : public Element
+            {
+            public:
+                Scroll_pane(Vector2i size);
 
-        private:
-            std::unordered_map<std::string, std::shared_ptr<Texture>> loaded_textures_;
-        };
+                template <typename ElemType, typename... Args>
+                void create_vertical_scrollbar(Args&&... args)
+                {
+                    vertical_scrollbar_ = create_child<ElemType>(std::forward<Args>(args)...);
+                }
 
-
+            private:
+                gui::Element* vertical_scrollbar_;
+                Vector2i size_;
+            };
+        }
     }
-
 }
 
 #endif

@@ -20,7 +20,7 @@
 #include "pattern_loader.hpp"
 #include "pattern.hpp"
 
-ts::Handle<ts::resources::Pattern> ts::resources::Pattern_loader::load_from_file(const std::string& file_name)
+std::shared_ptr<ts::resources::Pattern> ts::resources::Pattern_loader::load_from_file(const std::string& file_name)
 {
     auto it = loaded_patterns_.find(file_name);
     if (it != loaded_patterns_.end()) {
@@ -28,8 +28,8 @@ ts::Handle<ts::resources::Pattern> ts::resources::Pattern_loader::load_from_file
     }
 
     
-    Handle<Pattern> pattern_handle(Pattern{ file_name });
-    loaded_patterns_.insert(std::make_pair(file_name, pattern_handle));
+    auto pattern = std::make_shared<Pattern>(file_name);
+    loaded_patterns_.insert(std::make_pair(file_name, pattern));
 
-    return pattern_handle;
+    return pattern;
 }

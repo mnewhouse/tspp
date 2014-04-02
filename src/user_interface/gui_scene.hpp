@@ -21,38 +21,33 @@
 #define GUI_SCENE_HPP
 
 #include "graphics/render_scene.hpp"
-#include "context.hpp"
-
-#include "core/handle.hpp"
 
 namespace ts
 {
-
     namespace gui
     {
+        class Context;
+        class Element;
 
         class Scene
             : public graphics::Render_scene
         {
         public:
-            Scene(const Handle<Context>& context)
-                : context_(context), base_id_(context->allocate_base_id())
-            {
-            }
+            Scene(Context* context);
 
-            const Handle<Context>& context() const { return context_; }
+            Context* context() const { return context_; }
 
-            element_id make_id(element_id id) const { return base_id_ + id; }
+            void register_element(Element* element);
+            void unregister_element(Element* element);
+
+            void update();
 
         private:
-            Handle<Context> context_;
-            element_id base_id_;
-            graphics::Background background_;        
-
+            Context* context_;
+            std::vector<Element*> registered_elements_;
+            graphics::Background background_;
         };
-
     }
-
 }
 
 #endif

@@ -30,38 +30,30 @@ namespace ts
 
     namespace states
     {
-
-        class Main_menu;
-
-        class Main_menu_scene
-            : public gui::Scene
-        {
-        public:
-
-            using state_machine_type = gui::State::state_machine_type;
-
-            Main_menu_scene(Main_menu* main_menu, const Handle<gui::Context>& context)
-                : gui::Scene(context), main_menu_(main_menu)
-            {}
-
-            virtual void render(graphics::Render_target& render_target) override;
-
-        private:
-            Main_menu* main_menu_;
-        };
+        class Settings_scene;
+        class Main_menu_scene;
+        class Players_scene;
 
         class Main_menu
             : public gui::State
         {
         public:
-            Main_menu(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& gui_context,
-                      std::shared_ptr<resources::Resource_store> resource_store);
+            Main_menu(state_machine_type* state_machine, gui::Context* gui_context,
+                      resources::Resource_store* resource_store);
 
             virtual void render(graphics::Render_target& render_target) override;
             virtual void update(std::size_t frame_duration) override;
+            virtual void handle_event(const sf::Event& event) override;
+
+            void quit();
+            void return_to_main_menu();
+            void show_settings_menu();
+            void show_players_menu();
 
         private:
-            Main_menu_scene scene_;
+            std::unique_ptr<Main_menu_scene> main_menu_scene_;
+            std::unique_ptr<Settings_scene> settings_scene_;
+            std::unique_ptr<Players_scene> players_scene_;
         };
 
     }

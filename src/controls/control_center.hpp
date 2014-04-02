@@ -40,8 +40,8 @@ namespace ts
             // Harbinger-style function naming.
             void assume_control(Slot slot, Controllable* controllable);
 
-            void update_control_state(Slot slot, std::uint32_t new_state);
-            void set_control_state(Slot slot, Control control, bool state);
+            void update_control_state(Slot slot, std::uint32_t new_state) const;
+            void set_control_state(Slot slot, Control control, bool state) const;
 
             void toggle_global_control(Control control, bool enable);
 

@@ -23,11 +23,11 @@
 #include <SFML/Graphics/Vertex.hpp>
 #include <SFML/Graphics/Texture.hpp>
 
-#include "core/handle.hpp"
 #include "core/rect.hpp"
 
 #include <vector>
 #include <set>
+#include <memory>
 
 namespace ts
 {
@@ -64,7 +64,7 @@ namespace ts
         struct Track_builder_result
         {
             std::vector<Track_component> components;
-            std::set<Handle<graphics::Texture>> textures;
+            std::set<std::shared_ptr<graphics::Texture>> textures;
         };
 
         Track_builder_result build_track(const resources::Track& track);

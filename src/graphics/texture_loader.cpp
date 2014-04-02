@@ -22,15 +22,14 @@
 
 using namespace ts::graphics;
 
-ts::Handle<ts::graphics::Texture> ts::graphics::Texture_loader::load_from_file
+std::shared_ptr<ts::graphics::Texture> ts::graphics::Texture_loader::load_from_file
     (const std::string& file_name)
 {
     auto it = loaded_textures_.find(file_name);
     if (it != loaded_textures_.end()) return it->second;
 
-    Texture texture(file_name);
-    Handle<Texture> texture_handle(std::move(texture));
-    loaded_textures_.insert(std::make_pair(file_name, texture_handle));
+    auto texture = std::make_shared<Texture>(file_name);
+    loaded_textures_.insert(std::make_pair(file_name, texture));
 
-    return texture_handle;
+    return texture;
 }

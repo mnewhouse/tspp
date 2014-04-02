@@ -20,10 +20,9 @@
 #ifndef GUI_ELEMENTS_BUTTON_HPP
 #define GUI_ELEMENTS_BUTTON_HPP
 
-#include "user_interface/context.hpp"
+#include "../gui_element.hpp"
 
 #include "rectangle_region.hpp"
-#include "core/handle.hpp"
 
 namespace ts
 {
@@ -31,48 +30,25 @@ namespace ts
     {
         namespace elements
         {
-
             template <typename RegionType>
-            class Button
+            struct Button
+                : public Element
             {
             public:
-                Button(element_id id, RegionType region)
-                    : id_(id), region_(region)
-                {}
+                Button(RegionType region)
+                    : region_(region)
+                {}           
 
-                Element_state operator()(const Handle<Context>& context);
+                virtual bool hover(Vector2i mouse_position) const
+                {
+                    return region_(mouse_position);
+                }
 
             private:
-                element_id id_;
                 RegionType region_;
             };
 
-            template <typename T>
-            using Rectangular_button = Button<Rectangle_region<T>>;
-
-            template <typename RegionType>
-            Element_state Button<RegionType>::operator()(const Handle<Context>& context)
-            {
-                const auto& mouse_state = context->mouse_state();
-                bool button_state = (mouse_state.button_state & mouse::Button::Left) != 0;
-
-                if (region_(mouse_state.position)) {
-                    context->set_hot_item(id_);
-
-                    if (button_state) {
-                        if (!context->active_item()) {
-                            context->set_active_item(id_);
-                        }
-                    }
-                }
-
-                Element_state element_state;
-                element_state.hot = (context->hot_item() == id_);
-                element_state.active = (context->active_item() == id_);
-                element_state.clicked = element_state.active && element_state.hot && !button_state;
-
-                return element_state;
-            }
+            using Rectangular_button = Button<Rectangle_region>;
         }
     }
 }

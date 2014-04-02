@@ -39,7 +39,7 @@ namespace ts
             : public gui::Scene
         {
         public:
-            explicit Loading_scene(const Handle<gui::Context>& context);
+            explicit Loading_scene(gui::Context* context);
 
             virtual void render(graphics::Render_target& render_target) override;
         };
@@ -48,8 +48,7 @@ namespace ts
             : public gui::State
         {
         public:
-            Loading_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context, 
-                          std::shared_ptr<resources::Resource_store> resource_store);
+            Loading_state(state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store);
 
             virtual ~Loading_state();
 

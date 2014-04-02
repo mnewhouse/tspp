@@ -29,8 +29,8 @@
 
 #include <iostream>
 
-ts::states::Local_cup_state::Local_cup_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context, 
-                                             std::shared_ptr<resources::Resource_store> resource_store)
+ts::states::Local_cup_state::Local_cup_state(state_machine_type* state_machine, gui::Context* context, 
+                                             resources::Resource_store* resource_store)
 
     : Cup_state(state_machine, context, std::move(resource_store)),
       scene_(this, context)
@@ -62,7 +62,7 @@ void ts::states::Local_cup_state::render(graphics::Render_target& render_target)
     scene_.render(render_target);
 }
 
-ts::states::Local_cup_scene::Local_cup_scene(Local_cup_state* cup_state, const Handle<gui::Context>& context)
+ts::states::Local_cup_scene::Local_cup_scene(Local_cup_state* cup_state, gui::Context* context)
     : gui::Scene(context), 
       cup_state_(cup_state)
 {
@@ -70,6 +70,7 @@ ts::states::Local_cup_scene::Local_cup_scene(Local_cup_state* cup_state, const H
 
 void ts::states::Local_cup_scene::render(graphics::Render_target& render_target)
 {
+    /*
     auto window_size = render_target.getSize();
 
     Float_rect rect(0, 0, float(window_size.x), float(window_size.y));
@@ -84,7 +85,7 @@ void ts::states::Local_cup_scene::render(graphics::Render_target& render_target)
     }
 
     gui::elements::Rectangular_button<float> button(make_id(0), rect);
-    if (button(context()).clicked) {
+    if (button(*context()).clicked) {
         if (track_handle && !cup_state_->is_loading()) {
             cup_state_->async_load();
         }
@@ -93,5 +94,6 @@ void ts::states::Local_cup_scene::render(graphics::Render_target& render_target)
             cup_state_->state_machine()->change_state();
         }
     }
+    */
 }
 

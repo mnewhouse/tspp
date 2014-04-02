@@ -25,7 +25,7 @@
 #include <iostream>
 
 ts::game::Drawable_entity::Drawable_entity
-    (const world::Entity* entity, Handle<graphics::Texture> texture, resources::Image_type image_type)
+    (const world::Entity* entity, std::shared_ptr<graphics::Texture> texture, resources::Image_type image_type)
     : texture_(std::move(texture)), 
       entity_(entity), 
       image_type_(image_type),

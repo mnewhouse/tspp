@@ -45,7 +45,15 @@ void ts::resources::Track_store::scan_directory(const std::string& directory)
     root_directory_.sub_directories.clear();
     root_directory_.track_files.clear();
 
-    scan_directory(root_directory_, directory);
+    try 
+    {
+        scan_directory(root_directory_, directory);
+    }
+
+    catch (const boost::filesystem::filesystem_error&)
+    {
+        // Silently ignore errors, as if the directory were empty.
+    }
 }
 
 void ts::resources::Track_store::scan_directory(Track_directory& dir_contents, const std::string& directory)

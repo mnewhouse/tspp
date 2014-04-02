@@ -25,8 +25,9 @@
 
 #include "resources/image_type.hpp"
 
-#include "core/handle.hpp"
 #include "core/vector2.hpp"
+
+#include <memory>
 
 namespace ts
 {
@@ -45,7 +46,7 @@ namespace ts
         class Drawable_entity
         {
         public:
-            Drawable_entity(const world::Entity* entity, Handle<graphics::Texture> texture, resources::Image_type image_type);
+            Drawable_entity(const world::Entity* entity, std::shared_ptr<graphics::Texture> texture, resources::Image_type image_type);
             
             void draw(graphics::Render_target& render_target, graphics::Render_states states, double frame_time) const;
 
@@ -55,7 +56,7 @@ namespace ts
             void update_position();
             
         private:
-            Handle<graphics::Texture> texture_;
+            std::shared_ptr<graphics::Texture> texture_;
             const world::Entity* entity_;
 
             resources::Image_type image_type_;

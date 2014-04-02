@@ -17,31 +17,28 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef GRAPHICS_TEXTURE_LOADER_HPP
-#define GRAPHICS_TEXTURE_LOADER_HPP
+#ifndef CONTROLS_CONTROL_INTERFACE_HPP
+#define CONTROLS_CONTROL_INTERFACE_HPP
 
-#include <unordered_map>
-#include <memory>
+#include "key_mapping.hpp"
 
 namespace ts
 {
-
-    namespace graphics
+    namespace controls
     {
-        class Texture;
+        class Control_center;
 
-        class Texture_loader
+        class Control_interface
         {
         public:
-            std::shared_ptr<Texture> load_from_file(const std::string& file_name);
+            Control_interface(const Key_mapping& key_mapping);
+
+            void forward_input(const sf::Event& event, const Control_center& control_center) const;
 
         private:
-            std::unordered_map<std::string, std::shared_ptr<Texture>> loaded_textures_;
+            Key_mapping key_mapping_;
         };
-
-
     }
-
 }
 
 #endif

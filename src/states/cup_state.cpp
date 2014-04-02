@@ -24,9 +24,8 @@
 #include "resources/track.hpp"
 
 
-ts::states::Cup_state::Cup_state(const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context,
-                                 std::shared_ptr<resources::Resource_store> resource_store)
-                                 : gui::State(state_machine, context, std::move(resource_store))
+ts::states::Cup_state::Cup_state(state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
+    : gui::State(state_machine, context, resource_store)
 {
 }
 

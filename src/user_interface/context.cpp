@@ -19,27 +19,11 @@
 
 #include "context.hpp"
 
-ts::gui::Context::Context()
-    : mouse_state_(), 
-      next_id_(0), 
-      hot_item_(0),
-      active_item_(0)
-{
-}
+#include "gui_element.hpp"
 
-ts::gui::element_id ts::gui::Context::allocate_base_id()
+ts::gui::Context::Context(Vector2u screen_size)
+    : mouse_state_(), screen_size_(screen_size)
 {
-    return next_id_ += 0xFFFF;
-}
-
-void ts::gui::Context::reset()
-{
-    hot_item_ = 0;
-    mouse_state_.scroll_offset = 0;
-
-    if (~mouse_state_.button_state & mouse::Button::Left) {
-        active_item_ = 0;
-    }
 }
 
 const ts::gui::mouse::State& ts::gui::Context::mouse_state() const
@@ -47,27 +31,12 @@ const ts::gui::mouse::State& ts::gui::Context::mouse_state() const
     return mouse_state_;
 }
 
-auto ts::gui::Context::hot_item() const -> element_id
-{
-    return hot_item_;
-}
-
-auto ts::gui::Context::active_item() const -> element_id
-{
-    return active_item_;
-}
-
 void ts::gui::Context::set_mouse_state(const mouse::State& new_state)
 {
     mouse_state_ = new_state;
 }
 
-void ts::gui::Context::set_hot_item(element_id id)
+const ts::Vector2u& ts::gui::Context::screen_size() const
 {
-    hot_item_ = id;
-}
-
-void ts::gui::Context::set_active_item(element_id id)
-{
-    active_item_ = id;
+    return screen_size_;
 }

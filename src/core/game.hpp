@@ -36,8 +36,6 @@ namespace ts
         public:
             void main();
 
-        private:
-
         };
 
     }

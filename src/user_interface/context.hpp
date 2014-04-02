@@ -25,49 +25,31 @@
 #include <memory>
 #include <string>
 
+#include <unordered_set>
+
 namespace ts
 {
-
     namespace gui
     {
-
-        typedef std::size_t element_id;
-
-        struct Element_state
-        {
-            bool hot;
-            bool active;
-            bool clicked;
-        };
+        class Element;
 
         class Context
         {
         public:
-            Context();
-
-            element_id allocate_base_id();
+            Context(Vector2u screen_size);
 
             const mouse::State& mouse_state() const;
-            element_id hot_item() const;
-            element_id active_item() const;
-
-            void set_hot_item(element_id id);
-            void set_active_item(element_id id);
             void set_mouse_state(const mouse::State& new_state);
 
-            void reset();
+            const Vector2u& screen_size() const;
 
         private:
             mouse::State mouse_state_;
-            element_id next_id_;
 
-            element_id hot_item_;
-            element_id active_item_;
             std::string keyboard_input_;
+            Vector2u screen_size_;
         };
-
     }
-
 }
 
 #endif

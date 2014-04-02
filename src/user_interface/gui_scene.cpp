@@ -17,31 +17,33 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef GRAPHICS_TEXTURE_LOADER_HPP
-#define GRAPHICS_TEXTURE_LOADER_HPP
+#include "gui_scene.hpp"
+#include "gui_element.hpp"
 
-#include <unordered_map>
-#include <memory>
+#include "context.hpp"
 
-namespace ts
+ts::gui::Scene::Scene(Context* context)
+    : context_(context)
 {
-
-    namespace graphics
-    {
-        class Texture;
-
-        class Texture_loader
-        {
-        public:
-            std::shared_ptr<Texture> load_from_file(const std::string& file_name);
-
-        private:
-            std::unordered_map<std::string, std::shared_ptr<Texture>> loaded_textures_;
-        };
-
-
-    }
-
 }
 
-#endif
+void ts::gui::Scene::register_element(Element* element)
+{
+    registered_elements_.push_back(element);
+}
+
+void ts::gui::Scene::unregister_element(Element* element)
+{
+    auto it = std::remove(registered_elements_.begin(), registered_elements_.end(), element);
+    registered_elements_.erase(it, registered_elements_.end());
+}
+
+void ts::gui::Scene::update()
+{
+    const auto mouse_state = context_->mouse_state();
+
+    for (auto element : registered_elements_)
+    {
+        if (element->visible()) element->update(mouse_state);
+    }
+}

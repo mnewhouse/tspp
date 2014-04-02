@@ -63,8 +63,8 @@ void ts::states::Action_scene::on_car_create(world::Car* car)
 
     sf::Image image;
     if (image.loadFromFile(car_definition.image_file)) {
-        graphics::Texture texture(image, car_definition.image_rect);
-        drawable_entities_.emplace_back(car, Handle<graphics::Texture>(std::move(texture)), car_definition.image_type);
+        auto texture = std::make_shared<graphics::Texture>(image, car_definition.image_rect);
+        drawable_entities_.emplace_back(car, std::move(texture), car_definition.image_type);
 
         Vector2f scale(car_definition.image_scale, car_definition.image_scale);
 
@@ -151,12 +151,12 @@ void ts::states::Action_scene::render(graphics::Render_target& render_target)
 }
 
 ts::states::Action_state::Action_state(resources::Track&& track, const game::Stage_data& stage_data, 
-                                       const Handle<state_machine_type>& state_machine, const Handle<gui::Context>& context, 
-                                       std::shared_ptr<resources::Resource_store> resource_store)
+                                       state_machine_type* state_machine, gui::Context* context, 
+                                       resources::Resource_store* resource_store)
     : gui::State(state_machine, context, resource_store), 
       action_scene_(track), 
       world_(std::move(track)),
-      key_mapping_(controls::default_key_mapping()),
+      control_interface_(resource_store->settings.input_settings.key_mapping),
       collision_sound_controller_(),
       gameplay_script_engine_(),
       world_interface_(&world_, &gameplay_script_engine_),
@@ -214,26 +214,9 @@ void ts::states::Action_state::create_stage_entities(const game::Stage_data& sta
 
 void ts::states::Action_state::handle_event(const sf::Event& event)
 {
-    auto update_state = [&](bool state) 
+    control_interface_.forward_input(event, control_center_);
+    if (event.type == sf::Event::KeyReleased) 
     {
-        auto range = key_mapping_.equal_range(event.key.code);
-        for (auto it = range.first; it != range.second; ++it) 
-        {
-            const auto& key_bind = it->second;
-
-            control_center_.set_control_state(key_bind.slot, key_bind.control, state);
-        }
-    };
-
-    if (event.type == sf::Event::KeyPressed) 
-    {
-        update_state(true);
-    }
-
-    else if (event.type == sf::Event::KeyReleased) 
-    {
-        update_state(false);
-
         if (event.key.code == sf::Keyboard::Escape) 
         {
             state_machine()->change_state();

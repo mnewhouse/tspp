@@ -20,7 +20,6 @@
 #include <iostream>
 
 #include "game.hpp"
-#include "handle.hpp"
 #include "utility.hpp"
 #include "config.hpp"
 
@@ -28,18 +27,18 @@
 #include "user_interface/context.hpp"
 #include "user_interface/event_handlers.hpp"
 
-#include "graphics/fps_display.hpp"
 #include "graphics/renderer.hpp"
 #include "graphics/star_field.hpp"
 #include "graphics/fonts/font_loader.hpp"
 #include "graphics/fonts/font.hpp"
 #include "graphics/fonts/sans.hpp"
+#include "graphics/fps_display.hpp"
 
 #include "resources/resource_store.hpp"
 
 #include <memory>
 
-namespace
+namespace ts
 {
 
     void resize_window(sf::RenderWindow& render_window, int width, int height)
@@ -49,6 +48,39 @@ namespace
         render_window.setView(view);
     }
 
+    sf::VideoMode get_video_mode(const resources::Video_settings& video_settings)
+    {
+        sf::VideoMode video_mode(video_settings.screen_resolution.x, video_settings.screen_resolution.y);
+
+        if (video_settings.full_screen)
+        {
+            if (!video_mode.isValid())
+            {
+                const auto& fullscreen_modes = sf::VideoMode::getFullscreenModes();
+                video_mode = fullscreen_modes.front();
+            }
+        }
+
+        else
+        {
+            auto desktop_mode = sf::VideoMode::getDesktopMode();
+            if (video_mode.width == 0 || video_mode.height == 0 ||
+                video_mode.width > desktop_mode.width || video_mode.height > desktop_mode.height)
+            {
+                video_mode.width = 640;
+                video_mode.height = 480;
+            }
+        }
+
+        return video_mode;
+    }
+
+    std::uint32_t get_window_style(const resources::Video_settings& video_settings)
+    {
+        if (video_settings.full_screen) return sf::Style::Fullscreen;
+
+        return sf::Style::Titlebar;
+    }
 }
 
 
@@ -56,36 +88,37 @@ void ts::core::Game::main()
 {
     ts::fonts::load_builtin_fonts();
 
-    Handle<gui::Context> gui_context_handle;
-    Handle<State_machine<Game_state>> state_machine_handle;
+    resources::Resource_store resource_store;
+    resource_store.settings = resources::load_settings(config::settings_file);
 
-    auto& state_machine = *state_machine_handle;
-    auto& gui_context = *gui_context_handle;
+    auto& video_settings = resource_store.settings.video_settings;
+    auto video_mode = get_video_mode(video_settings);
 
-    auto resource_holder = std::make_shared<resources::Resource_store>();
+    video_settings.screen_resolution.x = video_mode.width;
+    video_settings.screen_resolution.y = video_mode.height;
+
+    sf::RenderWindow render_window(video_mode, config::window_title, get_window_style(video_settings));
+
+    gui::Context gui_context(Vector2u(video_mode.width, video_mode.height));
+    State_machine<Game_state> state_machine;
 
     {
         auto star_field = std::make_shared<graphics::Star_field>(150, sf::Color(0, 0, 5));
 
-        auto state = std::make_unique<states::Loading_state>(state_machine_handle, gui_context_handle, resource_holder);
+        auto state = std::make_unique<states::Loading_state>(&state_machine, &gui_context, &resource_store);
         state->set_background(star_field);
 
         state_machine.change_state(std::move(state));
         state_machine.update();
     }
 
-    sf::RenderWindow render_window(sf::VideoMode(1280, 720), "Turbo Sliders++");
-
-    graphics::FPS_Display fps_display;
-
     sf::Clock clock;
+    graphics::FPS_Display fps_display;
 
     while (state_machine && render_window.isOpen()) {
         state_machine->render(render_window);
         fps_display.render(render_window);
         render_window.display();
-
-        gui_context.reset();
 
         if (clock.getElapsedTime().asMilliseconds() >= 16) {
             for (sf::Event event; render_window.pollEvent(event);) {
@@ -104,13 +137,16 @@ void ts::core::Game::main()
             }
 
             clock.restart();
-            state_machine->update(16);            
+
+            state_machine->update(16);
         }
 
         state_machine.update();
-    }
+    }    
 
     state_machine.clear_now();
+
+    resources::save_settings(config::settings_file, resource_store.settings);
 
     fonts::unload_all();
 }

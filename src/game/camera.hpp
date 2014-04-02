@@ -64,6 +64,7 @@ namespace ts
 
 
             Mode mode_;
+            sf::View view_;
             const world::Entity* camera_target_;
             Vector2d last_position_;
 

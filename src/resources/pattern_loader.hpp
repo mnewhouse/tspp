@@ -20,10 +20,9 @@
 #ifndef RESOURCES_PATTERN_LOADER_HPP
 #define RESOURCES_PATTERN_LOADER_HPP
 
-#include "core/handle.hpp"
-
 #include <string>
 #include <unordered_map>
+#include <memory>
 
 namespace ts
 {
@@ -34,10 +33,10 @@ namespace ts
         class Pattern_loader
         {
         public:
-            Handle<Pattern> load_from_file(const std::string& file_name);
+            std::shared_ptr<Pattern> load_from_file(const std::string& file_name);
 
         private:
-            std::unordered_map<std::string, Handle<Pattern>> loaded_patterns_;
+            std::unordered_map<std::string, std::shared_ptr<Pattern>> loaded_patterns_;
         };
     }
 }

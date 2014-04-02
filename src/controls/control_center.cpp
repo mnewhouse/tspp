@@ -20,7 +20,7 @@
 #include "control_center.hpp"
 #include "controllable.hpp"
 
-void ts::controls::Control_center::update_control_state(Slot slot, std::uint32_t new_state)
+void ts::controls::Control_center::update_control_state(Slot slot, std::uint32_t new_state) const
 {
     auto range = control_mapping_.equal_range(slot);
     for (auto it = range.first; it != range.second; ++it)
@@ -30,7 +30,7 @@ void ts::controls::Control_center::update_control_state(Slot slot, std::uint32_t
     }
 }
 
-void ts::controls::Control_center::set_control_state(Slot slot, Control control, bool state)
+void ts::controls::Control_center::set_control_state(Slot slot, Control control, bool state) const
 {
     if ((globally_disabled_controls_ & std::uint32_t(control)) != 0) return;
 

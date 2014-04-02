@@ -25,22 +25,48 @@
 #include <SFML/Window.hpp>
 
 #include <map>
+#include <cstdint>
 
 namespace ts
 {
     namespace controls
     {
+        using Key = sf::Keyboard::Key;
+
         struct Key_bind
         {
+            Key key;
             Slot slot;
-            Control control;
         };
 
-        using Key_mapping = std::multimap<sf::Keyboard::Key, Key_bind>;
+        inline bool operator<(const Key_bind& a, const Key_bind& b)
+        {
+            if (a.key < b.key) return true;
+            if (b.key < a.key) return false;
+            
+            return a.key < b.key;
+        }
+
+        class Key_mapping
+        {
+        public:
+            using Map_type = std::map<Key_bind, Control>;
+
+            void bind_key_to_control(Key key, Slot slot, Control control);
+            Control get_control_bound_to_key(Key key, Slot slot) const;
+            
+            Map_type::const_iterator begin() const;
+            Map_type::const_iterator end() const;
+
+            std::pair<Map_type::const_iterator, Map_type::const_iterator> get_all_binds_by_key(Key key) const;
+
+        private:
+            std::map<Key_bind, Control> key_mapping_;
+        };
 
         Key_mapping default_key_mapping();
-
-        unsigned slot_control_state(const Key_mapping& key_mapping);
+        sf::Keyboard::Key key_from_code(std::int32_t code);
+        const char* key_to_string(sf::Keyboard::Key key);
     }
 }
 

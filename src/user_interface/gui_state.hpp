@@ -36,20 +36,20 @@ namespace ts
             : public core::Game_state
         {
         public:
-            State(const Handle<state_machine_type>& state_machine, const Handle<Context>& context,
-                  std::shared_ptr<resources::Resource_store> resource_store);
+            State(state_machine_type* state_machine, Context* context,
+                  resources::Resource_store* resource_store);
 
             void set_background(const graphics::Background& background);
             const graphics::Background& background() const;
 
-            const Handle<Context>& context() const;
+            Context* context() const;
 
         protected:
             void render_background(graphics::Render_target& render_target);
 
         private:
             graphics::Background background_;
-            Handle<Context> context_;
+            Context* context_;
         };
 
     }

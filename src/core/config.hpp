@@ -28,6 +28,8 @@ namespace ts
 
         // Various constants that are known at compile-time.
 
+        static const char* const window_title = "Turbo Sliders++";
+
         static const char* const track_root_directory = "tracks";
         static const char* const data_directory = "data";
         static const char* const car_directory = "cars";
@@ -36,6 +38,8 @@ namespace ts
         static const char* const default_collision_sound = "collision.wav";
         static const char* const default_entity_collision_sound = "carcollision.wav";
         static const char* const default_skid_sound = "skid.wav";
+
+        static const char* const settings_file = "settings.ini";
 
     }
 

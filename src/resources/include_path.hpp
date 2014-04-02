@@ -1,4 +1,3 @@
-#ifndef RESOURCES_INCLUDE_PATH_HPP
 /*
  * Turbo Sliders++
  * Copyright (C) 2013-2014 Martin Newhouse
@@ -18,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
+#ifndef RESOURCES_INCLUDE_PATH_HPP
 #define RESOURCES_INCLUDE_PATH_HPP
 
 #include <string>

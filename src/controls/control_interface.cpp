@@ -17,31 +17,32 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef GRAPHICS_TEXTURE_LOADER_HPP
-#define GRAPHICS_TEXTURE_LOADER_HPP
+#include "control_interface.hpp"
+#include "control_center.hpp"
 
-#include <unordered_map>
-#include <memory>
-
-namespace ts
+ts::controls::Control_interface::Control_interface(const Key_mapping& key_mapping)
+: key_mapping_(key_mapping)
 {
-
-    namespace graphics
-    {
-        class Texture;
-
-        class Texture_loader
-        {
-        public:
-            std::shared_ptr<Texture> load_from_file(const std::string& file_name);
-
-        private:
-            std::unordered_map<std::string, std::shared_ptr<Texture>> loaded_textures_;
-        };
-
-
-    }
-
 }
 
-#endif
+void ts::controls::Control_interface::forward_input(const sf::Event& event, const Control_center& control_center) const
+{
+    auto forward_key_event = [&](Key key, bool state)
+    {
+        auto range = key_mapping_.get_all_binds_by_key(key);
+        for (auto it = range.first; it != range.second; ++it)
+        {
+            control_center.set_control_state(it->first.slot, it->second, state);
+        }       
+    };
+
+    if (event.type == sf::Event::KeyPressed)
+    {
+        forward_key_event(event.key.code, true);
+    }
+
+    else if (event.type == sf::Event::KeyReleased)
+    {
+        forward_key_event(event.key.code, false);
+    }
+}
