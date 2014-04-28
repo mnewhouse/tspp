@@ -25,25 +25,30 @@
 ts::gui::Scene::Scene(Context* context)
     : context_(context)
 {
-}
-
-void ts::gui::Scene::register_element(Element* element)
-{
-    registered_elements_.push_back(element);
-}
-
-void ts::gui::Scene::unregister_element(Element* element)
-{
-    auto it = std::remove(registered_elements_.begin(), registered_elements_.end(), element);
-    registered_elements_.erase(it, registered_elements_.end());
+    root_element_.set_size(context->screen_size());
 }
 
 void ts::gui::Scene::update()
 {
-    const auto mouse_state = context_->mouse_state();
-
-    for (auto element : registered_elements_)
+    if (visible())
     {
-        if (element->visible()) element->update(mouse_state);
+        const auto mouse_state = context_->mouse_state();
+
+        root_element_.update(mouse_state);
     }
+}
+
+void ts::gui::Scene::render(graphics::Render_target& render_target)
+{
+    root_element_.render(render_target, graphics::Render_states());
+}
+
+const ts::gui::Element& ts::gui::Scene::root_element() const
+{
+    return root_element_;
+}
+
+ts::gui::Element& ts::gui::Scene::root_element()
+{
+    return root_element_;
 }

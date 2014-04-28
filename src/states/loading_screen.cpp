@@ -66,12 +66,6 @@ ts::states::Loading_state::~Loading_state()
     if (future_.valid()) future_.wait();
 }
 
-void ts::states::Loading_state::render(graphics::Render_target& render_target)
-{
-    render_background(render_target);
-    scene_.render(render_target);
-}
-
 void ts::states::Loading_state::update(std::size_t frame_duration)
 {
     auto now = std::chrono::high_resolution_clock::now();

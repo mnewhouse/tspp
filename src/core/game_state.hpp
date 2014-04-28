@@ -17,13 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef CORE_GAME_STATE_HPP
 #define CORE_GAME_STATE_HPP
 
 #include <vector>
 
 #include "state_machine.hpp"
-#include "graphics/renderer.hpp"
+#include "graphics/render_scene.hpp"
 #include "resources/resource_store.hpp"
 
 namespace sf
@@ -55,7 +57,12 @@ namespace ts
 
             state_machine_type* state_machine() const { return state_machine_; }
 
-            virtual void render(graphics::Render_target& render_target) = 0;
+            void render(graphics::Render_target& render_target);
+
+            void set_background(const graphics::Background& background);
+            const graphics::Background& background() const;
+
+            void add_render_scene(graphics::Render_scene* render_scene);
 
             virtual void update(std::size_t frame_duration) {}
             virtual void handle_event(const sf::Event& event) {}            
@@ -69,6 +76,9 @@ namespace ts
 
             state_machine_type* state_machine_;
             resources::Resource_store* resource_store_;
+
+            graphics::Background background_;
+            std::vector<graphics::Render_scene*> render_scenes_;
         };
 
     }

@@ -17,35 +17,29 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
+#include "game_state.hpp"
 
-#ifndef WORLD_LISTENER_HPP
-#define WORLD_LISTENER_HPP
-
-#include <cstddef>
-
-namespace ts
+void ts::core::Game_state::add_render_scene(graphics::Render_scene* render_scene)
 {
-    namespace world
-    {
-        class Car;
-        class Entity;
-
-        struct Collision_result;
-
-        struct World_listener
-        {
-            virtual void on_start() {}
-
-            virtual void on_tick(std::size_t new_ticks) {};
-            virtual void on_update() {};
-
-            virtual void on_car_create(Car* car) {};
-            virtual void on_entity_destroy(Entity* entity) {};
-
-            virtual void on_collision(const Collision_result& collision) {};
-        };
-    }
+    render_scenes_.push_back(render_scene);
 }
 
-#endif
+void ts::core::Game_state::set_background(const graphics::Background& background)
+{
+    background_ = background;
+}
+
+const ts::graphics::Background& ts::core::Game_state::background() const
+{
+    return background_;
+}
+
+void ts::core::Game_state::render(graphics::Render_target& render_target)
+{
+    if (background_) background_.render(render_target);
+
+    for (auto render_scene : render_scenes_)
+    {
+        render_scene->render_if_visible(render_target);
+    }
+}

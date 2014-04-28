@@ -38,6 +38,11 @@ namespace ts
                 {
                     set_size(size);
 
+                    set_color(color);
+                }
+
+                void set_color(sf::Color color)
+                {
                     rect_area_.setFillColor(color);
                 }
 

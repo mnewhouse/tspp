@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef CONTROL_CONTROLLABLE_HPP
 #define CONTROL_CONTROLLABLE_HPP
 

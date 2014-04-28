@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef STATES_MAIN_MENU_HPP
 #define STATES_MAIN_MENU_HPP
 
@@ -33,6 +35,7 @@ namespace ts
         class Settings_scene;
         class Main_menu_scene;
         class Players_scene;
+        class Cup_config_scene;
 
         class Main_menu
             : public gui::State
@@ -41,7 +44,6 @@ namespace ts
             Main_menu(state_machine_type* state_machine, gui::Context* gui_context,
                       resources::Resource_store* resource_store);
 
-            virtual void render(graphics::Render_target& render_target) override;
             virtual void update(std::size_t frame_duration) override;
             virtual void handle_event(const sf::Event& event) override;
 
@@ -49,11 +51,13 @@ namespace ts
             void return_to_main_menu();
             void show_settings_menu();
             void show_players_menu();
+            void show_cup_config_menu();
 
         private:
             std::unique_ptr<Main_menu_scene> main_menu_scene_;
             std::unique_ptr<Settings_scene> settings_scene_;
             std::unique_ptr<Players_scene> players_scene_;
+            std::unique_ptr<Cup_config_scene> cup_config_scene_;
         };
 
     }

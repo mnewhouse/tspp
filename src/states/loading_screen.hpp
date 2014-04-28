@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef STATES_LOADING_SCREEN_HPP
 #define STATES_LOADING_SCREEN_HPP
 
@@ -52,7 +54,6 @@ namespace ts
 
             virtual ~Loading_state();
 
-            virtual void render(graphics::Render_target&) override;
             virtual void update(std::size_t frame_duration) override;
 
 

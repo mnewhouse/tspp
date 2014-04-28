@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef AUDIO_ENGINE_SOUNDS_HPP
 #define AUDIO_ENGINE_SOUNDS_HPP
 

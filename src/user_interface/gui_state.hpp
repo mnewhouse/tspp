@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef GUI_STATE_HPP
 #define GUI_STATE_HPP
 
@@ -39,16 +41,9 @@ namespace ts
             State(state_machine_type* state_machine, Context* context,
                   resources::Resource_store* resource_store);
 
-            void set_background(const graphics::Background& background);
-            const graphics::Background& background() const;
-
             Context* context() const;
 
-        protected:
-            void render_background(graphics::Render_target& render_target);
-
         private:
-            graphics::Background background_;
             Context* context_;
         };
 

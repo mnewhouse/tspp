@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef GAME_DRAWABLE_ENTITY_HPP
 #define GAME_DRAWABLE_ENTITY_HPP
 

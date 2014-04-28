@@ -19,33 +19,35 @@
 
 #pragma once
 
-#ifndef WORLD_LISTENER_HPP
-#define WORLD_LISTENER_HPP
+#ifndef GUI_BACKGROUND_DECORATOR_HPP
+#define GUI_BACKGROUND_DECORATOR_HPP
 
-#include <cstddef>
+#include "../gui_decorator.hpp"
 
 namespace ts
 {
-    namespace world
+    namespace gui
     {
-        class Car;
-        class Entity;
-
-        struct Collision_result;
-
-        struct World_listener
+        namespace elements
         {
-            virtual void on_start() {}
+            class Background_color
+                : public Decorator
+            {
+            public:
+                Background_color(sf::Color color);
 
-            virtual void on_tick(std::size_t new_ticks) {};
-            virtual void on_update() {};
+                virtual void draw(const Element& element, graphics::Render_target& render_target,
+                                  graphics::Render_states render_states) const override;
 
-            virtual void on_car_create(Car* car) {};
-            virtual void on_entity_destroy(Entity* entity) {};
+                void set_color(sf::Color color);
+                sf::Color color() const;
 
-            virtual void on_collision(const Collision_result& collision) {};
-        };
+            private:
+                sf::Color color_;
+            };
+        }
     }
 }
+
 
 #endif

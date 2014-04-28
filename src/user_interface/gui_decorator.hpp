@@ -19,33 +19,26 @@
 
 #pragma once
 
-#ifndef WORLD_LISTENER_HPP
-#define WORLD_LISTENER_HPP
+#ifndef GUI_DECORATOR_HPP
+#define GUI_DECORATOR_HPP
 
-#include <cstddef>
+#include "graphics/renderer.hpp"
+
 
 namespace ts
 {
-    namespace world
+    namespace gui
     {
-        class Car;
-        class Entity;
+        class Element;
 
-        struct Collision_result;
-
-        struct World_listener
+        class Decorator
         {
-            virtual void on_start() {}
-
-            virtual void on_tick(std::size_t new_ticks) {};
-            virtual void on_update() {};
-
-            virtual void on_car_create(Car* car) {};
-            virtual void on_entity_destroy(Entity* entity) {};
-
-            virtual void on_collision(const Collision_result& collision) {};
+        public:
+            virtual void draw(const Element& element, graphics::Render_target& render_target, 
+                              graphics::Render_states render_states) const = 0;
         };
     }
 }
 
 #endif
+

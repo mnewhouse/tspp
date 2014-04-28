@@ -24,21 +24,6 @@ ts::gui::State::State(state_machine_type* state_machine, Context* context, resou
       context_(context)
 {}
 
-void ts::gui::State::set_background(const graphics::Background& background)
-{
-    background_ = background;
-}
-
-const ts::graphics::Background& ts::gui::State::background() const
-{
-    return background_;
-}
-
-void ts::gui::State::render_background(graphics::Render_target& render_target)
-{
-    if (background_) background_.render(render_target);
-}
-
 ts::gui::Context* ts::gui::State::context() const
 {
     return context_;

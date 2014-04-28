@@ -246,15 +246,6 @@ void ts::states::Action_state::handle_event(const sf::Event& event)
     }
 }
 
-void ts::states::Action_state::render(graphics::Render_target& render_target)
-{
-    render_target.clear();
-
-    action_scene_.render_if_visible(render_target);
-
-    hud_overlay_.render(render_target);
-}
-
 void ts::states::Action_state::update(std::size_t frame_duration)
 {
     action_scene_.update(frame_duration);

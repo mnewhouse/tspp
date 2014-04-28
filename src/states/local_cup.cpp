@@ -56,12 +56,6 @@ void ts::states::Local_cup_state::update(std::size_t)
     }
 }
 
-void ts::states::Local_cup_state::render(graphics::Render_target& render_target)
-{
-    render_background(render_target);
-    scene_.render(render_target);
-}
-
 ts::states::Local_cup_scene::Local_cup_scene(Local_cup_state* cup_state, gui::Context* context)
     : gui::Scene(context), 
       cup_state_(cup_state)

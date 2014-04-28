@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
 #ifndef AUDIO_COLLISION_SOUNDS_HPP
 #define AUDIO_COLLISION_SOUNDS_HPP
@@ -25,7 +26,7 @@
 
 #include "world/world_listener.hpp"
 
-#include <list>
+#include <vector>
 
 namespace ts
 {

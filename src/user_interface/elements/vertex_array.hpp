@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
 #ifndef GUI_ELEMENTS_VERTEX_ARRAY_HPP
 #define GUI_ELEMENTS_VERTEX_ARRAY_HPP
@@ -30,34 +31,22 @@ namespace ts
     {
         namespace elements
         {
-            class Vertex_array
+            class Vertex_element
                 : public Element
             {
             public:
-                Vertex_array(const sf::VertexArray& vertex_array)
-                    : vertex_array_(vertex_array)
-                {}
-
-                virtual void draw(graphics::Render_target& render_target, graphics::Render_states render_states) const override
+                Vertex_element(const Vector2i size, const sf::VertexArray& vertex_array,
+                               const sf::VertexArray& hover_array = sf::VertexArray())
+                               : vertex_array_(vertex_array),
+                                 hover_vertex_array_(hover_array)
                 {
-                    render_target.draw(vertex_array_, render_states);
+                    if (hover_vertex_array_.getVertexCount() == 0)
+                    {
+                        hover_vertex_array_ = vertex_array_;
+                    }
+
+                    set_size(size);
                 }
-
-            private:
-                sf::VertexArray vertex_array_;
-            };
-
-            template <typename RegionType>
-            class Vertex_button
-                : public Button<RegionType>
-            {
-            public:
-                Vertex_button(const RegionType& region, const sf::VertexArray& vertex_array, 
-                              const sf::VertexArray& hover_array = vertex_array)
-                    : Button<RegionType>(region),
-                      vertex_array_(vertex_array),
-                      hover_vertex_array_(hover_array)
-                {}
 
                 virtual void draw(graphics::Render_target& render_target, graphics::Render_states render_states) const override
                 {
@@ -69,8 +58,6 @@ namespace ts
                 sf::VertexArray vertex_array_;
                 sf::VertexArray hover_vertex_array_;
             };
-
-            using Rectangular_vertex_button = Vertex_button<Rectangle_region>;
         }
     }
 }

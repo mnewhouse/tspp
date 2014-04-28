@@ -32,11 +32,13 @@ namespace ts
         std::istream& operator>>(std::istream& stream, Input_settings& input_settings);
         std::istream& operator>>(std::istream& stream, Audio_settings& audio_settings);
         std::istream& operator>>(std::istream& stream, Game_settings& game_settings);
+        std::istream& operator>>(std::istream& stream, Track_settings& track_settings);
 
         std::ostream& operator<<(std::ostream& stream, const Video_settings& video_settings);
         std::ostream& operator<<(std::ostream& stream, const Input_settings& input_settings);
         std::ostream& operator<<(std::ostream& stream, const Audio_settings& audio_settings);
         std::ostream& operator<<(std::ostream& stream, const Game_settings& game_settings);
+        std::ostream& operator<<(std::ostream& stream, const Track_settings& track_settings);
     }
 }
 
@@ -104,6 +106,10 @@ void ts::resources::save_settings(const std::string& file_name, const Settings& 
 
     stream << "Section Audio\n";
     stream << settings.audio_settings;
+    stream << "End\n\n";
+
+    stream << "Section Tracks\n";
+    stream << settings.track_settings;
     stream << "End\n\n";
 }
 
@@ -219,6 +225,44 @@ std::istream& ts::resources::operator>>(std::istream& stream, Game_settings& gam
     return stream;
 }
 
+std::istream& ts::resources::operator>>(std::istream& stream, Track_settings& track_settings)
+{
+    for (std::string line, directive; directive != "end" && std::getline(stream, line);)
+    {
+        std::istringstream line_stream(line);
+        if (!read_directive(line_stream, directive)) continue;
+
+        if (directive == "allowduplicates")
+        {
+            int allow_duplicates;
+            if (line_stream >> allow_duplicates)
+            {
+                track_settings.allow_duplicates = (allow_duplicates != 0);
+            }
+        }
+
+        else if (directive == "randomselectcount")
+        {
+            std::uint32_t count;
+            if (line_stream >> count)
+            {
+                track_settings.random_count = count;
+            }
+        }
+
+        else if (directive == "selectedtrack")
+        {
+            std::string track_path;
+            if (line_stream >> track_path)
+            {
+                track_settings.selected_tracks.push_back(std::move(track_path));
+            }
+        }
+    }
+
+    return stream;
+}
+
 std::ostream& ts::resources::operator<<(std::ostream& stream, const Video_settings& video_settings)
 {
     stream << "FullScreen " << static_cast<int>(video_settings.full_screen) << "\n";
@@ -263,5 +307,18 @@ std::ostream& ts::resources::operator<<(std::ostream& stream, const Audio_settin
 
 std::ostream& ts::resources::operator<<(std::ostream& stream, const Game_settings& game_settings)
 {
+    return stream;
+}
+
+std::ostream& ts::resources::operator<<(std::ostream& stream, const Track_settings& track_settings)
+{
+    stream << "AllowDuplicates " << track_settings.allow_duplicates << "\n";
+    stream << "RandomSelectCount " << track_settings.random_count << "\n";
+
+    for (const auto& track_handle : track_settings.selected_tracks)
+    {
+        stream << "SelectedTrack " << track_handle << "\n";
+    }
+
     return stream;
 }

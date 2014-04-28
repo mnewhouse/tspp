@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef SCRIPT_CONTROL_POINT_INTERFACE_HPP
 #define SCRIPT_CONTROL_POINT_INTERFACE_HPP
 

@@ -47,6 +47,7 @@ void ts::resources::Track_store::scan_directory(const std::string& directory)
 
     try 
     {
+        root_directory_.parent_directory = nullptr;
         scan_directory(root_directory_, directory);
     }
 
@@ -56,7 +57,7 @@ void ts::resources::Track_store::scan_directory(const std::string& directory)
     }
 }
 
-void ts::resources::Track_store::scan_directory(Track_directory& dir_contents, const std::string& directory)
+void ts::resources::Track_store::scan_directory(impl::Track_directory& dir_contents, const std::string& directory)
 {
     using boost::filesystem::directory_iterator;
     using boost::filesystem::directory_entry;
@@ -73,6 +74,7 @@ void ts::resources::Track_store::scan_directory(Track_directory& dir_contents, c
 
         if (is_directory(path)) {
             auto& sub_directory = dir_contents.sub_directories[file_name.string()];
+            sub_directory.parent_directory = &dir_contents;
             scan_directory(sub_directory, full_path.string());
         }
 
@@ -110,4 +112,174 @@ std::vector<ts::resources::Track_handle> ts::resources::Track_store::get_matchin
         [](const std::pair<std::string, std::string>& pair) { return Track_handle(&pair.second); });
 
     return result;
+}
+
+ts::resources::Track_directory ts::resources::Track_store::root_directory() const
+{
+    return Track_directory(&root_directory_);
+}
+
+ts::resources::Track_handle ts::resources::Track_directory::track_iterator::operator*() const
+{
+    return Track_handle(&*it_);
+}
+
+ts::resources::Track_directory::track_iterator& ts::resources::Track_directory::track_iterator::operator++()
+{
+    ++it_;
+    return *this;
+}
+
+ts::resources::Track_directory::track_iterator ts::resources::Track_directory::track_iterator::operator++(int)
+{
+    auto temp = *this;
+    ++*this;
+    return temp;
+}
+
+ts::resources::Track_directory::track_iterator& ts::resources::Track_directory::track_iterator::operator--()
+{
+    --it_;
+    return *this;
+}
+
+ts::resources::Track_directory::track_iterator ts::resources::Track_directory::track_iterator::operator--(int)
+{
+    auto temp = *this;
+    --*this;
+    return temp;
+}
+
+ts::resources::Track_directory::track_iterator& ts::resources::Track_directory::track_iterator::operator-=(std::ptrdiff_t diff)
+{
+    it_ -= diff;
+    return *this;
+}
+
+ts::resources::Track_directory::track_iterator& ts::resources::Track_directory::track_iterator::operator+=(std::ptrdiff_t diff)
+{
+    it_ += diff;
+    return *this;
+}
+
+bool ts::resources::Track_directory::track_iterator::operator==(track_iterator right) const
+{
+    return it_ == right.it_;
+}
+
+bool ts::resources::Track_directory::track_iterator::operator!=(track_iterator right) const
+{
+    return it_ != right.it_;
+}
+
+std::ptrdiff_t ts::resources::Track_directory::track_iterator::operator-(track_iterator right) const
+{
+    return it_ - right.it_;
+}
+
+ts::resources::Track_directory::track_iterator::track_iterator(std::vector<std::string>::const_iterator it)
+: it_(it)
+{
+}
+
+ts::resources::Track_directory::track_iterator ts::resources::Track_directory::track_begin() const
+{
+    return track_iterator(track_dir_->track_files.begin());
+}
+
+ts::resources::Track_directory::track_iterator ts::resources::Track_directory::track_end() const
+{
+    return track_iterator(track_dir_->track_files.end());
+}
+
+ts::resources::Track_directory::dir_iterator ts::resources::Track_directory::dir_begin() const
+{
+    return dir_iterator(track_dir_->sub_directories.begin());
+}
+
+ts::resources::Track_directory::dir_iterator ts::resources::Track_directory::dir_end() const
+{
+    return dir_iterator(track_dir_->sub_directories.end());
+}
+
+std::string ts::resources::Track_directory::path() const
+{
+    return track_dir_->path;
+}
+
+std::string ts::resources::Track_directory::dir_name() const
+{
+    return boost::filesystem::basename(track_dir_->path);
+}
+
+
+ts::resources::Track_directory ts::resources::Track_directory::sub_directory(const std::string& dir_name) const
+{
+    auto it = track_dir_->sub_directories.find(dir_name);
+    if (it == track_dir_->sub_directories.end()) return Track_directory(nullptr);
+
+    return Track_directory(&it->second);
+}
+
+ts::resources::Track_directory ts::resources::Track_directory::parent_directory() const
+{
+    if (track_dir_ == nullptr) return Track_directory(nullptr);
+
+    return Track_directory(track_dir_->parent_directory);
+}
+
+ts::resources::Track_directory::dir_iterator::dir_iterator(std::map<std::string, impl::Track_directory>::const_iterator it)
+    : it_(it)
+{
+}
+
+ts::resources::Track_directory ts::resources::Track_directory::dir_iterator::operator*() const
+{
+    return Track_directory(&it_->second);
+}
+
+ts::resources::Track_directory::dir_iterator& ts::resources::Track_directory::dir_iterator::operator++()
+{
+    ++it_;
+    return *this;
+}
+
+ts::resources::Track_directory::dir_iterator ts::resources::Track_directory::dir_iterator::operator++(int)
+{
+    auto temp = *this;
+    ++*this;
+    return temp;
+}
+
+ts::resources::Track_directory::dir_iterator& ts::resources::Track_directory::dir_iterator::operator--()
+{
+    --it_;
+    return *this;
+}
+
+ts::resources::Track_directory::dir_iterator ts::resources::Track_directory::dir_iterator::operator--(int)
+{
+    auto temp = *this;
+    --*this;
+    return temp;
+}
+
+bool ts::resources::Track_directory::dir_iterator::operator==(dir_iterator right) const
+{
+    return it_ == right.it_;
+}
+
+bool ts::resources::Track_directory::dir_iterator::operator!=(dir_iterator right) const
+{
+    return it_ != right.it_;
+}
+
+ts::resources::Track_directory::Track_directory(const impl::Track_directory* track_dir)
+    : track_dir_(track_dir)
+{
+}
+
+ts::resources::Track_directory::operator bool() const
+{
+    return track_dir_ != nullptr;
 }

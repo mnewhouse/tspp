@@ -17,8 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef GUI_SCENE_HPP
 #define GUI_SCENE_HPP
+
+#include "gui_element.hpp"
 
 #include "graphics/render_scene.hpp"
 
@@ -42,9 +46,14 @@ namespace ts
 
             void update();
 
+            gui::Element& root_element();
+            const gui::Element& root_element() const;
+
+            virtual void render(graphics::Render_target& render_target) override;
+
         private:
             Context* context_;
-            std::vector<Element*> registered_elements_;
+            gui::Element root_element_;
             graphics::Background background_;
         };
     }

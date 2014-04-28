@@ -17,12 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef RESOURCES_SETTINGS_HPP
 #define RESOURCES_SETTINGS_HPP
+
+#include "track_handle.hpp"
 
 #include "core/vector2.hpp"
 
 #include "controls/key_mapping.hpp"
+
+#include <vector>
 
 namespace ts
 {
@@ -50,7 +56,13 @@ namespace ts
 
         class Game_settings
         {
+        };
+
+        struct Track_settings
+        {
             std::vector<std::string> selected_tracks;
+            bool allow_duplicates = true;
+            std::uint32_t random_count = 1;
         };
 
         struct Settings
@@ -59,7 +71,9 @@ namespace ts
             Input_settings input_settings;
             Audio_settings audio_settings;
             Game_settings game_settings;
-        };
+            Track_settings track_settings;
+        };        
+
 
         Settings load_settings(const std::string& file_name);
         Settings load_settings(std::istream& stream);

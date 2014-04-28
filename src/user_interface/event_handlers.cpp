@@ -22,7 +22,7 @@
 
 ts::gui::mouse::State ts::gui::events::mouse_event(mouse::State state, const sf::Event& event)
 {
-    auto convert_button = [](sf::Mouse::Button button) -> unsigned
+    auto convert_button = [](sf::Mouse::Button button) -> mouse::Button
     {
         switch (button)
         {
@@ -33,7 +33,7 @@ ts::gui::mouse::State ts::gui::events::mouse_event(mouse::State state, const sf:
         case sf::Mouse::Button::Middle:
             return mouse::Button::Middle;
         default:
-            return 0;
+            return mouse::Button::None;
         }      
     };
 
@@ -45,11 +45,11 @@ ts::gui::mouse::State ts::gui::events::mouse_event(mouse::State state, const sf:
         break;
 
     case sf::Event::MouseButtonPressed:
-        state.button_state |= convert_button(event.mouseButton.button);
+        state.button_state |= std::uint32_t(convert_button(event.mouseButton.button));
         break;
 
     case sf::Event::MouseButtonReleased:
-        state.button_state &= ~convert_button(event.mouseButton.button);
+        state.button_state &= ~std::uint32_t(convert_button(event.mouseButton.button));
         break;
 
                                          

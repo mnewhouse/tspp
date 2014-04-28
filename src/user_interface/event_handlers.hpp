@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef GUI_EVENT_HANDLERS_HPP
 #define GUI_EVENT_HANDLERS_HPP
 

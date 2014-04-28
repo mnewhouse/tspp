@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef STATES_CUP_STATE_HPP
 #define STATES_CUP_STATE_HPP
 

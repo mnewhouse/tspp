@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
 #ifndef WORLD_UTILITY_HPP
 #define WORLD_UTILITY_HPP

@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef GUI_MOUSE_HPP
 #define GUI_MOUSE_HPP
 
@@ -28,11 +30,13 @@ namespace ts
     {
         namespace mouse
         {
-            struct Button
+            enum class Button
+                : std::uint32_t
             {
-                static const unsigned Left = 1;
-                static const unsigned Middle = 2;
-                static const unsigned Right = 4;
+                None = 0,
+                Left = 1,
+                Right = 2,
+                Middle = 4
             };
 
             struct State

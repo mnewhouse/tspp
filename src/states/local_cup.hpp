@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef STATES_LOCAL_CUP_HPP
 #define STATES_LOCAL_CUP_HPP
 
@@ -49,7 +51,6 @@ namespace ts
             Local_cup_state(state_machine_type* state_machine, gui::Context* context,
                             resources::Resource_store* resource_store);
 
-            virtual void render(graphics::Render_target& render_target) override;
             virtual void update(std::size_t frame_duration) override;
 
         private:

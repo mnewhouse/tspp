@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef GAME_STAGE_DATA_HPP
 #define GAME_STAGE_DATA_HPP
 

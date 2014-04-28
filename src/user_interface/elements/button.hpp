@@ -17,12 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef GUI_ELEMENTS_BUTTON_HPP
 #define GUI_ELEMENTS_BUTTON_HPP
 
-#include "../gui_element.hpp"
-
-#include "rectangle_region.hpp"
+#include "text_item.hpp"
 
 namespace ts
 {
@@ -30,25 +30,51 @@ namespace ts
     {
         namespace elements
         {
-            template <typename RegionType>
-            struct Button
-                : public Element
+            class Button
+                : public Text_item
             {
             public:
-                Button(RegionType region)
-                    : region_(region)
-                {}           
-
-                virtual bool hover(Vector2i mouse_position) const
+                Button(Vector2i area_size, const std::string& text, const sf::Font& font, std::uint32_t character_size)
+                    : Text_item(text, font, character_size)
                 {
-                    return region_(mouse_position);
+                    set_size(area_size);
+
+                    base_color_ = hover_color_ = Text_item::color();
+                } 
+
+                Button(const std::string& text, const sf::Font& font, std::uint32_t character_size)
+                    : Text_item(text, font, character_size)
+                {
+                    base_color_ = hover_color_ = Text_item::color();
+                }        
+
+                void set_base_color(sf::Color color)
+                {
+                    if (!hover()) set_color(color);
+
+                    base_color_ = color;
+                }
+                void set_hover_color(sf::Color hover_color)
+                {
+                    if (hover()) set_color(hover_color);
+
+                    hover_color_ = hover_color;
                 }
 
-            private:
-                RegionType region_;
-            };
+                virtual void on_mouse_enter() override
+                {
+                    Text_item::set_color(hover_color_);
+                }
 
-            using Rectangular_button = Button<Rectangle_region>;
+                virtual void on_mouse_leave() override
+                {
+                    Text_item::set_color(base_color_);
+                }
+                    
+            private:
+                sf::Color base_color_;
+                sf::Color hover_color_;
+            };
         }
     }
 }
