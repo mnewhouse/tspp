@@ -4,6 +4,11 @@ project(squirrel)
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
+add_definitions(-D_LIB)
+add_definitions(-D_SQ64)
+
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DGARBAGE_COLLECTOR")
+
 set(SQUIRREL_SRC
     squirrel/sqapi.cpp
     squirrel/sqbaselib.cpp

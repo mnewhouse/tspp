@@ -315,7 +315,7 @@ SOURCE_GROUP(world REGULAR_EXPRESSION src/world/[^/]+)
 
 set(PRECOMPILED_SOURCE "src/stdinc.cpp")
 if(MSVC)
-    set(PRECOMPILED_BINARY "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pch")
+    set(PRECOMPILED_BINARY "$(IntDir)/${PROJECT_NAME}.pch")
     
     SET_SOURCE_FILES_PROPERTIES(${PRECOMPILED_SOURCE}
                                 PROPERTIES COMPILE_FLAGS "/Yc\"stdinc.hpp\" /Fp\"${PRECOMPILED_BINARY}\""

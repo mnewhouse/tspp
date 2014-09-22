@@ -140,7 +140,8 @@ void ts::resources::Pattern::load_from_file(const utf8_string& file_name, Int_re
         return true;
     };
 
-    if (!read_png_file(file_handle, rect)) {
+    if (!read_png_file(file_handle, rect)) 
+    {
         throw std::runtime_error("invalid pattern file; must be an indexed PNG image");
     }
 }
