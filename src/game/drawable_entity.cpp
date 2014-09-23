@@ -36,9 +36,8 @@ ts::game::Drawable_entity::Drawable_entity
 void ts::game::Drawable_entity::draw(sf::RenderTarget& render_target, sf::RenderStates states, double frame_time) const
 {
     const auto rotation = entity_->rotation();
-    const auto old_position = entity_->position();
-    const auto new_position = old_position + entity_->velocity() * (config::update_interval * 0.001);
-    const auto position = interpolate_position(old_position, new_position, frame_time);
+    const auto new_position = entity_->position();
+    const auto position = interpolate_position(last_position_, new_position, frame_time);
 
     if (image_type_ == resources::Image_type::Rotational) 
     {

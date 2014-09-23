@@ -21,16 +21,23 @@
 #include "client_interface.hpp"
 
 #include "script/script_engine.hpp"
+
+#include "script/api_definitions/utility_classes.hpp"
 #include "script/api_definitions/world_api.hpp"
 #include "script/api_definitions/event_api.hpp"
+#include "script/api_definitions/view_api.hpp"
+
+
 
 #include "world/world.hpp"
 
-ts::script_api::Client_interface::Client_interface(world::World* world)
+ts::script_api::Client_interface::Client_interface(world::World* world, game::Action_scene* action_scene)
 : world_interface_(this)
 {
+    register_api(script_api::utility_classes());
     register_api(script_api::event_api());
     register_api(script_api::world_api(world));
+    register_api(script_api::view_api(action_scene));
 
     world->add_world_listener(&world_interface_);
 }

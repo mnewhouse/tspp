@@ -52,10 +52,7 @@ namespace ts
         {
             { "remove", event_handler::remove }
         };
-    }
 
-    namespace script
-    {
         template <>
         struct Delegate_traits<Event_handler>
         {
@@ -65,7 +62,7 @@ namespace ts
 }
 
 
-ts::Range<const ts::script::Member_function_definition*> ts::script::Delegate_traits<ts::script::Event_handler>::member_functions()
+ts::Range<const ts::script::Member_function_definition*> ts::script_api::Delegate_traits<ts::script::Event_handler>::member_functions()
 {
     using script_api::event_handler_member_functions;
 

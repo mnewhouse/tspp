@@ -93,12 +93,12 @@ void ts::game::impl::Target_texture::deallocate_tile_space(Int_rect area)
     }
 }
 
-ts::game::Track_scene_::Track_scene_(Vector2u track_size)
+ts::game::Track_scene::Track_scene(Vector2u track_size)
 : track_size(track_size)
 {
 }
 
-ts::game::Track_scene_::Track_scene_(Track_scene_&& other)
+ts::game::Track_scene::Track_scene(Track_scene&& other)
 : components(std::move(other.components)),
   textures(std::move(other.textures)),
   track_size(other.track_size)  
@@ -106,7 +106,7 @@ ts::game::Track_scene_::Track_scene_(Track_scene_&& other)
     other.track_size = {};
 }
 
-ts::game::Track_scene_& ts::game::Track_scene_::operator=(Track_scene_&& other)
+ts::game::Track_scene& ts::game::Track_scene::operator=(Track_scene&& other)
 {
     components = std::move(other.components);
     textures = std::move(other.textures);
@@ -599,7 +599,7 @@ void ts::game::Track_builder::add_edge_component()
     }
 }
 
-ts::game::Track_scene_ ts::game::Track_builder::operator()(std::function<void()> step_operation)
+ts::game::Track_scene ts::game::Track_builder::operator()(std::function<void()> step_operation)
 {
     build_scene(step_operation);
 

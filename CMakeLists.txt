@@ -95,6 +95,8 @@ set(SRC src/main.cpp
         src/game/stage_data.hpp
         src/game/track_builder.hpp
         src/game/track_builder.cpp
+		src/game/view_context.hpp
+		src/game/view_context.cpp
 
         src/graphics/geometry.hpp
         src/graphics/geometry.cpp
@@ -170,6 +172,8 @@ set(SRC src/main.cpp
         
         src/script/argument_stream.hpp
         src/script/argument_stream.cpp
+		src/script/class_definition.hpp
+		src/script/class_definition.cpp
         src/script/delegate_definition.hpp
         src/script/delegate_definition.cpp
         src/script/delegate_traits.hpp
@@ -205,17 +209,22 @@ set(SRC src/main.cpp
         src/script/squirrel_include.hpp
         src/script/userdata_impl.hpp
         src/script/userdata_traits.hpp
-        
-        src/script/api_definitions/camera_api.hpp
+       
         src/script/api_definitions/entity_api.hpp
         src/script/api_definitions/entity_api.cpp
         src/script/api_definitions/event_api.hpp
         src/script/api_definitions/event_api.cpp
+		src/script/api_definitions/utility_classes.hpp
+		src/script/api_definitions/utility_classes.cpp
+		src/script/api_definitions/view_api.hpp
+		src/script/api_definitions/view_api.cpp
         src/script/api_definitions/world_api.hpp
         src/script/api_definitions/world_api.cpp
         
         src/script/interfaces/client_interface.hpp
         src/script/interfaces/client_interface.cpp
+		src/script/interfaces/screen_interface.hpp
+		src/script/interfaces/screen_interface.cpp
         src/script/interfaces/world_interface.hpp
         src/script/interfaces/world_interface.cpp
 

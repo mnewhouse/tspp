@@ -341,12 +341,9 @@ void ts::world::World::update(std::size_t frame_duration)
     auto old_game_time = game_timer_.time();
     game_timer_.update(frame_duration);
 
-    if (game_timer_.time() != old_game_time)
+    for (auto listener : world_listeners_)
     {
-        for (auto listener : world_listeners_)
-        {
-            listener->on_tick(game_timer_.time());
-        }
+        listener->on_tick(game_timer_.time());
     }
 }
 

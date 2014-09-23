@@ -19,6 +19,7 @@
 
 #include "stdinc.hpp"
 #include "object_handle.hpp"
+#include "script_utility.hpp"
 
 ts::script::Object_handle::Object_handle()
 : vm_(nullptr)
@@ -27,7 +28,7 @@ ts::script::Object_handle::Object_handle()
 }
 
 ts::script::Object_handle::Object_handle(HSQUIRRELVM vm, SQInteger index, SQObjectType needed_type)
-: vm_(nullptr)
+: Object_handle()
 {
     reset(vm, index, needed_type);
 }
@@ -36,7 +37,7 @@ ts::script::Object_handle::Object_handle(const Object_handle& other)
 : vm_(other.vm_),
   object_(other.object_)
 {
-    if (other)
+    if (*this)
     {
         sq_addref(vm_, &object_);
     }
@@ -46,7 +47,8 @@ ts::script::Object_handle::Object_handle(Object_handle&& other)
 : vm_(other.vm_),
   object_(other.object_)
 {
-    other = Object_handle();
+    other.object_._type = OT_NULL;
+    other.vm_ = nullptr;
 }
 
 ts::script::Object_handle::~Object_handle()
@@ -68,7 +70,15 @@ ts::script::Object_handle& ts::script::Object_handle::operator=(Object_handle ot
 
 void ts::script::Object_handle::push() const
 {
-    sq_pushobject(vm_, object_);
+    if (*this)
+    {
+        sq_pushobject(vm_, object_);
+    }
+
+    else
+    {
+        sq_pushnull(vm_);
+    }
 }
 
 SQObjectType ts::script::Object_handle::type() const
@@ -89,19 +99,15 @@ void ts::script::Object_handle::reset()
 
 void ts::script::Object_handle::reset(HSQUIRRELVM vm, SQInteger index, SQObjectType needed_type)
 {
-    if (*this)
-    {
-        sq_release(vm_, &object_);
-    }
+    reset();
 
-    vm_ = vm;
     HSQOBJECT object;
-
     if (SQ_SUCCEEDED(sq_getstackobj(vm, index, &object)))
     {
         if (needed_type == OT_NULL || object._type == needed_type)
         {
             object_ = object;
+            vm_ = vm;
             sq_addref(vm, &object_);
         }        
     }
@@ -115,4 +121,22 @@ HSQUIRRELVM ts::script::Object_handle::vm() const
 ts::script::Object_handle::operator bool() const
 {
     return vm_ != nullptr && object_._type != OT_NULL;
+}
+
+bool ts::script::operator==(const Object_handle& lhs, const Object_handle& rhs)
+{
+    if (lhs.vm() != rhs.vm()) return false;
+
+    auto vm = lhs.vm();
+
+    Stack_guard stack_guard(vm);
+    lhs.push();
+    rhs.push();
+
+    return sq_cmp(vm) == 0; 
+}
+
+bool ts::script::operator!=(const Object_handle& lhs, const Object_handle& rhs)
+{
+    return !(lhs == rhs);
 }

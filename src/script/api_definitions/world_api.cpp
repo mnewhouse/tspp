@@ -44,7 +44,7 @@ namespace ts
 ts::script::API_definition ts::script_api::world_api(world::World* world)
 {
     API_definition api_def;
-    api_def.interface = make_interface(world);
+    api_def.interfaces.push_back(make_interface(world));
     api_def.static_functions.assign(std::begin(world_functions), std::end(world_functions));
 
     return api_def;

@@ -17,17 +17,32 @@
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "stdinc.hpp"
-#include "script_function.hpp"
+#pragma once
 
-ts::script::Function::Function(HSQUIRRELVM vm, SQInteger stack_index)
-: Object_handle()
+#ifndef SCRIPT_SCREEN_INTERFACE_HPP
+#define SCRIPT_SCREEN_INTERFACE_HPP
+
+namespace ts
 {
-    auto object_type = sq_gettype(vm, stack_index);
-    if (object_type == OT_CLOSURE || object_type == OT_NATIVECLOSURE)
+    namespace resources
     {
-        static_cast<Object_handle&>(*this) = Object_handle(vm, stack_index);
+        struct Video_settings;
+    }
+
+    namespace game
+    {
+        class View_context;
+    }
+
+    namespace script_api
+    {
+        class Screen_interface
+        {
+            Screen_interface(const resources::Video_settings* video_settings, game::View_context* view_context);
+
+        private:
+        };
     }
 }
 
-
+#endif

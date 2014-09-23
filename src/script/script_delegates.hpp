@@ -36,6 +36,7 @@ namespace ts
             delegates.type_tag = userdata_type_tag<T>();
 
             impl::copy_delegate_member_functions<T>(std::back_inserter(delegates.member_functions));
+
             return delegates;
         };
     }

@@ -265,7 +265,7 @@ namespace ts
         struct Userdata_forwarder
         {
             template <typename U>
-            Userdata_forwarder(U&& value, typename std::enable_if<!std::is_same<Userdata_forwarder<T>, typename std::decay<U>::type>::value>::type* = nullptr)
+            explicit Userdata_forwarder(U&& value, typename std::enable_if<!std::is_same<Userdata_forwarder<T>, typename std::decay<U>::type>::value>::type* = nullptr)
                 : value(std::forward<U>(value))
             {}
 

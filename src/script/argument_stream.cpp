@@ -80,6 +80,26 @@ void ts::script::report_argument_errors(Module* module, const Argument_stream& a
     }
 }
 
+bool ts::script::Numeric_reader::operator()(HSQUIRRELVM vm, SQInteger index) const
+{
+    SQFloat value;
+    if (SQ_SUCCEEDED(sq_getfloat(vm, index, &value)))
+    {
+        result_ = static_cast<double>(value);
+        return true;
+    }
+
+    SQInteger integer;
+    if (SQ_SUCCEEDED(sq_getinteger(vm, index, &integer)))
+    {
+        result_ = static_cast<double>(integer);
+        return true;
+    }
+
+    return false;
+}
+
+
 bool ts::script::String_reader::operator()(HSQUIRRELVM vm, SQInteger index) const
 {
     const SQChar* char_ptr{};
@@ -87,7 +107,7 @@ bool ts::script::String_reader::operator()(HSQUIRRELVM vm, SQInteger index) cons
     if (SQ_SUCCEEDED(sq_getstring(vm, index, &char_ptr)))
     {
         auto length = sq_getsize(vm, index);
-        result = utf8_string_view(char_ptr, char_ptr + length);
+        result_ = utf8_string_view(char_ptr, char_ptr + length);
         return true;
     }
 
@@ -106,13 +126,13 @@ bool ts::script::Tostring_reader::operator()(HSQUIRRELVM vm, SQInteger index) co
     sq_getstring(vm, -1, &char_ptr);
     auto length = sq_getsize(vm, -1);
 
-    result = utf8_string_view(char_ptr, char_ptr + length);
+    result_ = utf8_string_view(char_ptr, char_ptr + length);
     return true;
 }
 
 bool ts::script::Value_reader::operator()(HSQUIRRELVM vm, SQInteger index) const
 {
-    result = Value(vm, index);
+    result_ = Value(vm, index);
     return true;
 }
 
@@ -121,7 +141,7 @@ bool ts::script::Function_reader::operator()(HSQUIRRELVM vm, SQInteger index) co
     Function func(vm, index);
     if (func)
     {
-        result = std::move(func);
+        result_ = std::move(func);
         return true;
     }
 

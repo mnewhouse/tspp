@@ -18,16 +18,5 @@
 */
 
 #include "stdinc.hpp"
-#include "script_function.hpp"
-
-ts::script::Function::Function(HSQUIRRELVM vm, SQInteger stack_index)
-: Object_handle()
-{
-    auto object_type = sq_gettype(vm, stack_index);
-    if (object_type == OT_CLOSURE || object_type == OT_NATIVECLOSURE)
-    {
-        static_cast<Object_handle&>(*this) = Object_handle(vm, stack_index);
-    }
-}
-
+#include "screen_interface.hpp"
 

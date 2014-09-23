@@ -23,6 +23,7 @@
 #define SCRIPT_API_HPP
 
 #include "squirrel_include.hpp"
+#include "class_definition.hpp"
 #include "delegate_definition.hpp"
 #include "script_interface.hpp"
 
@@ -30,7 +31,6 @@ namespace ts
 {
     namespace script
     {
-
         struct Static_function_definition
         {
             const char* name;
@@ -41,10 +41,11 @@ namespace ts
         {
             std::vector<Static_function_definition> static_functions;
             std::vector<Delegate_definition> delegates;
+            std::vector<Class_definition> classes;
 
             std::vector<utf8_string> events;
 
-            Generic_interface interface;
+            std::vector<Generic_interface> interfaces;
         };
     };
 }

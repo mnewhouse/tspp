@@ -159,7 +159,8 @@ ts::game::Loaded_scene ts::game::Action_loader::load_scene(Stage_data stage_data
         increment_progress();
     }
 
-    loaded_scene.action_scene = std::make_unique<Action_scene>(std::move(track_scene));
+    auto current_resolution = settings.video_settings.current_screen_resolution;
+    loaded_scene.action_scene = std::make_unique<Action_scene>(std::move(track_scene), settings.video_settings);
 
     progress_ = 0.0;
     phase_ = Loading_phase::Creating_entities;
@@ -171,7 +172,7 @@ ts::game::Loaded_scene ts::game::Action_loader::load_scene(Stage_data stage_data
 
         if (car_info.control_slot != controls::invalid_slot)
         {
-            loaded_scene.action_scene->set_followed_entity(car_info.car, car_info.control_slot);
+            loaded_scene.action_scene->add_followed_entity(car_info.car);
         }
     }
 
@@ -199,7 +200,8 @@ ts::game::Loaded_scene ts::game::Action_loader::load_scene(Stage_data stage_data
 
     loaded_scene.sound_controller = std::make_unique<audio::Sound_controller>(settings.audio_settings, sound_effects);
 
-    loaded_scene.client_script_interface = std::make_unique<script_api::Client_interface>(&*loaded_scene.world);
+    loaded_scene.client_script_interface = std::make_unique<script_api::Client_interface>(&*loaded_scene.world,
+                                                                                          &*loaded_scene.action_scene);
     loaded_scene.client_script_interface->register_console(script::Stdout_console());
 
     for (const auto& script : stage_data.loaded_scripts)

@@ -32,28 +32,14 @@ namespace ts
         class Value;
 
         class Function
+            : public Object_handle
         {
         public:
-            Function();
+            Function() = default;
             Function(HSQUIRRELVM vm, SQInteger stack_idx);
-
-            Function(const Function& other);
-            Function(Function&& other);
-
-            ~Function();
-
-            Function& operator=(Function rhs);
 
             template <typename... Args>
             void operator()(Args&&... args) const;
-            
-            explicit operator bool() const;
-
-            void push() const;
-
-        private:
-            HSQUIRRELVM vm_;
-            HSQOBJECT object_;
         };
     }
 }
@@ -61,7 +47,7 @@ namespace ts
 template <typename... Args>
 void ts::script::Function::operator()(Args&&... args) const
 {
-    get_module_by_vm(vm_)->call_function(*this, std::forward<Args>(args)...);
+    get_module_by_vm(vm())->call_function(*this, std::forward<Args>(args)...);
 }
 
 #endif

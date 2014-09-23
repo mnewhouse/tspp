@@ -58,10 +58,10 @@ namespace ts
 
         private:
             template <typename T>
-            T&& forward_argument(T&& argument, ...) const;
+            T&& forward_argument(std::remove_reference_t<T>& argument, ...) const;
 
-            template <typename T>
-            Userdata<T> forward_argument(const Userdata_forwarder<T>& udata_forwarder) const;
+            template <typename T, typename U>
+            Userdata<U> forward_argument(const Userdata_forwarder<U>& udata_forwarder) const;
 
             Engine* engine_;
             Virtual_machine vm_;
@@ -77,13 +77,13 @@ namespace ts
 }
 
 template <typename T>
-T&& ts::script::Module::forward_argument(T&& argument, ...) const
+T&& ts::script::Module::forward_argument(std::remove_reference_t<T>& argument, ...) const
 {
     return std::forward<T>(argument);
 }
 
-template <typename T>
-ts::script::Userdata<T> ts::script::Module::forward_argument(const Userdata_forwarder<T>& udata_forwarder) const
+template <typename T, typename U>
+ts::script::Userdata<U> ts::script::Module::forward_argument(const Userdata_forwarder<U>& udata_forwarder) const
 {
     return make_userdata(vm_, udata_forwarder.value);
 }

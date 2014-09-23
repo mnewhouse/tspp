@@ -72,7 +72,7 @@ namespace ts
             Mode mode_;
             Double_rect visible_area_;
             const world::Entity* camera_target_;
-            //Vector2<double> last_position_;
+            Vector2<double> last_position_;
             Vector2<double> world_size_;
             Vector2<double> position_;
             Rotation<double> rotation_;

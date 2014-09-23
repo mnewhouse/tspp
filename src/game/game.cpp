@@ -83,6 +83,7 @@ void ts::game::Game::main()
 
     video_settings.screen_resolution.x = video_mode.width;
     video_settings.screen_resolution.y = video_mode.height;
+    video_settings.current_screen_resolution = video_settings.screen_resolution;
 
     sf::RenderWindow render_window(video_mode, config::window_title, get_window_style(video_settings));
 
@@ -98,33 +99,23 @@ void ts::game::Game::main()
 
     resource_store.settings.script_settings.loaded_scripts.insert("test");
 
-    sf::Clock clock;
+    auto current_time = std::chrono::high_resolution_clock::now();
 
-    std::int32_t excess_ticks = 0;
-
+    std::int64_t accumulator = 0;
     bool vertical_sync = video_settings.vertical_sync;
     render_window.setVerticalSyncEnabled(vertical_sync);
 
     while (state_machine && render_window.isOpen()) 
     {
-        render_window.clear();
-        
-        auto elapsed_ticks = clock.getElapsedTime().asMilliseconds() + excess_ticks;
-        auto frame_time = elapsed_ticks / static_cast<double>(config::update_interval);
+        auto new_time = std::chrono::high_resolution_clock::now();
+        auto frame_time = new_time - current_time;
+        current_time = new_time;
 
-        state_machine->render(render_window, frame_time);
-        gui_context.render_documents();
+        accumulator += std::chrono::duration_cast<std::chrono::milliseconds>(frame_time).count();
 
-        render_window.display();
-
-        elapsed_ticks = clock.getElapsedTime().asMilliseconds() + excess_ticks;
-        if (elapsed_ticks >= config::update_interval)
+        while (accumulator >= config::update_interval)
         {
             // Update
-            excess_ticks = elapsed_ticks % config::update_interval;
-            auto num_updates = elapsed_ticks / config::update_interval;
-
-            clock.restart();
             
             for (sf::Event event; render_window.pollEvent(event); ) 
             {
@@ -143,13 +134,20 @@ void ts::game::Game::main()
             }
 
             gui_context.update_documents();
+            state_machine->update(config::update_interval);
 
-            for (auto i = 0; i != num_updates; ++i)
-            {
-                state_machine->update(config::update_interval);
-            }
-
-            state_machine.update();
+            accumulator -= config::update_interval;
         }
+
+        auto time_point = static_cast<double>(accumulator) / config::update_interval;
+
+        render_window.clear();
+
+        state_machine->render(render_window, time_point);
+        gui_context.render_documents();
+
+        render_window.display();
+
+        state_machine.update();
     }
 }

@@ -54,6 +54,9 @@ namespace ts
             HSQOBJECT object_;
             HSQUIRRELVM vm_;
         };
+
+        bool operator==(const Object_handle& lhs, const Object_handle& rhs);
+        bool operator!=(const Object_handle& lhs, const Object_handle& rhs);
     }
 }
 

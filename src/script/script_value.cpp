@@ -33,6 +33,7 @@ struct ts::script::Value::type_visitor
     Type operator()(const userdata_t&) const { return userdata_type; }
     Type operator()(userpointer_t) const { return userpointer_type; }
     Type operator()(const function_t& function) const { return function_type; }
+    Type operator()(const object_t& object) const { return object_type; }
 };
 
 struct ts::script::Value::push_visitor
@@ -52,6 +53,7 @@ struct ts::script::Value::push_visitor
     void operator()(userpointer_t value) const { sq_pushuserpointer(vm, value); }
     void operator()(const userdata_t& value) const { value.push(); }
     void operator()(const function_t& function) const { function.push(); }
+    void operator()(const object_t& object) const { object.push(); }
 
     HSQUIRRELVM vm;
 };

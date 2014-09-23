@@ -48,7 +48,7 @@ namespace ts
             template <typename T, typename OutIt>
             void copy_delegate_member_functions_impl(OutIt out)
             {
-                auto member_functions = Delegate_traits<T>::member_functions();
+                auto member_functions = script_api::Delegate_traits<T>::member_functions();
                 using std::begin;
                 using std::end;
 

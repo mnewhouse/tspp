@@ -104,9 +104,14 @@ void ts::script::Module::register_api(const API_definition& api_definition)
         create_delegate_table(vm_, delegate);
     }
 
-    if (api_definition.interface)
+    for (auto interface : api_definition.interfaces)
     {
-        register_interface(vm_, api_definition.interface);
+        register_interface(vm_, interface);
+    }
+
+    for (const auto& class_def : api_definition.classes)
+    {
+        register_class_definition(vm_, class_def);
     }
 }
 

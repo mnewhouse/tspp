@@ -40,6 +40,7 @@ namespace ts
             bool full_screen = true;
             bool vertical_sync = false;
             Vector2u screen_resolution;
+            Vector2u current_screen_resolution;
             double zoom_level = 1.0;
         };
 

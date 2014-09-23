@@ -44,7 +44,7 @@ void ts::script::create_delegate_table(HSQUIRRELVM vm, const Delegate_definition
     sq_pushuserpointer(vm, definition.type_tag);
     sq_push(vm, -2);
     sq_newslot(vm, -4, false);
-        
+
     for (const auto& member_function : definition.member_functions)
     {
         sq_pushstring(vm, member_function.name, -1);

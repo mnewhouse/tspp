@@ -26,14 +26,14 @@
 
 namespace ts
 {
-    namespace script
+    namespace script_api
     {
         template <typename T>
         struct Delegate_traits
         {
-            static Range<const Member_function_definition*> member_functions()
+            static Range<const script::Member_function_definition*> member_functions()
             {
-                return Range<const Member_function_definition*>(nullptr, nullptr);
+                return Range<const script::Member_function_definition*>(nullptr, nullptr);
             }
         };
     }

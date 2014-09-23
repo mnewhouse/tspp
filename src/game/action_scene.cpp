@@ -25,10 +25,11 @@
 
 #include "graphics/sprite.hpp"
 
-ts::game::Action_scene::Action_scene(Track_scene_ track_scene)
-: track_scene_(std::move(track_scene))
+ts::game::Action_scene::Action_scene(Track_scene track_scene, const resources::Video_settings& video_settings)
+: track_scene_(std::move(track_scene)),
+view_context_(video_settings.current_screen_resolution, track_scene_.track_size)
 {
-    screens_.emplace_back(track_scene_.track_size, Double_rect(0.0, 0.0, 1.0, 1.0));
+    view_context_.add_view();
 
     calculate_vertex_bounds();
 }
@@ -61,68 +62,36 @@ void ts::game::Action_scene::remove_car(const world::Car* car)
 
     particle_generator_.remove_car(car);
 
-    for (auto& screen : screens_)
+    for (auto& view : view_context_)
     {
-        if (screen.camera.target() == car)
+        if (view.camera.target() == car)
         {
-            screen.camera.set_target(nullptr);
+            view.camera.set_target(nullptr);
         }
     }
 }
 
 void ts::game::Action_scene::reassign_screens()
 {
-    auto screen_count = 1;
-    if (enable_split_screen_)
-    {
-        screen_count = followed_entities_.size() - std::count(followed_entities_.begin(), followed_entities_.end(), nullptr);
-        screen_count = std::max(screen_count, 1);
-    }
-
-    screens_.clear();
-    if (screen_count == 4)
-    {
-        screens_.emplace_back(track_scene_.track_size, Double_rect(0.0, 0.0, 0.5, 0.5));
-        screens_.emplace_back(track_scene_.track_size, Double_rect(0.5, 0.0, 0.5, 0.5));
-        screens_.emplace_back(track_scene_.track_size, Double_rect(0.0, 0.5, 0.5, 0.5));
-        screens_.emplace_back(track_scene_.track_size, Double_rect(0.5, 0.5, 0.5, 0.5));
-    }
-
-    else if (screen_count == 3)
-    {
-        const auto one_third = (1.0/3.0);
-        screens_.emplace_back(track_scene_.track_size, Double_rect(0.0, 0.0, one_third, 1.0));
-        screens_.emplace_back(track_scene_.track_size, Double_rect(one_third, 0.0, one_third, 1.0));
-        screens_.emplace_back(track_scene_.track_size, Double_rect(one_third * 2.0, 0.0, one_third, 1.0));
-    }
-
-    else if (screen_count == 2)
-    {
-        screens_.emplace_back(track_scene_.track_size, Double_rect(0.0, 0.0, 0.5, 1.0));
-        screens_.emplace_back(track_scene_.track_size, Double_rect(0.5, 0.0, 0.5, 1.0));
-    }
-
-    else
-    {
-        screens_.emplace_back(track_scene_.track_size, Double_rect(0.0, 0.0, 1.0, 1.0));
-    }
-
-    auto screen_id = 0;
+    view_context_.clear();
     for (auto entity : followed_entities_)
     {
-        if (entity)
+        if (auto view = view_context_.add_view())
         {
-            auto& camera = screens_[screen_id++].camera;
-            camera.set_target(entity);
-        }
+            view->camera.set_target(entity);
+        } 
     }
+
+    view_context_.arrange_evenly();
+
+    dirty_component_cache_ = true;
 }
 
 void ts::game::Action_scene::zoom_in()
 {
-    for (auto& screen : screens_)
+    for (auto& view : view_context_)
     {
-        auto& camera = screen.camera;
+        auto& camera = view.camera;
 
         camera.set_zoom_level(camera.zoom_level() * 1.05);
     }
@@ -130,7 +99,7 @@ void ts::game::Action_scene::zoom_in()
 
 void ts::game::Action_scene::zoom_out()
 {
-    for (auto& screen : screens_)
+    for (auto& screen : view_context_)
     {
         auto& camera = screen.camera;
 
@@ -138,16 +107,14 @@ void ts::game::Action_scene::zoom_out()
     }
 }
 
-void ts::game::Action_scene::set_followed_entity(const world::Entity* entity, controls::Slot slot)
+ts::game::View_context* ts::game::Action_scene::view_context()
 {
-    slot = std::min(slot, 3);
+    return &view_context_;
+}
 
-    if (slot >= followed_entities_.size())
-    {
-        followed_entities_.resize(slot + 1);
-    }
-
-    followed_entities_[slot] = entity;
+void ts::game::Action_scene::add_followed_entity(const world::Entity* entity)
+{
+    followed_entities_.push_back(entity);
 
     if (enable_split_screen_)
     {
@@ -155,15 +122,25 @@ void ts::game::Action_scene::set_followed_entity(const world::Entity* entity, co
     }
 }
 
-void ts::game::Action_scene::render_screen(Screen& screen, sf::RenderTarget& render_target, double frame_time)
+void ts::game::Action_scene::update_cameras(double frame_time)
 {
+    for (auto& view : view_context_)
+    {
+        view.camera.update_view(view.view_port, view_context_.screen_size(), frame_time);
+    }
+}
+
+void ts::game::Action_scene::render_view(std::size_t view_index, sf::RenderTarget& render_target, double frame_time)
+{
+    const auto& view = view_context_.view(view_index);
+    const auto& component_cache = component_cache_[view_index];        
+
     Vector2<double> screen_size(render_target.getSize().x, render_target.getSize().y);
 
-    screen.camera.update_view(screen.view_port, screen_size, frame_time);
-    render_target.setView(screen.camera.view());
+    render_target.setView(view.camera.view());
     
     auto entity_it = drawable_entities_.begin(), entity_end = drawable_entities_.end();
-    auto component_it = screen.component_cache.begin(), component_end = screen.component_cache.end();
+    auto component_it = component_cache.begin(), component_end = component_cache.end();
 
     for (std::uint32_t current_level = 0; component_it != component_end; ++component_it)
     {
@@ -190,14 +167,14 @@ void ts::game::Action_scene::render_screen(Screen& screen, sf::RenderTarget& ren
 
     particle_generator_.render(render_target, sf::RenderStates::Default);
 
-    render_screen_border(screen, render_target, 4.0);
+    render_view_border(view, render_target, 4.0);
 }
 
-void ts::game::Action_scene::render_screen_border(Screen& screen, sf::RenderTarget& render_target, double border_size)
+void ts::game::Action_scene::render_view_border(const View& view, sf::RenderTarget& render_target, double border_size)
 {
     Vector2<double> screen_size(render_target.getSize().x, render_target.getSize().y);
     
-    const auto& view_port = screen.view_port;
+    const auto& view_port = view.view_port;
 
     auto left = view_port.left * screen_size.x;
     auto top = view_port.top * screen_size.y;
@@ -249,9 +226,17 @@ void ts::game::Action_scene::render_screen_border(Screen& screen, sf::RenderTarg
 
 void ts::game::Action_scene::render(sf::RenderTarget& render_target, double frame_time)
 {
-    for (auto& screen : screens_)
+    if (dirty_component_cache_)
     {
-        render_screen(screen, render_target, frame_time);
+        update_component_cache();
+        dirty_component_cache_ = false;
+    }
+
+    update_cameras(frame_time);
+
+    for (std::size_t view_index = 0; view_index != view_context_.view_count(); ++view_index)
+    {
+        render_view(view_index, render_target, frame_time);
     }
 }
 
@@ -271,9 +256,9 @@ void ts::game::Action_scene::update_entity_positions()
         drawable_entity.update_position();
     }
 
-    for (auto& screen : screens_)
+    for (auto& view : view_context_)
     {
-        screen.camera.update_position();
+        view.camera.update_position();
     }
 }
 
@@ -317,10 +302,15 @@ void ts::game::Action_scene::calculate_vertex_bounds()
 
 void ts::game::Action_scene::update_component_cache()
 {
-    for (auto& screen : screens_)
+    component_cache_.resize(view_context_.view_count());
+
+    for (std::size_t viewport_index = 0; viewport_index != view_context_.view_count(); ++viewport_index)
     {
-        screen.component_cache.resize(track_scene_.components.size());
-        auto cache_it = screen.component_cache.begin();
+        const auto& view = view_context_.view(viewport_index);
+
+        auto& component_cache = component_cache_[viewport_index];
+        component_cache.resize(track_scene_.components.size());
+        auto cache_it = component_cache.begin();
 
         std::size_t component_index = 0;
         for (const auto& component : track_scene_.components)
@@ -336,7 +326,7 @@ void ts::game::Action_scene::update_component_cache()
 
             for (auto area : vertex_bounds)
             {
-                if (screen.camera.is_area_visible(area))
+                if (view.camera.is_area_visible(area))
                 {
                     cached_component.vertices.insert(cached_component.vertices.end(), vertex_it, vertex_it + 4);
                 }
@@ -358,10 +348,4 @@ void ts::game::Action_scene::sort_entities_by_level()
     };
 
     std::stable_sort(drawable_entities_.begin(), drawable_entities_.end(), level_comparison);
-}
-
-ts::game::Action_scene::Screen::Screen(Vector2u track_size, Double_rect view_port_)
-: view_port(view_port_),
-  camera(track_size)
-{
 }

@@ -93,12 +93,12 @@ namespace ts
             std::uint32_t level = 0;
         };
 
-        struct Track_scene_
+        struct Track_scene
         {
-            Track_scene_(Vector2u track_size);
+            Track_scene(Vector2u track_size);
 
-            Track_scene_(Track_scene_&& other);
-            Track_scene_& operator=(Track_scene_&& rhs);
+            Track_scene(Track_scene&& other);
+            Track_scene& operator=(Track_scene&& rhs);
 
             std::vector<Track_component> components;
             std::vector<std::unique_ptr<const sf::Texture>> textures;
@@ -111,7 +111,7 @@ namespace ts
         public:
             Track_builder(const resources::Track& track);
 
-            Track_scene_ operator()(std::function<void()> step_operation = {});
+            Track_scene operator()(std::function<void()> step_operation = {});
 
             void preload_image(const utf8_string& path);
 
@@ -147,7 +147,7 @@ namespace ts
             void build_tile_mapping(impl::Target_texture& target_texture);
             void generate_texture(impl::Target_texture& target_texture);
 
-            Track_scene_ result_;
+            Track_scene result_;
             graphics::Image_loader image_loader_;
             std::map<utf8_string, utf8_string> precomputed_paths_;
 

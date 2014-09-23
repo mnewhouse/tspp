@@ -45,6 +45,7 @@ namespace ts
                 string_view_type,
                 userdata_type,
                 userpointer_type,
+                object_type,
                 function_type
             };
 
@@ -55,6 +56,7 @@ namespace ts
             using string_t = utf8_string;
             using string_view_t = utf8_string_view;
             using function_t = Function;
+            using object_t = Object_handle;
             using userdata_t = Generic_userdata;
             using userpointer_t = SQUserPointer;
 
@@ -101,7 +103,7 @@ namespace ts
             void push(HSQUIRRELVM vm) const;
 
         private:
-            using variant_t = boost::variant<null_t, bool_t, integer_t, float_t, string_t, string_view_t, userdata_t, userpointer_t, function_t>;
+            using variant_t = boost::variant<null_t, bool_t, integer_t, float_t, string_t, string_view_t, userdata_t, userpointer_t, object_t, function_t>;
 
             struct type_visitor;
             struct push_visitor;

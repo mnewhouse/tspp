@@ -100,10 +100,8 @@ void ts::game::Camera::update_view(Double_rect view_port, Vector2<double> screen
 {
     if (camera_target_)
     {
-        auto old_position = camera_target_->position();
-        auto new_position = old_position + camera_target_->velocity() * (config::update_interval * 0.001);
-
-        set_position(interpolate_position(old_position, new_position, frame_time));
+        auto position = interpolate_position(last_position_, camera_target_->position(), frame_time);
+        set_position(position);
     }
 
     if (mode_ == Mode::Rotational) 
@@ -234,4 +232,8 @@ void ts::game::Camera::clamp_view()
 
 void ts::game::Camera::update_position()
 {
+    if (camera_target_)
+    {
+        last_position_ = camera_target_->position();
+    }
 }

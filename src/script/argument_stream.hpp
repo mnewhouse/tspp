@@ -113,52 +113,63 @@ namespace ts
 
         struct Numeric_reader
         {
+            Numeric_reader(double& result)
+                : result_(result)
+            {}
+
             bool operator()(HSQUIRRELVM vm, SQInteger index) const;
+
+        private:
+            double& result_;
         };
 
         struct Tostring_reader
         {
             Tostring_reader(utf8_string_view& result)
-                : result(result)
+                : result_(result)
             {}
 
-            utf8_string_view& result;
-
             bool operator()(HSQUIRRELVM vm, SQInteger index) const;
+
+        private:
+            utf8_string_view& result_;
         };
 
         struct String_reader
         {
             String_reader(utf8_string_view& result)
-                : result(result)
-            {}
-
-            utf8_string_view& result;
+                : result_(result)
+            {}            
 
             bool operator()(HSQUIRRELVM vm, SQInteger index) const;
+
+        private:
+            utf8_string_view& result_;
         };
 
         struct Value_reader
         {
             Value_reader(Value& result)
-              : result(result)
+              : result_(result)
             {                
             }
 
-            Value& result;
-
             bool operator()(HSQUIRRELVM vm, SQInteger index) const;
+
+        private:
+            Value& result_;
         };
 
         struct Function_reader
         {
             Function_reader(Function& result)
-                : result(result)
+                : result_(result)
             {}
 
-            Function& result;
-
             bool operator()(HSQUIRRELVM vm, SQInteger index) const;
+
+        private:
+            Function& result_;
         };
 
         template <> 

@@ -19,16 +19,21 @@
 
 #pragma once
 
-#ifndef SCRIPT_CAMERA_HPP
-#define SCRIPT_CAMERA_HPP
+#ifndef SCRIPT_VIEW_API_HPP
+#define SCRIPT_VIEW_API_HPP
 
 #include "script/script_api.hpp"
 
 namespace ts
 {
+    namespace game
+    {
+        class Action_scene;
+    }
+
     namespace script_api
     {
-        script::API_definition camera_api();
+        script::API_definition view_api(game::Action_scene* action_scene);
     }
 }
 

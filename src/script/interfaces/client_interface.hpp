@@ -28,13 +28,20 @@
 
 namespace ts
 {
+    namespace game
+    {
+        class Action_scene;
+    }
+
     namespace script_api
     {
+
+
         class Client_interface
             : private script::Engine
         {
         public:
-            Client_interface(world::World* world);
+            Client_interface(world::World* world, game::Action_scene* action_scene);
 
             using Engine::create_module;
             using Engine::register_console;

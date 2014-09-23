@@ -48,7 +48,7 @@ namespace ts
             void draw(sf::RenderTarget& render_target, sf::RenderStates states, double frame_time) const;
 
             const world::Entity* entity() const;
-            void set_scale(Vector2d scale);
+            void set_scale(Vector2<double> scale);
 
             void update_position();
             
@@ -57,9 +57,9 @@ namespace ts
             const world::Entity* entity_;
 
             resources::Image_type image_type_;
-            Vector2d scale_;
+            Vector2<double> scale_;
 
-            Vector2d last_position_;            
+            Vector2<double> last_position_;            
         };
     }
 }
