@@ -62,6 +62,7 @@ namespace ts
 
         enum class Loading_phase
         {
+            None,
             Initializing,
             Preprocessing,
             Loading_track_textures,
@@ -86,12 +87,14 @@ namespace ts
             double progress() const;
             Loading_phase phase() const;
 
+            bool is_loading() const;
+
         private:
             Loaded_scene load_scene(Stage_data stage_data, const resources::Resource_store& resource_store);
 
             std::future<Loaded_scene> loader_future_;
             std::atomic<double> progress_ = 0.0;
-            std::atomic<Loading_phase> phase_ = Loading_phase::Initializing;
+            std::atomic<Loading_phase> phase_ = Loading_phase::None;
         };
     }
 }

@@ -85,6 +85,8 @@ namespace ts
             
             void advance();
             void initialize_action();
+
+            void end();
             void restart();
 
             void signal_ready();

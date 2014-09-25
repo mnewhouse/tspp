@@ -49,6 +49,11 @@ namespace ts
             controls::Key_mapping key_mapping;
         };
 
+        struct Cup_settings
+        {
+
+        };
+
         struct Audio_settings
         {
             double effects_volume = 0.8;

@@ -58,10 +58,14 @@ namespace ts
 
             View_context* view_context();
 
+
+            // Why two public update functions you ask?
+            // The 'update' function should be called *after* the world update.
             void update(std::size_t frame_duration);
 
-            void zoom_in();
-            void zoom_out();
+            // The 'update_entities' function on the other hand should be called *before* the world update,
+            // to allow for interpolating the positions towards the current world state.
+            void update_entities(std::size_t frame_duration);
 
         private:
             void reassign_screens();

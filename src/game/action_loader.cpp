@@ -27,6 +27,8 @@
 
 void ts::game::Action_loader::async_load(Stage_data stage_data, const resources::Resource_store& resource_store)
 {
+    phase_ = Loading_phase::Initializing;
+
     auto callable = [this](Stage_data stage_data, const resources::Resource_store& resource_store)
     {
         return load_scene(std::move(stage_data), resource_store);
@@ -37,6 +39,7 @@ void ts::game::Action_loader::async_load(Stage_data stage_data, const resources:
 
 ts::game::Loaded_scene ts::game::Action_loader::transfer_loaded_scene()
 {
+    phase_ = Loading_phase::None;
     return loader_future_.get();
 }
 
@@ -53,6 +56,11 @@ ts::game::Loading_phase ts::game::Action_loader::phase() const
 bool ts::game::Action_loader::complete() const
 {
     return phase_ == Loading_phase::Complete;
+}
+
+bool ts::game::Action_loader::is_loading() const
+{
+    return phase_ != Loading_phase::None;
 }
 
 ts::game::Loaded_scene ts::game::Action_loader::load_scene(Stage_data stage_data, const resources::Resource_store& resource_store)

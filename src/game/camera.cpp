@@ -33,6 +33,8 @@ ts::game::Camera::Camera(Vector2u world_size)
 void ts::game::Camera::set_target(const world::Entity* target)
 {
     camera_target_ = target;
+
+    update_position();
 }
 
 void ts::game::Camera::set_zoom_level(double zoom_level)

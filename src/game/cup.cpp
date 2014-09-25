@@ -220,6 +220,14 @@ void ts::game::Cup::remove_cup_listener(Cup_listener* cup_listener)
     cup_listeners_.erase(std::remove(cup_listeners_.begin(), cup_listeners_.end(), cup_listener), cup_listeners_.end());
 }
 
+void ts::game::Cup::end()
+{
+    for (auto listener : cup_listeners_)
+    {
+        listener->on_end();
+    }
+}
+
 void ts::game::Cup::restart()
 {    
     for (auto listener : cup_listeners_)

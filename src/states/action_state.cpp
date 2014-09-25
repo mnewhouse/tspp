@@ -56,16 +56,6 @@ void ts::states::Action_state::handle_event(const sf::Event& event)
         {
             state_machine()->change_state();
         }
-
-        else if (event.key.code == sf::Keyboard::Add)
-        {
-            action_scene_->zoom_in();
-        }
-
-        else if (event.key.code == sf::Keyboard::Subtract)
-        {
-            action_scene_->zoom_out();
-        }
     }
 }
 
@@ -73,10 +63,10 @@ void ts::states::Action_state::update(std::size_t frame_duration)
 {
     sound_controller_->update(frame_duration);
 
-    // Action scene needs to be updated before the world, to allow for interpolation
-    action_scene_->update(frame_duration);
+    action_scene_->update_entities(frame_duration);
 
     world_->update(frame_duration);
+    action_scene_->update(frame_duration);
 }
 
 void ts::states::Action_state::on_car_create(world::Car* car)

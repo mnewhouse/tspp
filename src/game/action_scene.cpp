@@ -87,26 +87,6 @@ void ts::game::Action_scene::reassign_screens()
     dirty_component_cache_ = true;
 }
 
-void ts::game::Action_scene::zoom_in()
-{
-    for (auto& view : view_context_)
-    {
-        auto& camera = view.camera;
-
-        camera.set_zoom_level(camera.zoom_level() * 1.05);
-    }
-}
-
-void ts::game::Action_scene::zoom_out()
-{
-    for (auto& screen : view_context_)
-    {
-        auto& camera = screen.camera;
-
-        camera.set_zoom_level(camera.zoom_level() / 1.05);
-    }
-}
-
 ts::game::View_context* ts::game::Action_scene::view_context()
 {
     return &view_context_;
@@ -242,9 +222,13 @@ void ts::game::Action_scene::render(sf::RenderTarget& render_target, double fram
 
 void ts::game::Action_scene::update(std::size_t frame_duration)
 {
-    update_entity_positions();
-    update_component_cache();
     sort_entities_by_level();
+    update_component_cache();
+}
+
+void ts::game::Action_scene::update_entities(std::size_t frame_duration)
+{
+    update_entity_positions();
 
     particle_generator_.update(frame_duration);
 }

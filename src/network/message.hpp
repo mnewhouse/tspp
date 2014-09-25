@@ -19,23 +19,26 @@
 
 #pragma once
 
-#ifndef GAME_CUP_LISTENER_HPP
-#define GAME_CUP_LISTENER_HPP
-
-#include "cup.hpp"
+#ifndef NETWORK_MESSAGE_HPP
+#define NETWORK_MESSAGE_HPP
 
 namespace ts
 {
-    namespace game
+    namespace network
     {
-        struct Cup_listener
+        class Message
         {
-            virtual void on_state_change(Cup_state old_state, Cup_state new_state) {}
-            virtual void on_restart() {}
-            virtual void on_end() {}
+        public:
+            Message() = default;
+            Message(const std::uint8_t* data, std::size_t data_size);
 
-        protected:
-            ~Cup_listener() = default;
+            void assign(const std::uint8_t* data, std::size_t data_size);
+
+            const std::uint8_t* data() const;
+            std::size_t size() const;
+
+        private:
+            std::vector<std::uint8_t> data_;
         };
     }
 }

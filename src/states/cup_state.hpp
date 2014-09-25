@@ -27,7 +27,8 @@
 #include "game/action_loader.hpp"
 
 #include "user_interface/gui_state.hpp"
-#include "user_interface/elements/elements.hpp"
+
+#include "gui_definitions/cup_gui.hpp"
 
 
 namespace ts
@@ -45,83 +46,24 @@ namespace ts
 
             virtual void on_state_change(game::Cup_state old_state, game::Cup_state new_state) override;
             virtual void on_restart() override;
+            virtual void on_end() override;
 
             virtual void update(std::size_t frame_duration) override;
             void launch_action();
 
-            virtual void on_activate();
-
-            void load_car_selection_dialog();
-            void show_car_selection_dialog();
-
-            void confirm_car_selection();
+            virtual void on_activate() override;
 
         private:
-            utf8_string cup_state_to_string(game::Cup_state cup_state) const;
             void add_selected_local_players();
-
-            gui::Document_handle create_cup_document();
-            gui::Document_handle create_progress_window();
-
-            utf8_string loading_phase_to_info_string(game::Loading_phase phase);
-            void apply_car_selection();
-
             void return_to_main_menu();
 
             game::Action_loader action_loader_;
             game::Cup cup_;
             
-            gui::Text_element* header_text_;
+            game::Loading_phase loading_phase_ = game::Loading_phase::None;
+            std::chrono::high_resolution_clock::time_point completion_time_;
 
-            gui::Text_element* progress_info_text_;
-            gui::Progress_bar* progress_bar_;
-            sf::Clock complete_timer_;
-
-            std::atomic<bool> car_selection_ready_ = false;
-
-            game::Loading_phase loading_phase_ = game::Loading_phase::Initializing;
-
-            std::unique_ptr<Car_selection_dialog> car_selection_dialog_;
-
-            gui::Document_handle cup_document_;
-            gui::Document_handle progress_document_;
-        };
-
-        class Car_selection_dialog
-        {
-        public:
-            Car_selection_dialog(Cup_state* cup_state);
-
-            void load(std::vector<game::Cup::Player_handle> selected_players, std::vector<resources::Car_handle> possible_cars, resources::Track_handle track_handle);
-
-            void show();
-            void hide();
-
-            const std::vector<std::pair<game::Cup::Player_handle, resources::Car_handle>>& selected_cars() const;
-
-        private:
-            void load_dialog();
-            void load_car_textures();
-            void confirm();
-
-            gui::Document_handle create_car_selection_dialog();
-
-            Cup_state* cup_state_;
-
-            std::vector<game::Cup::Player_handle> selected_players_;
-            std::vector<resources::Car_handle> possible_cars_;
-            resources::Track_handle track_handle_;
-
-            std::vector<std::shared_ptr<graphics::Texture>> player_car_textures_;
-            std::vector<Int_rect> texture_mapping_;
-
-            std::vector<std::pair<game::Cup::Player_handle, resources::Car_handle>> selected_cars_;
-
-            std::future<void> loading_future_;
-
-            gui::Vertical_list<gui::Element>* selection_list_;
-
-            gui::Document_handle car_selection_document_;
+            Cup_GUI cup_gui_;
         };
     }
 }

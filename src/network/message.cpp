@@ -17,27 +17,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
+#include "stdinc.hpp"
+#include "message.hpp"
 
-#ifndef GAME_CUP_LISTENER_HPP
-#define GAME_CUP_LISTENER_HPP
-
-#include "cup.hpp"
-
-namespace ts
-{
-    namespace game
-    {
-        struct Cup_listener
-        {
-            virtual void on_state_change(Cup_state old_state, Cup_state new_state) {}
-            virtual void on_restart() {}
-            virtual void on_end() {}
-
-        protected:
-            ~Cup_listener() = default;
-        };
-    }
+ts::network::Message::Message(const std::uint8_t* data, std::size_t data_size)
+: data_(data, data + data_size)
+{    
 }
 
-#endif
+const std::uint8_t* ts::network::Message::data() const
+{
+    return data_.data();
+}
+
+std::size_t ts::network::Message::size() const
+{
+    return data_.size();
+}
+
+void ts::network::Message::assign(const std::uint8_t* data, std::size_t data_size)
+{
+    data_.assign(data, data + data_size);
+}

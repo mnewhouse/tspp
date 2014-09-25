@@ -116,6 +116,11 @@ set(SRC src/main.cpp
         src/graphics/texture_loader.hpp
         src/graphics/texture_loader.cpp
 
+		src/network/message.hpp
+		src/network/message.cpp
+		src/network/server.hpp
+		src/network/server.cpp
+
         src/resources/car_definition.hpp
         src/resources/car_definition.cpp
         src/resources/car_handle.hpp
@@ -243,6 +248,8 @@ set(SRC src/main.cpp
         
         src/states/gui_definitions/background_document.hpp
         src/states/gui_definitions/background_document.cpp
+		src/states/gui_definitions/cup_gui.hpp
+		src/states/gui_definitions/cup_gui.cpp
         src/states/gui_definitions/window_template.hpp
         src/states/gui_definitions/window_template.cpp
         

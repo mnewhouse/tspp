@@ -35,6 +35,8 @@ namespace ts
 
         struct Userdata_base
         {
+            virtual ~Userdata_base() = default;
+
             virtual SQUserPointer type_tag() const = 0;
             virtual void push() const = 0;
             virtual HSQUIRRELVM vm_handle() const = 0;
