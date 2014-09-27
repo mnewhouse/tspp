@@ -61,12 +61,6 @@ namespace ts
             Message message;
         };
 
-        enum class Message_protocol
-        {
-            Tcp,
-            Udp
-        };
-
         class Server
         {
         public:

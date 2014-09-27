@@ -26,6 +26,12 @@ namespace ts
 {
     namespace network
     {
+        enum class Message_protocol
+        {
+            Tcp,
+            Udp
+        };
+
         class Message
         {
         public:

@@ -116,6 +116,8 @@ set(SRC src/main.cpp
         src/graphics/texture_loader.hpp
         src/graphics/texture_loader.cpp
 
+		src/network/client.hpp
+		src/network/client.cpp
 		src/network/message.hpp
 		src/network/message.cpp
 		src/network/server.hpp
