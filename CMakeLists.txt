@@ -255,6 +255,8 @@ set(SRC src/main.cpp
         src/states/player_setup.cpp
 		src/states/server_action_state.hpp
 		src/states/server_action_state.cpp
+		src/states/server_cup_state.hpp
+		src/states/server_cup_state.cpp
         src/states/settings_menu.hpp
         src/states/settings_menu.cpp
         
