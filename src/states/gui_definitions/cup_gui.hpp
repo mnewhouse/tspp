@@ -45,11 +45,13 @@ namespace ts
             void update(std::size_t frame_duration);
             void set_cup_state_text(utf8_string text);
 
-            void show_car_selection_dialog();            
+            void show_car_selection_dialog();      
             Loading_progress_dialog* progress_dialog();
             
 
         private:
+            void show_menu_background();
+
             utf8_string cup_state_to_string(game::Cup_state cup_state) const;
             void add_selected_local_players();
 

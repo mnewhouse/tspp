@@ -33,6 +33,7 @@ namespace ts
     {
         class Track_setup_menu;
         class Car_setup_menu;
+        class Network_menu;
 
         class Cup_setup_menu
         {
@@ -48,20 +49,25 @@ namespace ts
 
             void check_startability();
 
+            void disable_networking();
+            void enable_networking(Network_menu* network_menu);
+
         private:
-            void start_local_cup();
+            void start_cup();
 
             void return_to_main_menu();
             void show_track_setup();
             void show_car_setup();
 
-            gui::Document_handle create_navigation_document(Main_menu* main_menu);
+            void create_navigation_document(gui::Context* context);
 
             std::unique_ptr<Track_setup_menu> track_setup_menu_;
             std::unique_ptr<Car_setup_menu> car_setup_menu_;
 
-            Main_menu* main_menu_;
-            gui::Text_element* start_button_;
+            Network_menu* network_menu_ = nullptr;
+            Main_menu* main_menu_ = nullptr;
+            gui::Text_element* start_button_ = nullptr;
+            gui::Text_element* network_button_ = nullptr;
 
             gui::Document_handle navigation_document_;            
         };

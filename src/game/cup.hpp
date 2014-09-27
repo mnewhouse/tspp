@@ -64,11 +64,14 @@ namespace ts
             Player_id player_id;
             Player player;
             Car_data car_data;
+            bool ready_for_action = false;
         };
 
         class Cup
         {
         public:
+            using Player_handle = Pointer_handle<const Cup_player_data>;
+
             Cup(game::Cup_type cup_type, resources::Resource_store* resource_store);
 
             void add_track(resources::Track_handle track_handle);
@@ -90,26 +93,9 @@ namespace ts
             void restart();
 
             void signal_ready();
+            void signal_ready(Player_handle player_handle);
 
             resources::Track_handle current_track() const;
-
-            struct Player_handle
-            {
-            public:
-                Player_handle();
-                explicit operator bool() const;
-
-                bool operator==(Player_handle other) const;
-                bool operator!=(Player_handle other) const;
-
-                const Cup_player_data* operator->() const;
-                const Cup_player_data& operator*() const;
-
-            private:
-                explicit Player_handle(const Cup_player_data* player_data);
-                friend Cup;
-                const Cup_player_data* player_data_;
-            };
 
             Player_handle add_local_player(const Player& player, controls::Slot player_slot);
             Player_handle add_remote_player(const Player& player);
@@ -122,6 +108,8 @@ namespace ts
             Stage_data make_stage_data() const;
 
         private:
+            void launch_if_ready();
+
             void assign_start_positions();
             void change_state(Cup_state new_state);
             void preinitialize_action();
@@ -141,6 +129,7 @@ namespace ts
 
             std::vector<resources::Script_handle> loaded_scripts_;
             std::vector<Player_handle> local_players_;
+            std::uint32_t not_ready_count_ = 0;
 
             std::size_t current_track_index_;
             std::map<Player_id, Cup_player_data> player_map_;

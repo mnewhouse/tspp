@@ -20,31 +20,44 @@
 #include "stdinc.hpp"
 #include "action_scene.hpp"
 
-#include "world/car.hpp"
+#include "particle_generator.hpp"
+#include "car_image_generator.hpp"
+#include "drawable_entity.hpp"
+
 #include "resources/player_color.hpp"
+
+#include "world/car.hpp"
 
 #include "graphics/sprite.hpp"
 
 ts::game::Action_scene::Action_scene(Track_scene track_scene, const resources::Video_settings& video_settings)
 : track_scene_(std::move(track_scene)),
-view_context_(video_settings.current_screen_resolution, track_scene_.track_size)
+  view_context_(video_settings.current_screen_resolution, track_scene_.track_size),
+  particle_generator_(std::make_unique<Particle_generator>()),
+  car_image_generator_(std::make_unique<Car_image_generator>())
 {
+    // Add a view, just in case there won't be any players registered
     view_context_.add_view();
+    view_context_.arrange_evenly();
 
     calculate_vertex_bounds();
+}
+
+ts::game::Action_scene::~Action_scene()
+{
 }
 
 void ts::game::Action_scene::add_car(const world::Car* car, const resources::Player_color& car_color)
 {
     const auto& car_definition = car->car_definition();
-    auto car_image = car_image_generator_(car_definition, car_color);
+    auto car_image = (*car_image_generator_)(car_definition, car_color);
 
     auto texture = std::make_shared<graphics::Texture>(car_image, car_definition.image_rect);
 
     drawable_entities_.emplace_back(car, texture, car_definition.image_type);
     drawable_entities_.back().set_scale({ car_definition.image_scale, car_definition.image_scale });
 
-    particle_generator_.add_car(car);
+    particle_generator_->add_car(car);
 }
 
 void ts::game::Action_scene::remove_car(const world::Car* car)
@@ -60,7 +73,7 @@ void ts::game::Action_scene::remove_car(const world::Car* car)
         drawable_entities_.erase(drawable_it);
     }
 
-    particle_generator_.remove_car(car);
+    particle_generator_->remove_car(car);
 
     for (auto& view : view_context_)
     {
@@ -145,7 +158,7 @@ void ts::game::Action_scene::render_view(std::size_t view_index, sf::RenderTarge
         entity_it->draw(render_target, sf::RenderStates::Default, frame_time);
     }
 
-    particle_generator_.render(render_target, sf::RenderStates::Default);
+    particle_generator_->render(render_target, sf::RenderStates::Default);
 
     render_view_border(view, render_target, 4.0);
 }
@@ -230,7 +243,7 @@ void ts::game::Action_scene::update_entities(std::size_t frame_duration)
 {
     update_entity_positions();
 
-    particle_generator_.update(frame_duration);
+    particle_generator_->update(frame_duration);
 }
 
 void ts::game::Action_scene::update_entity_positions()

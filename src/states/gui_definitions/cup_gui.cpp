@@ -50,6 +50,8 @@
 #include "user_interface/document.hpp"
 #include "user_interface/elements/elements.hpp"
 
+#include "background_document.hpp"
+
 
 
 
@@ -67,6 +69,8 @@ ts::states::Cup_GUI::Cup_GUI(game::Cup* cup, gui::Context* context, const resour
 void ts::states::Cup_GUI::show()
 {
     cup_document_->set_visible(true);
+
+    gui_definitions::show_background_document(context_);
 }
 
 void ts::states::Cup_GUI::hide()
@@ -186,7 +190,7 @@ void ts::states::Cup_GUI::create_cup_document(gui::Context* context)
     Vector2<double> control_size(200.0, 30.0);
     Vector2<double> control_offset(10.0, 0.0);
 
-    if (cup_->cup_type() == game::Cup_type::Local)
+    if (cup_->cup_type() != game::Cup_type::Remote)
     {
         auto start_game = window->create_child<gui::Text_element>("Start game!", control_style);
         start_game->set_position({ 60.0, window_size.y - 150.0 });
@@ -302,6 +306,8 @@ void ts::states::Car_selection_dialog::show()
 void ts::states::Car_selection_dialog::hide()
 {
     car_selection_document_->set_visible(false);
+
+    
 }
 
 void ts::states::Car_selection_dialog::create_car_selection_dialog(gui::Context* context)

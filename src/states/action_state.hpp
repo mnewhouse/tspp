@@ -22,31 +22,30 @@
 #ifndef STATES_ACTION_HPP
 #define STATES_ACTION_HPP
 
-#include "user_interface/gui_state.hpp"
-
-#include "game/action_scene.hpp"
+#include "game/cup.hpp"
 #include "game/action_loader.hpp"
 
-#include "world/world.hpp"
+#include "user_interface/gui_state.hpp"
+
 #include "world/world_listener.hpp"
-
-#include "controls/control_center.hpp"
-#include "controls/control_interface.hpp"
-
-#include "audio/engine_sounds.hpp"
-#include "audio/collision_sounds.hpp"
-#include "audio/sound_effect_controller.hpp"
 
 namespace ts
 {
+    namespace controls
+    {
+        class Control_interface;
+    }
+
     namespace states
     {
-        class Action_state
+        class Action_state_base
             : public gui::State, public world::World_listener
         {
         public:
-            Action_state(game::Loaded_scene loaded_scene, state_machine_type* state_machine,
-                         gui::Context* context, resources::Resource_store* resource_store);
+            Action_state_base(game::Loaded_scene loaded_scene, state_machine_type* state_machine,
+                              gui::Context* context, resources::Resource_store* resource_store);
+
+            virtual ~Action_state_base();
 
             virtual void handle_event(const sf::Event& event) override;
             virtual void update(std::size_t frame_duration) override;
@@ -64,8 +63,7 @@ namespace ts
             std::unique_ptr<controls::Control_center> control_center_;
             std::unique_ptr<audio::Sound_controller> sound_controller_;
             std::unique_ptr<script_api::Client_interface> client_script_interface_;
-
-            controls::Control_interface control_interface_;
+            std::unique_ptr<controls::Control_interface> control_interface_;
         };
     }
 }

@@ -21,9 +21,6 @@
 #include "cup_state.hpp"
 #include "action_state.hpp"
 
-#include "resources/track.hpp"
-
-
 #include "gui_definitions/window_template.hpp"
 #include "gui_definitions/background_document.hpp"
 
@@ -40,50 +37,28 @@ namespace ts
 }
 
 
-ts::states::Cup_state::Cup_state(game::Cup_type cup_type, state_machine_type* state_machine, gui::Context* context,
-                      resources::Resource_store* resource_store)
-    : gui::State(state_machine, context, resource_store),
-      cup_(cup_type, resource_store),
-      cup_gui_(&cup_, context, resource_store)
+ts::states::Cup_state_base::Cup_state_base(game::Cup_type cup_type, state_machine_type* state_machine, gui::Context* context,
+                                 resources::Resource_store* resource_store)
+  : gui::State(state_machine, context, resource_store),
+    cup_(cup_type, resource_store),
+    cup_gui_(&cup_, context, resource_store)
 {
-    cup_gui_.show();
-
     cup_.add_cup_listener(this);
 
-    if (cup_type != game::Cup_type::Remote)
-    {
-        add_selected_local_players();
-
-        if (cup_type != game::Cup_type::Server)
-        {
-            // Skip the registration state
-            cup_.advance();
-        }
-    }
+    cup_gui_.show();
 }
 
-void ts::states::Cup_state::add_selected_local_players()
+ts::states::Cup_state_base::~Cup_state_base()
 {
-    auto& selected_players = resource_store()->settings.player_settings.selected_players;
-    auto& player_store = resource_store()->players;
-
-    for (auto slot = 0; slot != selected_players.size(); ++slot)
-    {
-        auto unique_id = selected_players[slot];
-
-        if (auto player_handle = player_store.get_player_by_id(unique_id))
-        {
-            game::Player player;
-            player.nickname = player_handle->name;
-            player.id = player_handle->id;
-            player.color = player_handle->color;
-
-            cup_.add_local_player(player, slot);
-        }
-    }
 }
 
-void ts::states::Cup_state::on_state_change(game::Cup_state old_state, game::Cup_state new_state)
+void ts::states::Cup_state_base::on_activate()
+{
+    cup_gui_.show();
+}
+
+
+void ts::states::Cup_state_base::on_state_change(game::Cup_state old_state, game::Cup_state new_state)
 {
     if (new_state == game::Cup_state::Action)
     {
@@ -108,16 +83,36 @@ void ts::states::Cup_state::on_state_change(game::Cup_state old_state, game::Cup
     cup_gui_.set_cup_state_text(to_string(new_state));
 }
 
-void ts::states::Cup_state::on_restart()
+void ts::states::Cup_state_base::on_restart()
 {
 }
 
-void ts::states::Cup_state::on_end()
+void ts::states::Cup_state_base::on_end()
 {
     return_to_main_menu();
 }
 
-void ts::states::Cup_state::update(std::size_t frame_duration)
+void ts::states::Cup_state_base::add_selected_local_players()
+{
+    auto& selected_players = resource_store()->settings.player_settings.selected_players;
+    auto& player_store = resource_store()->players;
+
+    for (controls::Slot slot = 0; slot != selected_players.size(); ++slot)
+    {
+        auto player_id = selected_players[slot];
+
+        if (auto player_handle = player_store.get_player_by_id(player_id))
+        {
+            game::Player player;
+            player.color = player_handle->color;
+            player.id = player_handle->id;
+            player.nickname = player_handle->name;
+            cup_.add_local_player(player, slot);
+        }        
+    }
+}
+
+void ts::states::Cup_state_base::update(std::size_t frame_duration)
 {
     cup_gui_.update(frame_duration);
 
@@ -143,29 +138,29 @@ void ts::states::Cup_state::update(std::size_t frame_duration)
             if (now - completion_time_ >= std::chrono::milliseconds(200))
             {
                 cup_.signal_ready();
+                cup_gui_.progress_dialog()->hide();
             }
         }
     }
 }
 
-void ts::states::Cup_state::return_to_main_menu()
+void ts::states::Cup_state_base::return_to_main_menu()
 {
     state_machine()->change_state();
 }
 
-
-void ts::states::Cup_state::on_activate()
-{
-}
-
-void ts::states::Cup_state::launch_action()
+void ts::states::Cup_state_base::launch_action()
 {
     context()->hide_all();
 
-    auto action_state = std::make_unique<Action_state>(action_loader_.transfer_loaded_scene(),
-        state_machine(), context(), resource_store());
+    auto action_state = create_action_state(action_loader_.transfer_loaded_scene());
 
     state_machine()->change_state(std::move(action_state));
+}
+
+ts::game::Cup* ts::states::Cup_state_base::cup()
+{
+    return &cup_;
 }
 
 

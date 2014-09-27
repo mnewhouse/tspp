@@ -23,12 +23,8 @@
 #define GAME_ACTION_SCENE_HPP
 
 #include "graphics/render_scene.hpp"
-#include "controls/control.hpp"
 
-#include "car_image_generator.hpp"
-#include "particle_generator.hpp"
 #include "track_builder.hpp"
-#include "drawable_entity.hpp"
 #include "view_context.hpp"
 
 #include "resources/settings.hpp"
@@ -42,11 +38,16 @@ namespace ts
 
     namespace game
     {
+        class Car_image_generator;
+        class Particle_generator;
+        class Drawable_entity;
+
         class Action_scene
             : public graphics::Render_scene
         {
         public:
             Action_scene(Track_scene track_scene, const resources::Video_settings& video_settings);
+            virtual ~Action_scene();
 
             virtual void render(sf::RenderTarget& render_target, double frame_time) override;
 
@@ -91,8 +92,8 @@ namespace ts
             bool enable_split_screen_ = true;
             bool dirty_component_cache_ = true;
             
-            Car_image_generator car_image_generator_;
-            Particle_generator particle_generator_;
+            std::unique_ptr<Car_image_generator> car_image_generator_;
+            std::unique_ptr<Particle_generator> particle_generator_;
         };
     }
 }

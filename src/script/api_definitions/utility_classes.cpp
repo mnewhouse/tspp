@@ -66,10 +66,10 @@ void ts::script_api::push_vector2(HSQUIRRELVM vm, Vector2<double> vec)
             instance = Object_handle(vm, -1);
 
             sq_pushstring(vm, members::vector2::x, -1);
-            sq_pushfloat(vm, vec.x);
+            sq_pushfloat(vm, static_cast<SQFloat>(vec.x));
             sq_set(vm, -3);
             sq_pushstring(vm, members::vector2::y, -1);
-            sq_pushfloat(vm, vec.y);
+            sq_pushfloat(vm, static_cast<SQFloat>(vec.y));
             sq_set(vm, -3);
         }
 
@@ -97,19 +97,19 @@ void ts::script_api::push_rect(HSQUIRRELVM vm, Rect<double> rect)
             instance = Object_handle(vm, -1);
 
             sq_pushstring(vm, members::rect::left, -1);
-            sq_pushfloat(vm, rect.left);
+            sq_pushfloat(vm, static_cast<SQFloat>(rect.left));
             sq_set(vm, -3);
 
             sq_pushstring(vm, members::rect::top, -1);
-            sq_pushfloat(vm, rect.top);
+            sq_pushfloat(vm, static_cast<SQFloat>(rect.top));
             sq_set(vm, -3);
             
             sq_pushstring(vm, members::rect::width, -1);
-            sq_pushfloat(vm, rect.width);
+            sq_pushfloat(vm, static_cast<SQFloat>(rect.width));
             sq_set(vm, -3);
 
             sq_pushstring(vm, members::rect::height, -1);
-            sq_pushfloat(vm, rect.height);
+            sq_pushfloat(vm, static_cast<SQFloat>(rect.height));
             sq_set(vm, -3);
         }
 

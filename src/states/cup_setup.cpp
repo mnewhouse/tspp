@@ -20,28 +20,42 @@
 #include "stdinc.hpp"
 #include "cup_setup.hpp"
 
-#include "cup_state.hpp"
+#include "local_cup_state.hpp"
+#include "server_cup_state.hpp"
+#include "network_menu.hpp"
 
 #include "user_interface/elements/elements.hpp"
 #include "gui_definitions/window_template.hpp"
 
 ts::states::Cup_setup_menu::Cup_setup_menu(Main_menu* main_menu)
 : main_menu_(main_menu),
-  navigation_document_(create_navigation_document(main_menu))
+  network_menu_(nullptr)
 {
+    create_navigation_document(main_menu->context());
+
     track_setup_menu_ = std::make_unique<Track_setup_menu>(this);
     car_setup_menu_ = std::make_unique<Car_setup_menu>(this);
 
     check_startability();
 }
 
-void ts::states::Cup_setup_menu::start_local_cup()
+void ts::states::Cup_setup_menu::start_cup()
 {
     // Need to create cup state
     auto state_machine = main_menu_->state_machine();
 
-    auto cup_state = std::make_unique<Cup_state>(game::Cup_type::Local, state_machine, context(), resource_store());
-    state_machine->change_state(std::move(cup_state));    
+    if (network_menu_)
+    {        
+        auto cup_state = std::make_unique<Server_cup_state>(state_machine, context(), resource_store());
+        state_machine->change_state(std::move(cup_state));
+    }
+
+    else
+    {
+        auto cup_state = std::make_unique<Local_cup_state>(state_machine, context(), resource_store());
+        state_machine->change_state(std::move(cup_state));
+    }
+
 
     navigation_document_->set_visible(false);
 
@@ -56,7 +70,29 @@ void ts::states::Cup_setup_menu::return_to_main_menu()
     track_setup_menu_->hide();
     car_setup_menu_->hide();
 
-    main_menu_->show();    
+    if (network_menu_)
+    {
+        network_menu_->show();
+    }
+
+    else
+    {
+        main_menu_->show();
+    }
+}
+
+void ts::states::Cup_setup_menu::enable_networking(Network_menu* network_menu)
+{
+    network_menu_ = network_menu;
+
+    network_button_->set_active(true);
+}
+
+void ts::states::Cup_setup_menu::disable_networking()
+{
+    network_menu_ = nullptr;
+
+    network_button_->set_active(false);
 }
 
 ts::resources::Resource_store* ts::states::Cup_setup_menu::resource_store()
@@ -128,14 +164,12 @@ ts::gui::Element* ts::states::Cup_setup_menu::create_containment_window(gui::Doc
 }
 
 
-ts::gui::Document_handle ts::states::Cup_setup_menu::create_navigation_document(Main_menu* main_menu)
+void ts::states::Cup_setup_menu::create_navigation_document(gui::Context* context)
 {
-    auto context = main_menu->context();
-
     auto& font_library = context->font_library();
     auto screen_size = context->screen_size();
 
-    auto document = context->create_document("cup-setup-navigation");
+    navigation_document_ = context->create_document("cup-setup-navigation");
 
     gui::Text_style text_style;
     text_style.font = font_library.font_by_name(gui::fonts::Sans);
@@ -151,7 +185,7 @@ ts::gui::Document_handle ts::states::Cup_setup_menu::create_navigation_document(
     gui::Vertical_list_style list_style;
     list_style.row_size = { 200.0, 24.0 };
 
-    auto container = gui_definitions::create_styled_window(context, document.get(), Vector2i(200, 192));
+    auto container = gui_definitions::create_styled_window(context, navigation_document_.get(), Vector2i(200, 216));
     container->set_position({ 40.0, screen_size.y - 280.0 });
 
     gui::Text_element::Styler_type text_styler(text_style);
@@ -180,13 +214,28 @@ ts::gui::Document_handle ts::states::Cup_setup_menu::create_navigation_document(
         show_car_setup();
     });
 
-    nav->create_row("Resources", text_styler);
+    auto resources = nav->create_row("Resources", text_styler);
+    resources->add_event_handler(on_click,
+        [this](const gui::Element& element)
+    {
+
+    });
+
+
+    network_button_ = nav->create_row("Network", text_styler);
+    network_button_->add_event_handler(on_click,
+        [this](const gui::Element& element)
+    {
+
+    });
+
+    network_button_->set_active(network_menu_ != nullptr);
 
     start_button_ = nav->create_row("Start!", text_styler);
     start_button_->add_event_handler(on_click, 
         [this](const gui::Element& element)
     {
-        start_local_cup();
+        start_cup();
     });
 
     auto quit_button = nav->create_row("Back", text_styler);
@@ -196,9 +245,7 @@ ts::gui::Document_handle ts::states::Cup_setup_menu::create_navigation_document(
         return_to_main_menu(); 
     });
 
-    document->set_visible(false);
-
-    return document;
+    navigation_document_->set_visible(false);
 }
 
 void ts::states::Cup_setup_menu::check_startability()

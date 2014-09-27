@@ -110,7 +110,7 @@ void ts::game::Camera::update_view(Double_rect view_port, Vector2<double> screen
     {
         set_rotation(camera_target_->rotation());        
     }
-
+    
     view_.setRotation(static_cast<float>(rotation().degrees()));
     view_.setCenter(static_cast<float>(position().x), static_cast<float>(position().y));
 

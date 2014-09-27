@@ -49,9 +49,12 @@ namespace ts
             controls::Key_mapping key_mapping;
         };
 
-        struct Cup_settings
+        struct Network_settings
         {
-
+            std::uint16_t max_players = 20;
+            std::uint16_t max_spectators = 0;
+            std::uint16_t server_port = 8821;
+            std::uint16_t client_port = 8822;
         };
 
         struct Audio_settings
@@ -134,6 +137,7 @@ namespace ts
             Car_settings car_settings;
             Player_settings player_settings;
             Script_settings script_settings;
+            Network_settings network_settings;
 
         private:
             utf8_string file_name_;

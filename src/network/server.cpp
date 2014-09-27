@@ -56,7 +56,9 @@ void ts::network::Server::send_message(Client_message client_message, Message_pr
 bool ts::network::Server::listen(std::uint16_t port_number)
 {
     auto status = socket_listener_.listen(port_number);
-    if (status == sf::Socket::Done)
+    auto udp_status = udp_socket_.bind(port_number);
+
+    if (status == sf::Socket::Done && udp_status == sf::Socket::Done)
     {
         is_listening_ = true;
         networking_thread_ = std::thread([this]() { handle_networking(); });

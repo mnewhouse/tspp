@@ -23,27 +23,42 @@
 #define GAME_LOADER_HPP
 
 #include "stage_data.hpp"
-#include "action_scene.hpp"
-
-#include "controls/control_center.hpp"
-#include "world/world.hpp"
-
-#include "audio/loaded_sound_effects.hpp"
-#include "audio/sound_controller.hpp"
-
-#include "resources/resource_store.hpp"
-
-#include "script/script_engine.hpp"
-#include "script/interfaces/client_interface.hpp"
-
 
 namespace ts
 {
+    namespace controls
+    {
+        class Control_center;
+    }
+
+    namespace world
+    {
+        class World;
+    }
+
+    namespace audio
+    {
+        struct Sound_controller;
+    }
+
+    namespace script_api
+    {
+        class Client_interface;
+    }
+
+    namespace resources
+    {
+        struct Resource_store;
+    }
+
     namespace game
     {
+        class Action_scene;
+
         struct Loaded_scene
         {
-            Loaded_scene() = default;
+            Loaded_scene();
+            ~Loaded_scene();
 
             Loaded_scene(const Loaded_scene&) = delete;
             Loaded_scene(Loaded_scene&& scene);
@@ -79,6 +94,9 @@ namespace ts
         class Action_loader
         {
         public:
+            Action_loader();
+            ~Action_loader();
+
             void async_load(Stage_data stage_data, const resources::Resource_store& resource_store);
 
             bool complete() const;

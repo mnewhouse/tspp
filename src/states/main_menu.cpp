@@ -23,19 +23,22 @@
 #include "player_setup.hpp"
 #include "cup_setup.hpp"
 #include "settings_menu.hpp"
+#include "network_menu.hpp"
 
 #include "gui_definitions/background_document.hpp"
 #include "gui_definitions/window_template.hpp"
 
 ts::states::Main_menu::Main_menu(state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
-: gui::State(state_machine, context, resource_store),
-  player_setup_(std::make_unique<Player_setup_menu>(this)),
-  cup_setup_(std::make_unique<Cup_setup_menu>(this)),
-  settings_menu_(std::make_unique<Settings_menu>(this)),
-
-  background_document_(gui_definitions::create_background_document(context)),
-  main_document_(create_main_document())
+: gui::State(state_machine, context, resource_store)
 {
+    background_document_ = gui_definitions::create_background_document(context);
+
+    player_setup_ = std::make_unique<Player_setup_menu>(this);
+    cup_setup_ = std::make_unique<Cup_setup_menu>(this);
+    settings_menu_ = std::make_unique<Settings_menu>(this);
+    network_game_menu_ = std::make_unique<Network_menu>(this, cup_setup_.get());    
+
+    create_main_document(context);
 }
 
 void ts::states::Main_menu::on_activate()
@@ -47,12 +50,12 @@ void ts::states::Main_menu::on_activate()
     main_document_->set_visible(true);
 }
 
-ts::gui::Document_handle ts::states::Main_menu::create_main_document()
+void ts::states::Main_menu::create_main_document(gui::Context* context)
 {
-    auto& font_library = context()->font_library();
-    auto screen_size = context()->screen_size();
+    auto& font_library = context->font_library();
+    auto screen_size = context->screen_size();
 
-    auto document = context()->create_document("main-menu");
+    main_document_ = context->create_document("main-menu");
 
     gui::Text_style text_style;
     text_style.font = font_library.font_by_name(gui::fonts::Sans);
@@ -65,7 +68,7 @@ ts::gui::Document_handle ts::states::Main_menu::create_main_document()
     gui::Vertical_list_style list_style;
     list_style.row_size = { 200.0, 24.0 };
 
-    auto container = gui_definitions::create_styled_window(context(), document.get(), Vector2i(200, 240));
+    auto container = gui_definitions::create_styled_window(context, main_document_.get(), Vector2i(200, 240));
     container->set_position({ 40.0, screen_size.y - 280.0 });
 
     gui::Text_element::Styler_type text_styler(text_style);
@@ -92,7 +95,14 @@ ts::gui::Document_handle ts::states::Main_menu::create_main_document()
         show_local_cup_setup();
     });
 
-    nav->create_row("Network Game", text_styler);
+    auto network_game = nav->create_row("Network Game", text_styler);
+    network_game->add_event_handler(on_click, 
+                                    [this](const gui::Element&)
+    {
+        show_network_game_menu();
+    });
+    
+
     nav->create_row("Editor", text_styler);
     auto settings = nav->create_row("Settings", text_styler);
     settings->add_event_handler(on_click, 
@@ -108,8 +118,6 @@ ts::gui::Document_handle ts::states::Main_menu::create_main_document()
     { 
         quit(); 
     });
-
-    return document;
 }
 
 
@@ -144,4 +152,9 @@ void ts::states::Main_menu::show_settings_menu()
     settings_menu_->show();
 }
 
+void ts::states::Main_menu::show_network_game_menu()
+{
+    main_document_->set_visible(false);
 
+    network_game_menu_->show();
+}

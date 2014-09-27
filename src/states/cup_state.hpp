@@ -35,36 +35,47 @@ namespace ts
 {
     namespace states
     {
-        class Car_selection_dialog;
+        class Action_state_base;
 
-        class Cup_state
-            : public gui::State, public game::Cup_listener
+        class Cup_state_base
+                : public gui::State, public game::Cup_listener
         {
         public:
-            Cup_state(game::Cup_type cup_type, state_machine_type* state_machine, gui::Context* context,
-                      resources::Resource_store* resource_store);
+            Cup_state_base(game::Cup_type cup_type, state_machine_type* state_machine, gui::Context* context,
+                    resources::Resource_store* resource_store);
 
+            virtual ~Cup_state_base();            
+
+            // Cup listener overrides
             virtual void on_state_change(game::Cup_state old_state, game::Cup_state new_state) override;
             virtual void on_restart() override;
             virtual void on_end() override;
 
-            virtual void update(std::size_t frame_duration) override;
-            void launch_action();
-
+            // State overrides
             virtual void on_activate() override;
+            virtual void update(std::size_t frame_duration) override;
+
+        protected:
+            game::Cup* cup();
+            void add_selected_local_players();
 
         private:
-            void add_selected_local_players();
+            virtual std::unique_ptr<Action_state_base> create_action_state(game::Loaded_scene) = 0;
+
+            void launch_action();
             void return_to_main_menu();
 
-            game::Action_loader action_loader_;
             game::Cup cup_;
-            
+            game::Action_loader action_loader_;
+
             game::Loading_phase loading_phase_ = game::Loading_phase::None;
             std::chrono::high_resolution_clock::time_point completion_time_;
 
             Cup_GUI cup_gui_;
         };
+
+        template <game::Cup_type CupType>
+        class Cup_state;
     }
 }
 

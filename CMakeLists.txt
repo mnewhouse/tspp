@@ -235,14 +235,26 @@ set(SRC src/main.cpp
 
         src/states/action_state.hpp
         src/states/action_state.cpp
+		src/states/client_action_state.hpp
+		src/states/client_action_state.cpp
+		src/states/client_cup_state.hpp
+		src/states/client_cup_state.cpp
         src/states/cup_setup.hpp
         src/states/cup_setup.cpp
         src/states/cup_state.hpp
         src/states/cup_state.cpp
+		src/states/local_action_state.hpp
+		src/states/local_action_state.cpp
+		src/states/local_cup_state.hpp
+		src/states/local_cup_state.cpp
         src/states/main_menu.hpp
         src/states/main_menu.cpp
+		src/states/network_menu.hpp
+		src/states/network_menu.cpp
         src/states/player_setup.hpp
         src/states/player_setup.cpp
+		src/states/server_action_state.hpp
+		src/states/server_action_state.cpp
         src/states/settings_menu.hpp
         src/states/settings_menu.cpp
         
@@ -318,6 +330,7 @@ SOURCE_GROUP(controls REGULAR_EXPRESSION src/controls/[^/]+)
 SOURCE_GROUP(core REGULAR_EXPRESSION src/core/[^/]+)
 SOURCE_GROUP(game REGULAR_EXPRESSION src/game/[^/]+)
 SOURCE_GROUP(graphics REGULAR_EXPRESSION src/graphics/[^/]+)
+SOURCE_GROUP(network REGULAR_EXPRESSION src/network/[^/]+)
 SOURCE_GROUP(resources REGULAR_EXPRESSION src/resources/[^/]+)
 SOURCE_GROUP(resources\\fonts REGULAR_EXPRESSION src/resources/fonts/[^/]+)
 SOURCE_GROUP(states REGULAR_EXPRESSION src/states/[^/]+)

@@ -28,7 +28,7 @@ namespace ts
     struct Pointer_handle
     {
     public:
-        Pointer_handle(T* ptr = nullptr);
+        explicit Pointer_handle(T* ptr = nullptr);
 
         T& operator*() const;
         T* operator->() const;
@@ -43,6 +43,24 @@ namespace ts
     private:
         T* ptr_;
     };
+
+    template <typename T, typename U>
+    bool operator==(Pointer_handle<T> lhs, Pointer_handle<U> rhs);
+
+    template <typename T, typename U>
+    bool operator!=(Pointer_handle<T> lhs, Pointer_handle<U> rhs);
+
+    template <typename T>
+    bool operator==(Pointer_handle<T> lhs, std::nullptr_t rhs);
+
+    template <typename T>
+    bool operator==(std::nullptr_t lhs, Pointer_handle<T> rhs);
+
+    template <typename T>
+    bool operator!=(Pointer_handle<T> lhs, std::nullptr_t rhs);
+
+    template <typename T>
+    bool operator!=(std::nullptr_t lhs, Pointer_handle<T> rhs);
 
     template <>
     struct Pointer_handle<void>
@@ -128,6 +146,42 @@ inline void ts::Pointer_handle<void>::set(void* ptr)
 inline void* ts::Pointer_handle<void>::get() const
 {
     return ptr_;
+}
+
+template <typename T, typename U>
+bool ts::operator==(Pointer_handle<T> lhs, Pointer_handle<U> rhs)
+{
+    return lhs.get() == rhs.get();
+}
+
+template <typename T, typename U>
+bool ts::operator!=(Pointer_handle<T> lhs, Pointer_handle<U> rhs)
+{
+    return lhs.get() != rhs.get();
+}
+
+template <typename T>
+bool ts::operator==(Pointer_handle<T> lhs, std::nullptr_t rhs)
+{
+    lhs.get() == rhs;
+}
+
+template <typename T>
+bool ts::operator!=(Pointer_handle<T> lhs, std::nullptr_t rhs)
+{
+    lhs.get() != rhs;
+}
+
+template <typename T>
+bool ts::operator==(std::nullptr_t lhs, Pointer_handle<T> rhs)
+{
+    lhs == rhs.get();
+}
+
+template <typename T>
+bool ts::operator!=(std::nullptr_t rhs, Pointer_handle<T> lhs)
+{
+    lhs == rhs.get();
 }
 
 #endif

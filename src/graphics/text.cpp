@@ -120,24 +120,6 @@ ts::Vector2<double> ts::graphics::Text::character_position(std::size_t index) co
         return Vector2<double>();
     }
 
-    
-
-    /*
-
-    auto vertex_it = &geometry_.geometry.vertices[index * 4];
-
-    auto minmax_x = std::minmax_element(vertex_it, vertex_it + 4, [](const sf::Vertex& a, const sf::Vertex& b)
-    {
-        return a.position.x < b.position.x;
-    });
-
-    auto minmax_y = std::minmax_element(vertex_it, vertex_it + 4, [](const sf::Vertex& a, const sf::Vertex& b)
-    {
-        return a.position.y < b.position.y;
-    });
-
-    */
-
     Vector2<double> result;
     result.x = geometry_.character_offsets[index];
     result.y = base_line(index);

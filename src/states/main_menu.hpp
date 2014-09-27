@@ -31,7 +31,8 @@ namespace ts
     {
         class Player_setup_menu;
         class Player_selection_menu;
-        class Settings_menu;
+        class Network_menu;
+        class Settings_menu;        
 
         class Cup_setup_menu;
 
@@ -49,9 +50,10 @@ namespace ts
             void show_player_setup();
             void show_local_cup_setup();
             void show_settings_menu();
+            void show_network_game_menu();
             void quit();
 
-            gui::Document_handle create_main_document();
+            void create_main_document(gui::Context* context);
             
             gui::Document_handle background_document_;
             gui::Document_handle main_document_;
@@ -59,6 +61,7 @@ namespace ts
             std::unique_ptr<Player_setup_menu> player_setup_;
             std::unique_ptr<Cup_setup_menu> cup_setup_;
             std::unique_ptr<Settings_menu> settings_menu_;
+            std::unique_ptr<Network_menu> network_game_menu_;
         };
 
     }

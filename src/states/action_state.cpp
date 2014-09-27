@@ -20,11 +20,17 @@
 #include "stdinc.hpp"
 
 #include "action_state.hpp"
+
+#include "game/action_scene.hpp"
+#include "controls/control_center.hpp"
+#include "controls/control_interface.hpp"
 #include "graphics/texture.hpp"
+#include "audio/sound_controller.hpp"
+#include "world/world.hpp"
+#include "script/interfaces/client_interface.hpp"
 
-
-ts::states::Action_state::Action_state(game::Loaded_scene loaded_scene, state_machine_type* state_machine, 
-                                       gui::Context* context, resources::Resource_store* resource_store)
+ts::states::Action_state_base::Action_state_base(game::Loaded_scene loaded_scene, state_machine_type* state_machine, 
+                                                 gui::Context* context, resources::Resource_store* resource_store)
 : gui::State(state_machine, context, resource_store),
   action_scene_(std::move(loaded_scene.action_scene)),
   world_(std::move(loaded_scene.world)),
@@ -32,23 +38,27 @@ ts::states::Action_state::Action_state(game::Loaded_scene loaded_scene, state_ma
   sound_controller_(std::move(loaded_scene.sound_controller)),
   client_script_interface_(std::move(loaded_scene.client_script_interface)),
   
-  control_interface_(resource_store->settings.input_settings.key_mapping)
+  control_interface_(std::make_unique<controls::Control_interface>(resource_store->settings.input_settings.key_mapping))
 {
     add_render_scene(&*action_scene_);
 
     world_->add_world_listener(this);
 }
 
-void ts::states::Action_state::on_activate()
+ts::states::Action_state_base::~Action_state_base()
+{
+}
+
+void ts::states::Action_state_base::on_activate()
 {
     world_->launch_game();
 
     sound_controller_->engine_sounds.start();
 }
 
-void ts::states::Action_state::handle_event(const sf::Event& event)
+void ts::states::Action_state_base::handle_event(const sf::Event& event)
 {
-    control_interface_.forward_input(event, *control_center_);
+    control_interface_->forward_input(event, *control_center_);
 
     if (event.type == sf::Event::KeyReleased) 
     {
@@ -59,7 +69,7 @@ void ts::states::Action_state::handle_event(const sf::Event& event)
     }
 }
 
-void ts::states::Action_state::update(std::size_t frame_duration)
+void ts::states::Action_state_base::update(std::size_t frame_duration)
 {
     sound_controller_->update(frame_duration);
 
@@ -69,17 +79,17 @@ void ts::states::Action_state::update(std::size_t frame_duration)
     action_scene_->update(frame_duration);
 }
 
-void ts::states::Action_state::on_car_create(world::Car* car)
+void ts::states::Action_state_base::on_car_create(world::Car* car)
 {
     sound_controller_->engine_sounds.register_car(car);
 }
 
-void ts::states::Action_state::on_car_destroy(world::Car* car)
+void ts::states::Action_state_base::on_car_destroy(world::Car* car)
 {
     sound_controller_->engine_sounds.unregister_car(car);
 }
 
-void ts::states::Action_state::on_collision(const world::Collision_result& collision)
+void ts::states::Action_state_base::on_collision(const world::Collision_result& collision)
 {
     sound_controller_->collision_sounds.play_collision_sound(collision);
 }

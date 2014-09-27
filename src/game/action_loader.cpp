@@ -19,11 +19,30 @@
 
 #include "stdinc.hpp"
 #include "action_loader.hpp"
+#include "action_scene.hpp"
 
 #include "game/track_builder.hpp"
+
+#include "controls/control_center.hpp"
+
+#include "audio/loaded_sound_effects.hpp"
+#include "audio/sound_controller.hpp"
+
 #include "resources/pattern_builder.hpp"
+#include "resources/resource_store.hpp"
+
+#include "script/script_engine.hpp"
+#include "script/interfaces/client_interface.hpp"
 
 #include "world/world.hpp"
+
+ts::game::Action_loader::Action_loader()
+{
+}
+
+ts::game::Action_loader::~Action_loader()
+{
+}
 
 void ts::game::Action_loader::async_load(Stage_data stage_data, const resources::Resource_store& resource_store)
 {
@@ -237,6 +256,13 @@ ts::game::Loaded_scene ts::game::Action_loader::load_scene(Stage_data stage_data
     return loaded_scene;
 }
 
+ts::game::Loaded_scene::Loaded_scene()
+{
+}
+
+ts::game::Loaded_scene::~Loaded_scene()
+{
+}
 
 ts::game::Loaded_scene::Loaded_scene(Loaded_scene&& other)
 : action_scene(std::move(other.action_scene)),

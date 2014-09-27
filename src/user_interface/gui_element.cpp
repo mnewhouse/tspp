@@ -342,11 +342,10 @@ void ts::gui::Element::render(sf::RenderTarget& render_target, sf::RenderStates 
 
     if (is_clipping_enabled())
     {
-        auto clipped_view = stored_view_;
         auto my_size = size();
         
         sf::Vector2f sf_size(static_cast<float>(my_size.x), static_cast<float>(my_size.y));
-        sf::Vector2f top_left = render_states.transform.transformPoint({});
+        sf::Vector2f top_left = render_states.transform.transformPoint(0.0f, 0.0f);
 
         sf::Vector2f viewport_top_left = stored_view_.getTransform().transformPoint(top_left);
         sf::Vector2f viewport_bottom_right = stored_view_.getTransform().transformPoint(top_left + sf_size);
@@ -364,7 +363,12 @@ void ts::gui::Element::render(sf::RenderTarget& render_target, sf::RenderStates 
         viewport.top = old_viewport.top + viewport.top * old_viewport.height;
         viewport.width *= old_viewport.width;
         viewport.height *= old_viewport.height;
-        
+
+        // Little hack to make sure the absolute viewport size isn't rounded down
+        viewport.width += 0.5f / render_target.getSize().x;
+        viewport.height += 0.5f / render_target.getSize().y;
+
+        auto clipped_view = stored_view_;
         clipped_view.reset(sf::FloatRect(top_left, sf_size));
         clipped_view.setViewport(viewport);
 

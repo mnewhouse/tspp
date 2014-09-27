@@ -196,16 +196,32 @@ void ts::game::Cup::advance()
 
 void ts::game::Cup::signal_ready()
 {
-    if (cup_type() == Cup_type::Local)
+    if (not_ready_count_ == 0)
     {
-        switch (cup_state())
+        launch_action();
+    }
+
+    for (auto local_player : local_players_)
+    {
+        signal_ready(local_player);
+    }
+}
+
+void ts::game::Cup::signal_ready(Player_handle player_handle)
+{
+    auto it = player_map_.find(player_handle->player_id);
+    if (it != player_map_.end())
+    {
+        auto& is_ready = it->second.ready_for_action;
+        if (!is_ready)
         {
-        case Cup_state::Car_selection:
-        case Cup_state::Initializing:
-            advance();
-            break;
-        default:        
-            break;
+            is_ready = true;
+            --not_ready_count_;
+
+            if (not_ready_count_ == 0)
+            {
+                launch_action();
+            }
         }
     }
 }
@@ -284,6 +300,8 @@ void ts::game::Cup::stop_action()
 void ts::game::Cup::initialize_action()
 {
     change_state(Cup_state::Initializing);
+
+    not_ready_count_ = player_map_.size();
 }
 
 void ts::game::Cup::preinitialize_action()
@@ -322,39 +340,4 @@ ts::resources::Track_handle ts::game::Cup::current_track() const
     if (current_track_index_ < track_list.size()) return track_list[current_track_index_];
 
     return ts::resources::Track_handle();
-}
-
-ts::game::Cup::Player_handle::Player_handle()
-: player_data_(nullptr)
-{
-}
-
-ts::game::Cup::Player_handle::Player_handle(const ts::game::Cup_player_data* player_data)
-: player_data_(player_data)
-{
-}
-
-ts::game::Cup::Player_handle::operator bool() const
-{
-    return player_data_ != nullptr;
-}
-
-const ts::game::Cup_player_data* ts::game::Cup::Player_handle::operator->() const
-{
-    return player_data_;
-}
-
-const ts::game::Cup_player_data& ts::game::Cup::Player_handle::operator*() const
-{
-    return *player_data_;
-}
-
-bool ts::game::Cup::Player_handle::operator==(Player_handle other) const
-{
-    return player_data_ == other.player_data_;
-}
-
-bool ts::game::Cup::Player_handle::operator!=(Player_handle other) const
-{
-    return player_data_ != other.player_data_;
 }
