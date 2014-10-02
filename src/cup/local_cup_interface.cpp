@@ -17,25 +17,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
+#include "stdinc.hpp"
+#include "local_cup_interface.hpp"
 
-#ifndef GAME_PLAYER_HPP
-#define GAME_PLAYER_HPP
-
-#include "controls/control.hpp"
-#include "resources/player_color.hpp"
-
-namespace ts
+ts::cup::Local_cup_interface::Local_cup_interface(Cup* cup)
+: Cup_interface(cup)
 {
-    namespace game
-    {
-        struct Player
-        {
-            utf8_string nickname;
-            std::uint64_t id;
-            resources::Player_color color;
-        };
-    }
 }
 
-#endif
+
+void ts::cup::Local_cup_interface::select_cars(const std::vector<Car_selection>& car_selection)
+{
+    for (auto& selected_car : car_selection)
+    {
+        set_player_car(selected_car.player_handle, selected_car.car_handle);
+    }
+
+    advance();
+}
+
+void ts::cup::Local_cup_interface::signal_ready()
+{
+    advance();
+}

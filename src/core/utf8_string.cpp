@@ -157,6 +157,14 @@ ts::utf8_string::iterator ts::utf8_string::erase(iterator where)
     return iterator(result, string_data_.begin(), string_data_.end());
 }
 
+ts::utf8_string::iterator ts::utf8_string::erase(iterator it, iterator end)
+{
+    auto result = string_data_.erase(it.base(), end.base());
+
+    return iterator(result, string_data_.begin(), string_data_.end());
+}
+
+
 ts::utf8_string::iterator ts::utf8_string::insert(iterator where, utf8::uint32_t code_point)
 {
     return insert(where, utf8_string(code_point));

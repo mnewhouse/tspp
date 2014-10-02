@@ -18,14 +18,35 @@
  */
 
 #include "stdinc.hpp"
-#include "client_action_state.hpp"
+#include "cup_interface.hpp"
 
-ts::states::Client_action_state::Client_action_state(game::Loaded_scene loaded_scene, network::Client* client, 
-                                                     state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
-    : Action_state_base(std::move(loaded_scene), state_machine, context, resource_store)
+ts::cup::Cup_interface::Cup_interface(Cup* cup)
+  : cup_(cup)
 {
+    cup_->add_cup_listener(this);
 }
 
-ts::states::Client_action_state::~Client_action_state()
+const ts::cup::Cup* ts::cup::Cup_interface::cup() const
 {
+    return cup_;
+}
+
+void ts::cup::Cup_interface::advance()
+{
+    cup_->advance();
+}
+
+void ts::cup::Cup_interface::end_cup()
+{
+    cup_->end();
+}
+
+ts::cup::Player_handle ts::cup::Cup_interface::add_player(const Player& player, controls::Slot control_slot)
+{
+    return cup_->add_player(player, control_slot);
+}
+
+void ts::cup::Cup_interface::set_player_car(Player_handle player_handle, resources::Car_handle car_handle)
+{
+    cup_->set_player_car(player_handle, car_handle);
 }

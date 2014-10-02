@@ -26,22 +26,37 @@ namespace ts
 {
     namespace network
     {
-        enum class Message_protocol
-        {
-            Tcp,
-            Udp
-        };
-
         class Message
         {
         public:
             Message() = default;
+            Message(std::uint32_t type);
             Message(const std::uint8_t* data, std::size_t data_size);
 
             void assign(const std::uint8_t* data, std::size_t data_size);
+            void append(const std::uint8_t* data, std::size_t data_size);
+            void append(std::uint8_t byte);
+
+            Message& operator<<(std::uint32_t value);
+            Message& operator<<(std::int32_t value);
+
+            Message& operator<<(std::uint64_t value);
+            Message& operator<<(std::int64_t value);
+
+            Message& operator<<(std::uint16_t value);
+            Message& operator<<(std::int16_t value);
+
+            Message& operator<<(std::uint8_t value);
+            Message& operator<<(std::int8_t value);
+
+            Message& operator<<(const utf8_string& string);            
 
             const std::uint8_t* data() const;
             std::size_t size() const;
+
+            void clear();
+
+            std::uint32_t type() const;
 
         private:
             std::vector<std::uint8_t> data_;

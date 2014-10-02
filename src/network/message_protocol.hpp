@@ -17,15 +17,23 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "stdinc.hpp"
-#include "client_action_state.hpp"
+#pragma once
 
-ts::states::Client_action_state::Client_action_state(game::Loaded_scene loaded_scene, network::Client* client, 
-                                                     state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
-    : Action_state_base(std::move(loaded_scene), state_machine, context, resource_store)
+#ifndef NETWORK_MESSAGE_PROTOCOL_HPP
+#define NETWORK_MESSAGE_PROTOCOL_HPP
+
+#include "message.hpp"
+
+namespace ts
 {
+    namespace network
+    {
+        enum class Message_protocol
+        {
+            Tcp,
+            Udp
+        };
+    }
 }
 
-ts::states::Client_action_state::~Client_action_state()
-{
-}
+#endif

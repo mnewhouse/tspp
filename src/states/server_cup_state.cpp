@@ -21,25 +21,43 @@
 #include "server_cup_state.hpp"
 #include "server_action_state.hpp"
 
+#include "cup/local_players.hpp"
+
+ts::states::impl::Server_cup_state_members::Server_cup_state_members(resources::Resource_store* resource_store)
+: cup_(cup::Cup_type::Server, resource_store),
+  server_(),
+  server_cup_interface_(&cup_, &server_, resource_store)
+{
+    cup::add_selected_local_players(&server_cup_interface_, resource_store->settings.player_settings, resource_store->players);
+}
+
 ts::states::Server_cup_state::Server_cup_state(state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
-: Cup_state_base(game::Cup_type::Server, state_machine, context, resource_store)
+: Server_cup_state_members(resource_store),
+  Cup_state_base(&server_cup_interface_, state_machine, context, resource_store)
 {
     auto& network_settings = resource_store->settings.network_settings;
     server_.listen(network_settings.server_port);
 
-    add_selected_local_players();
+    cup_.add_cup_listener(this);    
 }
 
 ts::states::Server_cup_state::~Server_cup_state()
 {
 }
 
+void ts::states::Server_cup_state::update(std::size_t frame_duration)
+{
+    Cup_state_base::update(frame_duration);
+
+    server_cup_interface_.update(frame_duration);
+}
+
+void ts::states::Server_cup_state::on_state_change(cup::Cup_state old_state, cup::Cup_state new_state)
+{
+    Cup_state_base::on_state_change(old_state, new_state);
+}
+
 std::unique_ptr<ts::states::Action_state_base> ts::states::Server_cup_state::create_action_state(game::Loaded_scene loaded_scene)
 {
     return std::make_unique<Server_action_state>(std::move(loaded_scene), &server_, state_machine(), context(), resource_store());
-}
-
-void ts::states::Server_cup_state::on_state_change(game::Cup_state old_state, game::Cup_state new_state)
-{
-    Cup_state_base::on_state_change(old_state, new_state);
 }

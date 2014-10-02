@@ -21,14 +21,35 @@
 #include "local_cup_state.hpp"
 #include "local_action_state.hpp"
 
-ts::states::Local_cup_state::Local_cup_state(state_machine_type* state_machine, gui::Context* context,
-                                             resources::Resource_store* resource_store)
-                                             : Cup_state_base(game::Cup_type::Local, state_machine, context, resource_store)
+#include "cup/local_players.hpp"
+
+ts::states::impl::Local_cup_state_members::Local_cup_state_members(resources::Resource_store* resource_store)
+: cup_(cup::Cup_type::Local, resource_store),
+  local_cup_interface_(&cup_)
 {
+    cup::add_selected_local_players(&local_cup_interface_, resource_store->settings.player_settings, resource_store->players);
+    local_cup_interface_.advance();
+}
+
+ts::states::Local_cup_state::Local_cup_state(state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
+: Local_cup_state_members(resource_store),
+  Cup_state_base(&local_cup_interface_, state_machine, context, resource_store)
+{
+    cup_.add_cup_listener(this);
 }
 
 ts::states::Local_cup_state::~Local_cup_state()
 {
+}
+
+void ts::states::Local_cup_state::on_state_change(cup::Cup_state old_state, cup::Cup_state new_state)
+{
+    Cup_state_base::on_state_change(old_state, new_state);
+}
+
+void ts::states::Local_cup_state::update(std::size_t frame_duration)
+{
+    Cup_state_base::update(frame_duration);
 }
 
 std::unique_ptr<ts::states::Action_state_base> ts::states::Local_cup_state::create_action_state(game::Loaded_scene loaded_scene)

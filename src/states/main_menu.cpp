@@ -50,6 +50,11 @@ void ts::states::Main_menu::on_activate()
     main_document_->set_visible(true);
 }
 
+void ts::states::Main_menu::update(std::size_t frame_duration)
+{
+    network_game_menu_->update(frame_duration);
+}
+
 void ts::states::Main_menu::create_main_document(gui::Context* context)
 {
     auto& font_library = context->font_library();

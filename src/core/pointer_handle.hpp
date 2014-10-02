@@ -184,4 +184,16 @@ bool ts::operator!=(std::nullptr_t rhs, Pointer_handle<T> lhs)
     lhs == rhs.get();
 }
 
+namespace std
+{
+    template <typename T>
+    struct hash<ts::Pointer_handle<T>>
+    {
+        auto operator()(ts::Pointer_handle<T> pointer_handle) -> decltype(std::hash<T*>{}(0))
+        {
+            return std::hash<T*>{}(pointer_handle.get());
+        }
+    };
+}
+
 #endif

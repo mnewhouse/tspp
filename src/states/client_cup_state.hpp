@@ -22,14 +22,30 @@
 #ifndef CLIENT_CUP_STATE_HPP
 #define CLIENT_CUP_STATE_HPP
 
-#include "cup_state.hpp"
+#include "cup_state_base.hpp"
+
+#include "network/client.hpp"
+
+#include "cup/client_cup_interface.hpp"
 
 namespace ts
 {
     namespace states
     {
+        namespace impl
+        {
+            struct Client_cup_state_members
+            {
+                Client_cup_state_members(resources::Resource_store* resource_store);
+
+                cup::Cup cup_;
+                network::Client client_;
+                cup::Client_cup_interface client_cup_interface_;
+            };
+        }
+
         class Client_cup_state
-            : public Cup_state_base
+            : private impl::Client_cup_state_members, public Cup_state_base
         {
         public:
             Client_cup_state(state_machine_type* state_machine, gui::Context* context,
@@ -37,8 +53,18 @@ namespace ts
 
             virtual ~Client_cup_state();
 
+            void async_connect(utf8_string remote_address, std::uint16_t remote_port);
+            network::Connection_status connection_status() const;
+
+            cup::Registration_status registration_status() const;
+            const utf8_string& registration_error() const;
+
+            void send_registration_request();
+
+            virtual void update(std::size_t frame_duration) override;
+
         private:
-            virtual std::unique_ptr<Action_state_base> create_action_state(game::Loaded_scene) override;
+            virtual std::unique_ptr<Action_state_base> create_action_state(game::Loaded_scene loaded_scene) override;
         };
     }
 }

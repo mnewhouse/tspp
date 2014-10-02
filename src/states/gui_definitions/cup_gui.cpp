@@ -55,8 +55,9 @@
 
 
 
-ts::states::Cup_GUI::Cup_GUI(game::Cup* cup, gui::Context* context, const resources::Resource_store* resource_store)
-    : cup_(cup),
+ts::states::Cup_GUI::Cup_GUI(cup::Cup_interface* cup_interface, gui::Context* context, const resources::Resource_store* resource_store)
+    : cup_interface_(cup_interface),
+      cup_(cup_interface->cup()),
       context_(context),    
       car_selection_ready_(false)
 {
@@ -99,23 +100,18 @@ void ts::states::Cup_GUI::update(std::size_t frame_duration)
 
 void ts::states::Cup_GUI::return_to_main_menu()
 {
-    cup_->end();
+    cup_interface_->end_cup();
 }
 
 void ts::states::Cup_GUI::apply_car_selection()
 {
-    const auto& selected_cars = car_selection_dialog_->selected_cars();
-
-    for (auto& pair : selected_cars)
-    {
-        cup_->set_player_car(pair.first, pair.second);
-    }
+    cup_interface_->select_cars(car_selection_dialog_->car_selection());
 }
 
 void ts::states::Cup_GUI::show_car_selection_dialog()
 {
-    std::vector<game::Cup::Player_handle> selected_players = cup_->local_players();
-    selected_players.erase(std::remove(selected_players.begin(), selected_players.end(), game::Cup::Player_handle()), 
+    std::vector<cup::Player_handle> selected_players = cup_->local_players();
+    selected_players.erase(std::remove(selected_players.begin(), selected_players.end(), cup::Player_handle()), 
         selected_players.end());
 
     car_selection_ready_ = false;
@@ -133,13 +129,11 @@ void ts::states::Cup_GUI::confirm_car_selection()
     cup_document_->set_visible(true);
 
     apply_car_selection();
-    cup_->signal_ready();
 }
 
 void ts::states::Cup_GUI::create_cup_document(gui::Context* context)
 {
     cup_document_ = context->create_document("cup-document");
-
     cup_document_->set_visible(false);
 
     auto screen_size = context->screen_size();
@@ -190,7 +184,7 @@ void ts::states::Cup_GUI::create_cup_document(gui::Context* context)
     Vector2<double> control_size(200.0, 30.0);
     Vector2<double> control_offset(10.0, 0.0);
 
-    if (cup_->cup_type() != game::Cup_type::Remote)
+    if (cup_->cup_type() != cup::Cup_type::Remote)
     {
         auto start_game = window->create_child<gui::Text_element>("Start game!", control_style);
         start_game->set_position({ 60.0, window_size.y - 150.0 });
@@ -201,7 +195,7 @@ void ts::states::Cup_GUI::create_cup_document(gui::Context* context)
         start_game->add_event_handler(gui::events::on_click,
             [this](const gui::Element& element)
         {
-            cup_->advance();
+            cup_interface_->advance();
         });
     }
 
@@ -289,7 +283,7 @@ ts::states::Car_selection_dialog::Car_selection_dialog(gui::Context* context, Cu
     create_car_selection_dialog(context);
 }
 
-void ts::states::Car_selection_dialog::load(std::vector<game::Cup::Player_handle> selected_players, std::vector<resources::Car_handle> possible_cars, resources::Track_handle track_handle)
+void ts::states::Car_selection_dialog::load(std::vector<cup::Player_handle> selected_players, std::vector<resources::Car_handle> possible_cars, resources::Track_handle track_handle)
 {
     selected_players_ = std::move(selected_players);
     possible_cars_ = std::move(possible_cars);
@@ -392,7 +386,7 @@ void ts::states::Car_selection_dialog::load_car_textures()
 
             for (auto& car : possible_cars_)
             {
-                images.push_back(image_generator(*car, player->car_data.color, game::Car_image_generator::Single_frame));
+                images.push_back(image_generator(*car, player->color, game::Car_image_generator::Single_frame));
 
                 auto& image = images.back();
                 auto image_size = image.getSize();
@@ -413,7 +407,7 @@ void ts::states::Car_selection_dialog::load_car_textures()
 
             for (auto& car : possible_cars_)
             {
-                images[image_index++] = image_generator(*car, player->car_data.color, game::Car_image_generator::Single_frame);
+                images[image_index++] = image_generator(*car, player->color, game::Car_image_generator::Single_frame);
             }
         }
 
@@ -433,9 +427,9 @@ void ts::states::Car_selection_dialog::confirm()
     cup_gui_->confirm_car_selection();
 }
 
-const std::vector<std::pair<ts::game::Cup::Player_handle, ts::resources::Car_handle>>& ts::states::Car_selection_dialog::selected_cars() const
+const std::vector<ts::cup::Car_selection>& ts::states::Car_selection_dialog::car_selection() const
 {
-    return selected_cars_;
+    return car_selection_;
 }
 
 void ts::states::Car_selection_dialog::load_dialog()
@@ -466,7 +460,7 @@ void ts::states::Car_selection_dialog::load_dialog()
     };
 
     selection_list_->clear();
-    selected_cars_.clear();
+    car_selection_.clear();
 
     std::size_t player_index = 0;
     for (auto player_handle : selected_players_)
@@ -480,7 +474,7 @@ void ts::states::Car_selection_dialog::load_dialog()
         const auto& car_texture = player_car_textures_[player_index];
         const auto& bounds = texture_mapping_[car_index];
 
-        auto name_text = row->create_child<gui::Text_element>(player_handle->player.nickname, text_style);
+        auto name_text = row->create_child<gui::Text_element>(player_handle->nickname, text_style);
         name_text->set_position({ 20.0, 8.0 });
 
         auto car_preview = row->create_child<gui::Element>(Vector2i(36, 36));
@@ -509,7 +503,9 @@ void ts::states::Car_selection_dialog::load_dialog()
             [=](const gui::Option_set<std::size_t>& option_set, std::size_t new_car_index)
         {
             auto car = possible_cars_[new_car_index];
-            selected_cars_[player_index] = std::make_pair(player_handle, car);
+
+            car_selection_[player_index].player_handle = player_handle;
+            car_selection_[player_index].car_handle = car;
 
             const auto& sub_rect = texture_mapping_[new_car_index];
             textured_background->set_sub_rect(sub_rect);
@@ -520,7 +516,11 @@ void ts::states::Car_selection_dialog::load_dialog()
 
         car_option_set->set_value(car_index);
 
-        selected_cars_.push_back(std::make_pair(player_handle, car));
+        cup::Car_selection car_selection;
+        car_selection.player_handle = player_handle;
+        car_selection.car_handle = car;
+
+        car_selection_.push_back(car_selection);
 
         ++player_index;
     }

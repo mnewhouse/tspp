@@ -22,7 +22,7 @@
 #ifndef STATES_ACTION_HPP
 #define STATES_ACTION_HPP
 
-#include "game/cup.hpp"
+#include "cup/cup.hpp"
 #include "game/action_loader.hpp"
 
 #include "user_interface/gui_state.hpp"

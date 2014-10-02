@@ -17,40 +17,43 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
+#ifndef CUP_INTERFACE_HPP
+#define CUP_INTERFACE_HPP
 
-#ifndef GAME_STAGE_DATA_HPP
-#define GAME_STAGE_DATA_HPP
-
-#include "resources/car_handle.hpp"
-#include "resources/track_handle.hpp"
-#include "resources/player_color.hpp"
-#include "resources/script_resource.hpp"
-
-#include "controls/control.hpp"
+#include "cup.hpp"
+#include "cup_listener.hpp"
 
 namespace ts
 {
-
-    namespace game
+    namespace cup
     {
-        class Cup;
-
-        struct Car_data
+        struct Car_selection
         {
-            controls::Slot control_slot;
-            resources::Car_handle car;
-            resources::Player_color color;
-            std::size_t start_pos;
+            Player_handle player_handle;
+            resources::Car_handle car_handle;
         };
 
-        struct Stage_data
+        class Cup_interface
+            : private Cup_listener
         {
-            Pointer_handle<Cup> cup;
-            resources::Track_handle track_handle;
+        public:
+            Cup_interface(Cup* cup);
 
-            std::vector<Car_data> cars;
-            std::vector<resources::Script_handle> loaded_scripts;
+            void advance();
+            void end_cup();
+
+            const Cup* cup() const;
+
+            Player_handle add_player(const Player& player, controls::Slot control_slot = controls::invalid_slot);
+            
+            virtual void select_cars(const std::vector<Car_selection>& car_selection) = 0;
+            virtual void signal_ready() = 0;
+
+        protected:
+            void set_player_car(Player_handle player_handle, resources::Car_handle car_handle);
+
+        private:
+            Cup* cup_;
         };
     }
 }

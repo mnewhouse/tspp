@@ -20,6 +20,18 @@
 #include "stdinc.hpp"
 #include "client.hpp"
 
+ts::network::Client::Client()
+: incoming_messages_(64, std::allocator<Message>()),
+  outgoing_messages_(64, std::allocator<Outgoing_message>())
+{
+    std::random_device random_device;
+    std::uint64_t seed = 0;
+    seed |= random_device();
+    seed |= static_cast<std::uint64_t>(random_device()) << 32;
+
+    key_generator_.seed(seed);
+}
+
 ts::network::Client::~Client()
 {
     connection_status_ = Connection_status::Disconnected;
@@ -28,18 +40,31 @@ ts::network::Client::~Client()
     {
         message_thread_.join();
     }
+
+    connect_future_ = {};
 }
 
-void ts::network::Client::async_connect(sf::IpAddress ip_address, std::uint16_t remote_port, std::uint32_t timeout)
+std::uint64_t ts::network::Client::generate_key()
+{
+    return key_generator_();
+}
+
+void ts::network::Client::async_connect(utf8_string remote_address, std::uint16_t remote_port)
 {
     connection_status_ = Connection_status::Connecting;
 
     auto callable = [=]()
     {
-        async_connect_impl(ip_address, remote_port, timeout);
+        async_connect_impl(remote_address, remote_port);
     };
 
     connect_future_ = std::async(std::launch::async, callable);
+    async_get_messages();
+}
+
+void ts::network::Client::disconnect()
+{
+    connection_status_ = Connection_status::Disconnected;
 }
 
 void ts::network::Client::async_get_messages()
@@ -57,46 +82,53 @@ ts::network::Connection_status ts::network::Client::connection_status() const
     return connection_status_;
 }
 
-void ts::network::Client::async_connect_impl(sf::IpAddress ip_address, std::uint16_t remote_port, std::uint32_t timeout)
+void ts::network::Client::async_connect_impl(utf8_string remote_address, std::uint16_t remote_port)
 {
     udp_socket_.bind(sf::Socket::AnyPort);
-    auto result = tcp_socket_.connect(ip_address, remote_port, sf::milliseconds(timeout));
+    auto result = tcp_socket_.connect(remote_address.string(), remote_port);
     if (result == sf::Socket::Done)
     {
+        tcp_socket_.setBlocking(false);
+        udp_socket_.setBlocking(false);
+
         connection_status_ = Connection_status::Connected;
     }
 
-    else if (result == sf::Socket::Error)
+    else if (result == sf::Socket::Error || result == sf::Socket::Disconnected)
     {
         connection_status_ = Connection_status::Failed;
-    }    
+    }
 }
 
 void ts::network::Client::connection_loop()
 {
-    sf::SocketSelector selector;
-    selector.add(tcp_socket_);
-    selector.add(udp_socket_);
+    while (connection_status_ == Connection_status::Connecting)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(15));
+    }
+
+    if (connection_status_ != Connection_status::Connected)
+    {
+        return;
+    }
 
     Message incoming_message;
     Outgoing_message outgoing_message;
+    sf::Packet packet;
+
+    sf::IpAddress remote_address;
+    std::uint16_t remote_port;
 
     while (connection_status_ == Connection_status::Connected)
     {
-        sf::Packet packet;
-        if (selector.isReady(tcp_socket_))
+        if (tcp_socket_.receive(packet) == sf::Socket::Done)
         {
-            tcp_socket_.receive(packet);
             incoming_message.assign(static_cast<const std::uint8_t*>(packet.getData()), packet.getDataSize());
             incoming_messages_.push(incoming_message);
         }
 
-        else if (selector.isReady(udp_socket_))
+        else if (udp_socket_.receive(packet, remote_address, remote_port) == sf::Socket::Done)
         {
-            sf::IpAddress remote_address;
-            std::uint16_t remote_port;
-
-            udp_socket_.receive(packet, remote_address, remote_port);
             if (remote_address == tcp_socket_.getRemoteAddress() && remote_port == tcp_socket_.getRemotePort())
             {
                 incoming_message.assign(static_cast<const std::uint8_t*>(packet.getData()), packet.getDataSize());
@@ -119,7 +151,12 @@ void ts::network::Client::connection_loop()
                 udp_socket_.send(packet, tcp_socket_.getRemoteAddress(), tcp_socket_.getRemotePort());
             }
         }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+
+    udp_socket_.unbind();
+    tcp_socket_.disconnect();
 }
 
 void ts::network::Client::send_message(Message message, Message_protocol protocol)

@@ -26,7 +26,7 @@
 
 #include <boost/lockfree/spsc_queue.hpp>
 
-#include "message.hpp"
+#include "message_protocol.hpp"
 
 namespace ts
 {
@@ -34,6 +34,7 @@ namespace ts
     {
         enum class Connection_status
         {
+            None,
             Connecting,
             Connected,
             Failed,
@@ -46,17 +47,19 @@ namespace ts
             Client();
             ~Client();
 
-            void async_connect(sf::IpAddress remote_address, std::uint16_t remote_port, std::uint32_t timeout = 0);
-            void async_get_messages();
-                
+            void async_connect(utf8_string remote_address, std::uint16_t remote_port);
+            void disconnect();
 
             Connection_status connection_status() const;
 
-            void send_message(Message message, Message_protocol protocol = Message_protocol::Udp);
+            void send_message(Message message, Message_protocol protocol = Message_protocol::Tcp);
             bool get_message(Message& message);
 
+            std::uint64_t generate_key();
+
         private:
-            void async_connect_impl(sf::IpAddress address, std::uint16_t remote_port, std::uint32_t timeout);
+            void async_get_messages();
+            void async_connect_impl(utf8_string remote_address, std::uint16_t remote_port);
             void connection_loop();
 
             sf::TcpSocket tcp_socket_;
@@ -72,8 +75,10 @@ namespace ts
             boost::lockfree::spsc_queue<Message, boost::lockfree::allocator<std::allocator<Message>>> incoming_messages_;
 
             std::future<void> connect_future_;
-            std::atomic<Connection_status> connection_status_;
+            std::atomic<Connection_status> connection_status_ = Connection_status::None;
             std::thread message_thread_;
+            
+            std::mt19937_64 key_generator_;
         };
     }
 }

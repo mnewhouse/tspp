@@ -22,7 +22,7 @@
 #ifndef NETWORK_SERVER_HPP
 #define NETWORK_SERVER_HPP
 
-#include "message.hpp"
+#include "message_protocol.hpp"
 
 #include <SFML/Network.hpp>
 
@@ -34,21 +34,19 @@ namespace ts
 {
     namespace network
     {
-        using Client_key = std::uint32_t;
-        
         class Connected_client
         {
         public:
-            Connected_client(Client_key client_key);
+            Connected_client(std::unique_ptr<sf::TcpSocket> socket, std::uint32_t client_key);
 
             sf::IpAddress remote_address() const;
             std::uint16_t remote_port() const;
 
-            Client_key client_key() const;
+            std::uint32_t client_key() const;
 
         private:
-            Client_key client_key_;
-            mutable sf::TcpSocket socket_;
+            std::uint32_t client_key_;
+            std::unique_ptr<sf::TcpSocket> socket_;
 
             friend class Server;
         };
@@ -80,17 +78,17 @@ namespace ts
 
         private:
             void handle_networking();
-            Connected_client* create_client_connection();
-            Client_key generate_client_key() const;
+            Client_handle create_client_connection(std::unique_ptr<sf::TcpSocket> socket);
+            std::uint32_t generate_client_key() const;
 
-            void read_client_messages(Connected_client& client);
+            void read_incoming_messages();
             void remove_closed_connections();
             void send_outgoing_messages();
 
             sf::TcpListener socket_listener_;
             sf::UdpSocket udp_socket_;
 
-            std::map<Client_key, Connected_client> clients_;
+            std::map<std::uint32_t, Connected_client> clients_;
 
             using Incoming_message = Client_message;
 

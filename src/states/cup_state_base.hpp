@@ -19,11 +19,11 @@
 
 #pragma once
 
-#ifndef STATES_CUP_STATE_HPP
-#define STATES_CUP_STATE_HPP
+#ifndef STATES_CUP_STATE_ESSENTIALS_HPP
+#define STATES_CUP_STATE_ESSENTIALS_HPP
 
-#include "game/cup.hpp"
-#include "game/cup_listener.hpp"
+#include "cup/cup_listener.hpp"
+
 #include "game/action_loader.hpp"
 
 #include "user_interface/gui_state.hpp"
@@ -33,39 +33,41 @@
 
 namespace ts
 {
+    namespace cup
+    {
+        class Cup_interface;
+    }
+
     namespace states
     {
         class Action_state_base;
 
         class Cup_state_base
-                : public gui::State, public game::Cup_listener
+                : public cup::Cup_listener, public gui::State
         {
         public:
-            Cup_state_base(game::Cup_type cup_type, state_machine_type* state_machine, gui::Context* context,
-                    resources::Resource_store* resource_store);
+            Cup_state_base(cup::Cup_interface* cup_interface, state_machine_type* state_machine, gui::Context* context,
+                           resources::Resource_store* resource_store);
 
-            virtual ~Cup_state_base();            
+            virtual ~Cup_state_base();
 
             // Cup listener overrides
-            virtual void on_state_change(game::Cup_state old_state, game::Cup_state new_state) override;
+            virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
             virtual void on_restart() override;
             virtual void on_end() override;
 
-            // State overrides
-            virtual void on_activate() override;
+            void show_gui();
             virtual void update(std::size_t frame_duration) override;
-
-        protected:
-            game::Cup* cup();
-            void add_selected_local_players();
+            virtual void on_activate() override;
+            
 
         private:
-            virtual std::unique_ptr<Action_state_base> create_action_state(game::Loaded_scene) = 0;
-
             void launch_action();
             void return_to_main_menu();
 
-            game::Cup cup_;
+            virtual std::unique_ptr<Action_state_base> create_action_state(game::Loaded_scene loaded_scene) = 0;
+
+            cup::Cup_interface* cup_interface_;
             game::Action_loader action_loader_;
 
             game::Loading_phase loading_phase_ = game::Loading_phase::None;
@@ -73,9 +75,6 @@ namespace ts
 
             Cup_GUI cup_gui_;
         };
-
-        template <game::Cup_type CupType>
-        class Cup_state;
     }
 }
 

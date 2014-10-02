@@ -22,7 +22,7 @@
 #ifndef STATES_CUP_GUI_HPP
 #define STATES_CUP_GUI_HPP
 
-#include "game/cup.hpp"
+#include "cup/cup_interface.hpp"
 
 #include "user_interface/gui_context.hpp"
 #include "user_interface/elements/elements.hpp"
@@ -37,7 +37,7 @@ namespace ts
         class Cup_GUI
         {
         public:
-            Cup_GUI(game::Cup* cup, gui::Context* context, const resources::Resource_store* resource_store);
+            Cup_GUI(cup::Cup_interface* cup_interface, gui::Context* context, const resources::Resource_store* resource_store);
 
             void show();
             void hide();
@@ -52,7 +52,7 @@ namespace ts
         private:
             void show_menu_background();
 
-            utf8_string cup_state_to_string(game::Cup_state cup_state) const;
+            utf8_string cup_state_to_string(cup::Cup_state cup_state) const;
             void add_selected_local_players();
 
             void create_cup_document(gui::Context* context);
@@ -64,7 +64,9 @@ namespace ts
             void confirm_car_selection();
             void car_selection_dialog_ready();
             
-            game::Cup* cup_;
+            cup::Cup_interface* cup_interface_;
+            const cup::Cup* cup_;
+
             gui::Context* context_;
             gui::Text_element* header_text_;
             std::atomic<bool> car_selection_ready_;
@@ -103,12 +105,12 @@ namespace ts
         public:
             Car_selection_dialog(gui::Context* context, Cup_GUI* cup_gui);
 
-            void load(std::vector<game::Cup::Player_handle> selected_players, std::vector<resources::Car_handle> possible_cars, resources::Track_handle track_handle);
+            void load(std::vector<cup::Player_handle> selected_players, std::vector<resources::Car_handle> possible_cars, resources::Track_handle track_handle);
 
             void show();
             void hide();
 
-            const std::vector<std::pair<game::Cup::Player_handle, resources::Car_handle>>& selected_cars() const;
+            const std::vector<cup::Car_selection>& car_selection() const;
 
         private:
             void load_dialog();
@@ -120,14 +122,14 @@ namespace ts
             Cup_GUI* cup_gui_;
             gui::Context* context_;
 
-            std::vector<game::Cup::Player_handle> selected_players_;
+            std::vector<cup::Player_handle> selected_players_;
             std::vector<resources::Car_handle> possible_cars_;
             resources::Track_handle track_handle_;
 
             std::vector<std::shared_ptr<graphics::Texture>> player_car_textures_;
             std::vector<Int_rect> texture_mapping_;
 
-            std::vector<std::pair<game::Cup::Player_handle, resources::Car_handle>> selected_cars_;
+            std::vector<cup::Car_selection> car_selection_;
 
             std::future<void> loading_future_;
 

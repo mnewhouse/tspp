@@ -17,15 +17,42 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "stdinc.hpp"
-#include "client_action_state.hpp"
+#pragma once
 
-ts::states::Client_action_state::Client_action_state(game::Loaded_scene loaded_scene, network::Client* client, 
-                                                     state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
-    : Action_state_base(std::move(loaded_scene), state_machine, context, resource_store)
+#ifndef CUP_STAGE_DATA_HPP
+#define CUP_STAGE_DATA_HPP
+
+#include "resources/car_handle.hpp"
+#include "resources/track_handle.hpp"
+#include "resources/player_color.hpp"
+#include "resources/script_resource.hpp"
+
+#include "controls/control.hpp"
+
+namespace ts
 {
+
+    namespace cup
+    {
+        class Cup;
+
+        struct Car_data
+        {
+            controls::Slot control_slot;
+            resources::Car_handle car;
+            resources::Player_color color;
+            std::size_t start_pos;
+        };
+
+        struct Stage_data
+        {
+            Pointer_handle<Cup> cup;
+            resources::Track_handle track_handle;
+
+            std::vector<Car_data> cars;
+            std::vector<resources::Script_handle> loaded_scripts;
+        };
+    }
 }
 
-ts::states::Client_action_state::~Client_action_state()
-{
-}
+#endif

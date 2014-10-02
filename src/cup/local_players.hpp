@@ -17,15 +17,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "stdinc.hpp"
-#include "client_action_state.hpp"
+#pragma once
 
-ts::states::Client_action_state::Client_action_state(game::Loaded_scene loaded_scene, network::Client* client, 
-                                                     state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
-    : Action_state_base(std::move(loaded_scene), state_machine, context, resource_store)
+#ifndef CUP_LOCAL_PLAYERS_HPP
+#define CUP_LOCAL_PLAYERS_HPP
+
+namespace ts
 {
+    namespace resources
+    {
+        struct Player_settings;
+        class Player_store;
+    }
+
+    namespace cup
+    {
+        class Cup_interface;
+
+        void add_selected_local_players(Cup_interface* cup_interface, const resources::Player_settings& player_settings,
+                                        const resources::Player_store& player_store);
+    }
 }
 
-ts::states::Client_action_state::~Client_action_state()
-{
-}
+#endif

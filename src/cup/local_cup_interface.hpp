@@ -17,15 +17,31 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "stdinc.hpp"
-#include "client_action_state.hpp"
+#pragma once
 
-ts::states::Client_action_state::Client_action_state(game::Loaded_scene loaded_scene, network::Client* client, 
-                                                     state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
-    : Action_state_base(std::move(loaded_scene), state_machine, context, resource_store)
+#ifndef LOCAL_CUP_INTERFACE_HPP
+#define LOCAL_CUP_INTERFACE_HPP
+
+#include "cup_interface.hpp"
+
+namespace ts
 {
+    namespace cup
+    {
+        class Local_cup_interface
+            : public Cup_interface
+        {
+        public:
+            Local_cup_interface(Cup* cup);
+
+            virtual void select_cars(const std::vector<Car_selection>& car_selection) override;
+            virtual void signal_ready() override;
+
+        private:
+            std::unordered_set<Player_handle> ready_local_players_;
+
+        };
+    }
 }
 
-ts::states::Client_action_state::~Client_action_state()
-{
-}
+#endif

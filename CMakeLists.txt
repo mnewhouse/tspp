@@ -71,6 +71,25 @@ set(SRC src/main.cpp
         src/core/utf8_string.cpp
         src/core/utility.hpp
         src/core/vector2.hpp              
+		
+		src/cup/client_cup_interface.hpp
+		src/cup/client_cup_interface.cpp
+		src/cup/cup.hpp
+		src/cup/cup.cpp
+		src/cup/cup_interface.hpp
+		src/cup/cup_interface.cpp
+		src/cup/cup_listener.hpp
+		src/cup/cup_messages.hpp
+		src/cup/cup_messages.cpp
+		src/cup/local_cup_interface.hpp
+		src/cup/local_cup_interface.cpp
+		src/cup/local_players.hpp
+		src/cup/local_players.cpp
+		src/cup/player.hpp
+		src/cup/registration.hpp
+		src/cup/server_cup_interface.hpp
+		src/cup/server_cup_interface.cpp
+		src/cup/stage_data.hpp
 
         src/game/action_loader.hpp
         src/game/action_loader.cpp
@@ -80,9 +99,6 @@ set(SRC src/main.cpp
         src/game/camera.cpp
         src/game/car_image_generator.hpp
         src/game/car_image_generator.cpp
-        src/game/cup.hpp
-        src/game/cup.cpp
-        src/game/cup_listener.hpp
         src/game/drawable_entity.hpp
         src/game/drawable_entity.cpp
         src/game/game.hpp
@@ -91,8 +107,6 @@ set(SRC src/main.cpp
         src/game/game_state.cpp        
         src/game/particle_generator.hpp
         src/game/particle_generator.cpp
-        src/game/player.hpp
-        src/game/stage_data.hpp
         src/game/track_builder.hpp
         src/game/track_builder.cpp
 		src/game/view_context.hpp
@@ -120,6 +134,9 @@ set(SRC src/main.cpp
 		src/network/client.cpp
 		src/network/message.hpp
 		src/network/message.cpp
+		src/network/message_protocol.hpp
+		src/network/message_reader.hpp
+		src/network/message_reader.cpp
 		src/network/server.hpp
 		src/network/server.cpp
 
@@ -243,8 +260,8 @@ set(SRC src/main.cpp
 		src/states/client_cup_state.cpp
         src/states/cup_setup.hpp
         src/states/cup_setup.cpp
-        src/states/cup_state.hpp
-        src/states/cup_state.cpp
+        src/states/cup_state_base.hpp
+        src/states/cup_state_base.cpp
 		src/states/local_action_state.hpp
 		src/states/local_action_state.cpp
 		src/states/local_cup_state.hpp

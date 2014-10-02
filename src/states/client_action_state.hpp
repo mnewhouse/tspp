@@ -26,16 +26,25 @@
 
 namespace ts
 {
+    namespace network
+    {
+        class Client;
+    }
+
+
     namespace states
     {
         class Client_action_state
             : public Action_state_base
         {
         public:
-            Client_action_state(game::Loaded_scene loaded_scene, state_machine_type* state_machine,
+            Client_action_state(game::Loaded_scene loaded_scene, network::Client* client, state_machine_type* state_machine,
                                 gui::Context* context, resources::Resource_store* resource_store);
 
             virtual ~Client_action_state();
+
+        private:
+            network::Client* client_;
         };
     }
 }

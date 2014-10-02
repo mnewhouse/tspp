@@ -19,14 +19,14 @@
 
 #pragma once
 
-#ifndef GAME_CUP_LISTENER_HPP
-#define GAME_CUP_LISTENER_HPP
+#ifndef CUP_LISTENER_HPP
+#define CUP_LISTENER_HPP
 
 #include "cup.hpp"
 
 namespace ts
 {
-    namespace game
+    namespace cup
     {
         struct Cup_listener
         {

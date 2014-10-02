@@ -25,22 +25,36 @@
 #include "user_interface/document_handle.hpp"
 #include "user_interface/elements/elements.hpp"
 
+#include "cup/registration.hpp"
+
 namespace ts
 {
     namespace states
     {
         class Main_menu;
         class Cup_setup_menu;
+        class Client_cup_state;
+        class Connection_dialog;
 
         class Network_menu
         {
         public:
             Network_menu(Main_menu* main_menu, Cup_setup_menu* cup_setup_menu);
+            ~Network_menu();
 
             void show();
             void hide();
 
+            void update(std::size_t frame_duration);
+
+            void cancel_connect_attempt();
+
         private:
+            void activate_cup_state();
+            void handle_registration_error(const utf8_string& error_message);
+
+            void initiate_client_connection(utf8_string address_string);
+
             void return_to_main_menu();
             void show_server_setup();
             void create_network_menu_document(gui::Context* context);
@@ -51,7 +65,36 @@ namespace ts
             gui::Edit_box* server_address_editbox_ = nullptr;
             gui::Vertical_list<gui::Text_element>* recent_servers_list_ = nullptr;
 
+            std::unique_ptr<Client_cup_state> client_cup_state_;
+            std::unique_ptr<Connection_dialog> connection_dialog_;
+
+            cup::Registration_status registration_status_ = cup::Registration_status::None;
+
             gui::Document_handle network_menu_;
+        };
+
+        class Connection_dialog
+        {
+        public:
+            Connection_dialog(gui::Context* context, Network_menu* network_menu);
+
+            void show(Client_cup_state* client_cup_state);
+            void hide();
+
+            void set_status_text(utf8_string status_text);
+
+        private:
+            void cancel_connect_attempt();
+
+            void create_connection_dialog_document(gui::Context* context);
+
+            Client_cup_state* client_cup_state_ = nullptr;
+            Network_menu* network_menu_ = nullptr;
+
+            gui::Text_element* connection_state_text_ = nullptr;    
+            gui::Text_element* cancel_button_ = nullptr;
+
+            gui::Document_handle connection_dialog_;
         };
     }
 }

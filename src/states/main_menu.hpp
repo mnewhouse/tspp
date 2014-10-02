@@ -47,6 +47,8 @@ namespace ts
             virtual void on_activate() override;
 
         private:
+            virtual void update(std::size_t frame_duration) override;
+
             void show_player_setup();
             void show_local_cup_setup();
             void show_settings_menu();

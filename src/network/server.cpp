@@ -60,6 +60,9 @@ bool ts::network::Server::listen(std::uint16_t port_number)
 
     if (status == sf::Socket::Done && udp_status == sf::Socket::Done)
     {
+        socket_listener_.setBlocking(false);
+        udp_socket_.setBlocking(false);
+
         is_listening_ = true;
         networking_thread_ = std::thread([this]() { handle_networking(); });
         return true;
@@ -73,9 +76,9 @@ void ts::network::Server::stop_listening()
     is_listening_ = false;
 }
 
-ts::network::Client_key ts::network::Server::generate_client_key() const
+std::uint32_t ts::network::Server::generate_client_key() const
 {
-    std::uniform_int_distribution<Client_key> key_dist(std::numeric_limits<Client_key>::min(), std::numeric_limits<Client_key>::max());
+    std::uniform_int_distribution<std::uint32_t> key_dist(0x10000, std::numeric_limits<std::uint32_t>::max());
 
     auto client_key = key_dist(random_engine_);
     while (clients_.find(client_key) != clients_.end())
@@ -86,13 +89,14 @@ ts::network::Client_key ts::network::Server::generate_client_key() const
     return client_key;
 }
 
-ts::network::Connected_client* ts::network::Server::create_client_connection()
+ts::network::Client_handle ts::network::Server::create_client_connection(std::unique_ptr<sf::TcpSocket> socket)
 {
     auto client_key = generate_client_key();    
 
-    auto insert_result = clients_.emplace(std::piecewise_construct, std::forward_as_tuple(client_key), std::forward_as_tuple(client_key));
+    auto insert_result = clients_.emplace(std::piecewise_construct, std::forward_as_tuple(client_key), 
+                                                                    std::forward_as_tuple(std::move(socket), client_key));
 
-    return &insert_result.first->second;
+    return Client_handle(&insert_result.first->second);
 }
 
 void ts::network::Server::close_client_connection(Client_handle client_handle)
@@ -100,17 +104,22 @@ void ts::network::Server::close_client_connection(Client_handle client_handle)
     closed_connections_.push(client_handle);
 }
 
-void ts::network::Server::read_client_messages(Connected_client& client)
+void ts::network::Server::read_incoming_messages()
 {
     Client_message client_message;
-    client_message.client.set(&client);
 
     sf::Packet packet;
-    while (client.socket_.receive(packet) == sf::Socket::Done)
-    {
-        client_message.message.assign(static_cast<const std::uint8_t*>(packet.getData()), packet.getDataSize());
 
-        incoming_queue_.push(client_message);
+    for (auto& client_info : clients_)
+    {
+        const auto& client = client_info.second;
+        while (client.socket_->receive(packet) == sf::Socket::Done)
+        {
+            client_message.client.set(&client);
+            client_message.message.assign(static_cast<const std::uint8_t*>(packet.getData()), packet.getDataSize());
+
+            incoming_queue_.push(client_message);
+        }
     }
 }
 
@@ -130,7 +139,7 @@ void ts::network::Server::send_outgoing_messages()
 
         if (protocol == Message_protocol::Tcp)
         {
-            client->socket_.send(packet);
+            client->socket_->send(packet);
         }
 
         else if (protocol == Message_protocol::Udp)
@@ -155,51 +164,51 @@ void ts::network::Server::remove_closed_connections()
 
 void ts::network::Server::handle_networking()
 {
-    sf::SocketSelector socket_selector;
-    socket_selector.add(socket_listener_);
+    sf::Packet packet;
+
+    auto make_nonblocking_socket = []()
+    {
+        auto result = std::make_unique<sf::TcpSocket>();
+        result->setBlocking(false);
+        return result;
+    };
+
+    auto pending_socket = make_nonblocking_socket();
 
     while (is_listening_)
     {
-        if (socket_selector.isReady(socket_listener_))
+        while (socket_listener_.accept(*pending_socket) == sf::Socket::Done)
         {
-            auto client = create_client_connection();
-            
-            socket_listener_.accept(client->socket_);
-            socket_selector.add(client->socket_);
+            create_client_connection(std::move(pending_socket));
+
+            pending_socket = make_nonblocking_socket();
         }
 
-        for (auto& client_info : clients_)
-        {
-            auto& client = client_info.second;
-            if (socket_selector.isReady(client.socket_))
-            {
-                read_client_messages(client);
-            }
-        }
-
+        read_incoming_messages();
         send_outgoing_messages();
         remove_closed_connections();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(15));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
 
-ts::network::Connected_client::Connected_client(Client_key client_key)
-: client_key_(client_key)
+ts::network::Connected_client::Connected_client(std::unique_ptr<sf::TcpSocket> socket, std::uint32_t client_key)
+: socket_(std::move(socket)),
+  client_key_(client_key)
 {
 }
 
-ts::network::Client_key ts::network::Connected_client::client_key() const
+std::uint32_t ts::network::Connected_client::client_key() const
 {
     return client_key_;
 }
 
 sf::IpAddress ts::network::Connected_client::remote_address() const
 {
-    return socket_.getRemoteAddress();
+    return socket_->getRemoteAddress();
 }
 
 std::uint16_t ts::network::Connected_client::remote_port() const
 {
-    return socket_.getRemotePort();
+    return socket_->getRemotePort();
 }

@@ -19,13 +19,13 @@
 
 #pragma once
 
-#ifndef GAME_CUP_HPP
-#define GAME_CUP_HPP
+#ifndef CUP_HPP
+#define CUP_HPP
 
-#include "stage_data.hpp"
 #include "player.hpp"
+#include "stage_data.hpp"
 
-#include "resources/resource_store.hpp"
+#include "resources/settings.hpp"
 #include "resources/settings_copy.hpp"
 
 namespace ts
@@ -33,10 +33,11 @@ namespace ts
     namespace resources
     {
         class Track_handle;
+        struct Resource_store;
         struct Car_definition;
     }
 
-    namespace game
+    namespace cup
     {
         struct Cup_listener;
 
@@ -58,21 +59,21 @@ namespace ts
         };
 
         using Player_id = std::uint8_t;
-
         struct Cup_player_data
+            : public Player
         {
             Player_id player_id;
-            Player player;
             Car_data car_data;
-            bool ready_for_action = false;
         };
+
+        using Player_handle = Pointer_handle<const Cup_player_data>;
 
         class Cup
         {
         public:
-            using Player_handle = Pointer_handle<const Cup_player_data>;
+            
 
-            Cup(game::Cup_type cup_type, resources::Resource_store* resource_store);
+            Cup(Cup_type cup_type, resources::Resource_store* resource_store);
 
             void add_track(resources::Track_handle track_handle);
             const std::vector<resources::Track_handle>& track_list() const;            
@@ -85,37 +86,35 @@ namespace ts
 
             Cup_type cup_type() const;
             Cup_state cup_state() const;
-            
-            void advance();
-            void initialize_action();
+            std::size_t cup_progress() const;
+
+            void set_cup_state(Cup_state cup_state);
+            void set_cup_progress(std::size_t index);           
 
             void end();
             void restart();
-
-            void signal_ready();
-            void signal_ready(Player_handle player_handle);
+            void advance();
 
             resources::Track_handle current_track() const;
 
-            Player_handle add_local_player(const Player& player, controls::Slot player_slot);
-            Player_handle add_remote_player(const Player& player);
-
-            std::size_t player_count() const;
+            Player_handle add_player(const Player& player, controls::Slot player_slot = controls::invalid_slot);
+            void remove_player(Player_handle player_handle);
             const std::vector<Player_handle>& local_players() const;
 
-            void set_player_car(Player_handle, resources::Car_handle car_handle);
+            std::size_t player_count() const;
+            std::size_t max_players() const;
+
+            void set_player_car(Player_handle player, resources::Car_handle car_handle);
 
             Stage_data make_stage_data() const;
 
         private:
-            void launch_if_ready();
-
-            void assign_start_positions();
-            void change_state(Cup_state new_state);
-            void preinitialize_action();
             void launch_action();
             void stop_action();
+            void preinitialize_action();
+            void initialize_action();
             void start_cup();
+
             Player_id allocate_player_id() const;
 
             Cup_type cup_type_;
@@ -126,19 +125,17 @@ namespace ts
             resources::Settings_copy<resources::Car_settings> car_settings_;
             resources::Settings_copy<resources::Track_settings> track_settings_;
             resources::Settings_copy<resources::Script_settings> script_settings_;
+            resources::Settings_copy<resources::Cup_settings> cup_settings_;
 
             std::vector<resources::Script_handle> loaded_scripts_;
-            std::vector<Player_handle> local_players_;
-            std::uint32_t not_ready_count_ = 0;
 
-            std::size_t current_track_index_;
+            std::size_t cup_progress_;
             std::map<Player_id, Cup_player_data> player_map_;
+            std::vector<Player_handle> local_players_;
 
             std::vector<Cup_listener*> cup_listeners_;
         };
-
     }
-
 }
 
 #endif

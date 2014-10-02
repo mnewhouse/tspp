@@ -17,15 +17,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "stdinc.hpp"
-#include "client_action_state.hpp"
+#pragma once
 
-ts::states::Client_action_state::Client_action_state(game::Loaded_scene loaded_scene, network::Client* client, 
-                                                     state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
-    : Action_state_base(std::move(loaded_scene), state_machine, context, resource_store)
+#ifndef CUP_REGISTRATION_HPP
+#define CUP_REGISTRATION_HPP
+
+namespace ts
 {
+    namespace cup
+    {
+        enum class Registration_status
+        {
+            None,
+            Registering,
+            Registered,
+            Error
+        };
+    }
 }
 
-ts::states::Client_action_state::~Client_action_state()
-{
-}
+
+#endif
