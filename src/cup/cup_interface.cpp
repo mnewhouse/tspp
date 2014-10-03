@@ -31,6 +31,11 @@ const ts::cup::Cup* ts::cup::Cup_interface::cup() const
     return cup_;
 }
 
+ts::cup::Chatbox* ts::cup::Cup_interface::chatbox()
+{
+    return &chatbox_;
+}
+
 void ts::cup::Cup_interface::advance()
 {
     cup_->advance();
@@ -49,4 +54,9 @@ ts::cup::Player_handle ts::cup::Cup_interface::add_player(const Player& player, 
 void ts::cup::Cup_interface::set_player_car(Player_handle player_handle, resources::Car_handle car_handle)
 {
     cup_->set_player_car(player_handle, car_handle);
+}
+
+void ts::cup::Cup_interface::output_chat_message(const Composite_message& message)
+{
+    chatbox_.output_message(message);
 }

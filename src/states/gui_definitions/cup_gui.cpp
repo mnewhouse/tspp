@@ -20,27 +20,6 @@
 #include "stdinc.hpp"
 #include "cup_gui.hpp"
 
-/*
- * Turbo Sliders++
- * Copyright (C) 2013-2014 Martin Newhouse
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
-#include "stdinc.hpp"
-
 #include "resources/track.hpp"
 #include "game/car_image_generator.hpp"
 
@@ -51,9 +30,6 @@
 #include "user_interface/elements/elements.hpp"
 
 #include "background_document.hpp"
-
-
-
 
 ts::states::Cup_GUI::Cup_GUI(cup::Cup_interface* cup_interface, gui::Context* context, const resources::Resource_store* resource_store)
     : cup_interface_(cup_interface),
@@ -131,6 +107,11 @@ void ts::states::Cup_GUI::confirm_car_selection()
     apply_car_selection();
 }
 
+void ts::states::Cup_GUI::output_chat_message(const cup::Composite_message& message)
+{
+    chatbox_->create_row(message, chatbox_text_style_);
+}
+
 void ts::states::Cup_GUI::create_cup_document(gui::Context* context)
 {
     cup_document_ = context->create_document("cup-document");
@@ -144,6 +125,8 @@ void ts::states::Cup_GUI::create_cup_document(gui::Context* context)
     auto sans = font_library.font_by_name(gui::fonts::Sans);
 
     Vector2<double> window_size(screen_size.x - 80.0, screen_size.y - 60.0);
+
+    
 
     auto window = gui_definitions::create_styled_window(context, cup_document_.get(), window_size);
 
@@ -159,14 +142,29 @@ void ts::states::Cup_GUI::create_cup_document(gui::Context* context)
     header_text_->center_horizontal();
     header_text_->set_position({ 0.0, 30.0 });
 
-    gui::Text_style chat_box_style;
-    chat_box_style.font = monospace;
-    chat_box_style.character_size = 14;
-    chat_box_style.color = sf::Color::White;
+    chatbox_text_style_.font = monospace;
+    chatbox_text_style_.character_size = 14;
+    chatbox_text_style_.color = sf::Color::White;
+
+    Vector2<double> scroll_pane_size(window_size.x - 80.0, window_size.y - 220.0);
+
+    auto scroll_pane = window->create_child<gui::Scroll_pane>(scroll_pane_size, gui::Scroll_pane_style());
+    scroll_pane->set_position({ 40.0, 40.0 });
+
+    gui::Vertical_list_style chatbox_style;
+    chatbox_style.row_size.x = window_size.x - 80.0;
+    chatbox_style.row_size.y = 0.0;
+
+    chatbox_ = scroll_pane->create_child<chatbox_type>(chatbox_style);
 
     auto chat_editbox_background = gui::make_background_style<gui::Plain_background>(sf::Color(255, 255, 255, 25));
 
-    auto chat_editbox = window->create_child<gui::Edit_box>(chat_box_style);
+    auto slider_background = gui::make_background_style<gui::Plain_background>(sf::Color(255, 255, 255, 20));
+
+    scroll_pane->vertical_scroll_bar()->slider()->set_background_style(slider_background);
+    scroll_pane->vertical_scroll_bar()->set_background_style(slider_background);
+
+    auto chat_editbox = window->create_child<gui::Edit_box>(chatbox_text_style_);
     chat_editbox->set_position({ 40.0, window_size.y - 180.0 });
     chat_editbox->set_size({ window_size.x - 80.0, 20.0 });
     chat_editbox->set_offset({ 10.0, 1.0 });
@@ -199,7 +197,6 @@ void ts::states::Cup_GUI::create_cup_document(gui::Context* context)
         });
     }
 
-
     auto quit = window->create_child<gui::Text_element>("Quit", control_style);
     quit->set_position({ 60.0, window_size.y - 120.0 });
     quit->set_size(control_size);
@@ -210,6 +207,16 @@ void ts::states::Cup_GUI::create_cup_document(gui::Context* context)
                             [this](const gui::Element& element)
     {
         return_to_main_menu();
+    });
+
+    chat_editbox->add_event_handler(gui::events::on_key_down, 
+                                    [this, chat_editbox](const gui::Element& element, sf::Keyboard::Key key, unsigned int key_modifiers)
+    {
+        if (chat_editbox->active() && key == sf::Keyboard::Return)
+        {
+            cup_interface_->write_chat_message(chat_editbox->text());
+            chat_editbox->reset();
+        }
     });
 }
 

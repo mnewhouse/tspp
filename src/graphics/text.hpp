@@ -22,6 +22,7 @@
 #ifndef GRAPHICS_TEXT_HPP
 #define GRAPHICS_TEXT_HPP
 
+#include "colored_text.hpp"
 #include "geometry.hpp"
 
 #include "resources/font_face.hpp"
@@ -36,6 +37,7 @@ namespace ts
         {
         public:
             Text() = default;
+            Text(Composite_text text, Font_face font, std::uint32_t character_size);
             Text(utf8_string text, Font_face font, std::uint32_t character_size);
 
             void set_text(utf8_string text);
@@ -64,7 +66,7 @@ namespace ts
         private:
             void update_geometry() const;            
 
-            utf8_string text_;
+            Composite_text text_;
             Font_face font_;            
             sf::Color color_;
             std::uint32_t character_size_ = 0;

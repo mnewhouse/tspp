@@ -36,6 +36,7 @@ namespace ts
 
             virtual void select_cars(const std::vector<Car_selection>& car_selection) override;
             virtual void signal_ready() override;
+            virtual void write_chat_message(const utf8_string& message) override;
 
         private:
             std::unordered_set<Player_handle> ready_local_players_;

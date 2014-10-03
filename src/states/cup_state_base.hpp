@@ -43,7 +43,8 @@ namespace ts
         class Action_state_base;
 
         class Cup_state_base
-                : public cup::Cup_listener, public gui::State
+                : public cup::Cup_listener, public cup::Chatbox_listener,
+                  public gui::State
         {
         public:
             Cup_state_base(cup::Cup_interface* cup_interface, state_machine_type* state_machine, gui::Context* context,
@@ -59,6 +60,8 @@ namespace ts
             void show_gui();
             virtual void update(std::size_t frame_duration) override;
             virtual void on_activate() override;
+
+            virtual void on_chat_message(const cup::Composite_message& message) override;
             
 
         private:

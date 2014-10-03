@@ -42,7 +42,8 @@ namespace ts
 
 ts::states::Cup_state_base::Cup_state_base(cup::Cup_interface* cup_interface, state_machine_type* state_machine, gui::Context* context,
                                  resources::Resource_store* resource_store)
-  : gui::State(state_machine, context, resource_store),
+  : Chatbox_listener(cup_interface->chatbox()),
+    gui::State(state_machine, context, resource_store),
     cup_interface_(cup_interface),
     cup_gui_(cup_interface, context, resource_store)
 {
@@ -95,6 +96,11 @@ void ts::states::Cup_state_base::on_restart()
 void ts::states::Cup_state_base::on_end()
 {
     return_to_main_menu();
+}
+
+void ts::states::Cup_state_base::on_chat_message(const cup::Composite_message& message)
+{
+    cup_gui_.output_chat_message(message);
 }
 
 void ts::states::Cup_state_base::update(std::size_t frame_duration)

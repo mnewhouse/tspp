@@ -21,12 +21,24 @@
 #include "text.hpp"  
 
 ts::graphics::Text::Text(utf8_string text, Font_face font, std::uint32_t character_size)
-: text_(std::move(text)), font_(font), character_size_(character_size),
+: text_(std::move(text)), 
+  font_(font), 
+  character_size_(character_size),
   color_(sf::Color::White),
   line_height_(font.default_line_height(character_size)),
   word_wrap_width_(0)
 {
     geometry_.dirty = true;
+}
+
+ts::graphics::Text::Text(Composite_text text, Font_face font, std::uint32_t character_size)
+: text_(std::move(text)),
+  font_(font),
+  character_size_(character_size),
+  color_(sf::Color::White),
+  line_height_(font.default_line_height(character_size)),
+  word_wrap_width_(0)
+{
 }
 
 void ts::graphics::Text::set_position(Vector2<double> position)
@@ -42,11 +54,7 @@ ts::Vector2<double> ts::graphics::Text::position() const
 void ts::graphics::Text::set_color(sf::Color color)
 {
     color_ = color;
-
-    for (auto& vertex : geometry_.geometry.vertices)
-    {
-        vertex.color = color;
-    }
+    geometry_.dirty = true;
 }
 
 void ts::graphics::Text::set_font(Font_face font)
@@ -134,7 +142,10 @@ void ts::graphics::Text::update_geometry() const
     auto& vertices = geometry_.geometry.vertices;
     vertices.clear();
 
-    if (!font_) return;
+    if (!font_ || text_.components().empty())
+    {
+        return;
+    }
 
     Vector2f position{ 0.0f, std::floor((line_height_ + character_size_) * 0.5f) };
 
@@ -176,13 +187,45 @@ void ts::graphics::Text::update_geometry() const
 
     utf8::uint32_t previous_char = 0;
    
-    auto word_boundary = text_.begin(), line_boundary = word_boundary;
+    auto word_boundary = text_.text().begin(), line_boundary = word_boundary;
     std::size_t word_boundary_index = 0;
     
-    // Loop through all code points
-    for (auto it = text_.begin(), end = text_.end(); it != end; )
+    auto current_component = text_.components().begin();
+    auto component_it = current_component->text.begin();
+    sf::Color current_color = current_component->color;
+    if (current_color.a == 0) current_color = color_;
+
+    auto advance_component_it = [&]()
     {
-        std::uint32_t code_point = *it++;
+        if (current_component != text_.components().end() && component_it != current_component->text.end())
+        {
+            ++component_it;
+        }
+
+        while (current_component != text_.components().end() && component_it != current_component->text.end())
+        {
+            if (++current_component != text_.components().end())
+            {
+                component_it = current_component->text.begin();
+            }
+        }
+
+        if (current_component != text_.components().end() && component_it != current_component->text.end())
+        {
+            current_color = current_component->color;
+            if (current_color.a == 0)
+            {
+                current_color = color_;
+            }
+        }
+    };
+    
+    // Loop through all code points
+    for (auto it = text_.text().begin(), end = text_.text().end(); it != end; )
+    {
+        advance_component_it();
+
+        std::uint32_t code_point = *it; ++it;
         position += font_.kerning(previous_char, code_point, character_size_);
 
         auto& glyph = font_.glyph(code_point, character_size_);
@@ -193,11 +236,13 @@ void ts::graphics::Text::update_geometry() const
         }
         
         geometry_.character_offsets.push_back(position.x);
-        append_vertices(vertices, position, color_, glyph.bounds, glyph.texture_rect);
+        append_vertices(vertices, position, current_color, glyph.bounds, glyph.texture_rect);
 
         // Test for combining marks
         for (std::int32_t ccc; it != end && (ccc = unicode::combining_class(*it)) != 0; ++it)
         {
+            advance_component_it();
+
             auto& combining_mark = font_.glyph(*it, character_size_);
 
             // Center the combining mark
@@ -205,7 +250,7 @@ void ts::graphics::Text::update_geometry() const
             centered_position.x += (glyph.bounds.left - combining_mark.bounds.left) + ((glyph.bounds.width - combining_mark.bounds.width) / 2);
 
             geometry_.character_offsets.push_back(position.x);
-            append_vertices(vertices, centered_position, color_, combining_mark.bounds, combining_mark.texture_rect);
+            append_vertices(vertices, centered_position, current_color, combining_mark.bounds, combining_mark.texture_rect);
         }
 
         position += glyph.advance_offset;
@@ -270,7 +315,7 @@ void ts::graphics::Text::update_geometry() const
 
 const ts::utf8_string& ts::graphics::Text::text() const
 {
-    return text_;
+    return text_.text();
 }
 
 double ts::graphics::Text::line_height() const

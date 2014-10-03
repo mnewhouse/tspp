@@ -81,6 +81,10 @@ void ts::cup::Client_cup_interface::signal_ready()
 
 }
 
+void ts::cup::Client_cup_interface::write_chat_message(const utf8_string& message)
+{
+}
+
 void ts::cup::Client_cup_interface::handle_invalid_response()
 {
     registration_error("invalid response");

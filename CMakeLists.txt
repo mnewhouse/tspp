@@ -72,6 +72,8 @@ set(SRC src/main.cpp
         src/core/utility.hpp
         src/core/vector2.hpp              
 		
+		src/cup/chatbox.hpp
+		src/cup/chatbox.cpp
 		src/cup/client_cup_interface.hpp
 		src/cup/client_cup_interface.cpp
 		src/cup/cup.hpp
@@ -112,6 +114,8 @@ set(SRC src/main.cpp
 		src/game/view_context.hpp
 		src/game/view_context.cpp
 
+		src/graphics/colored_text.hpp
+		src/graphics/colored_text.cpp
         src/graphics/geometry.hpp
         src/graphics/geometry.cpp
         src/graphics/image_loader.hpp
@@ -349,6 +353,7 @@ SOURCE_GROUP(stdinc REGULAR_EXPRESSION src/stdinc\\..p)
 SOURCE_GROUP(audio REGULAR_EXPRESSION src/audio/[^/]+)
 SOURCE_GROUP(controls REGULAR_EXPRESSION src/controls/[^/]+)
 SOURCE_GROUP(core REGULAR_EXPRESSION src/core/[^/]+)
+SOURCE_GROUP(cup REGULAR_EXPRESSION src/cup/[^/]+)
 SOURCE_GROUP(game REGULAR_EXPRESSION src/game/[^/]+)
 SOURCE_GROUP(graphics REGULAR_EXPRESSION src/graphics/[^/]+)
 SOURCE_GROUP(network REGULAR_EXPRESSION src/network/[^/]+)

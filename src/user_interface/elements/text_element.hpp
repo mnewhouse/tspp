@@ -43,6 +43,9 @@ namespace ts
             : public Stylable_element<Text_style>
         {
         public:
+            Text_element(graphics::Composite_text text, const Text_style& style);
+            Text_element(graphics::Composite_text text, const Styler_type& styler);
+
             Text_element(utf8_string text, const Text_style& style);
             Text_element(utf8_string text, const Styler_type& styler);
 

@@ -132,6 +132,10 @@ void ts::cup::Server_cup_interface::signal_ready()
     advance_if_ready();
 }
 
+void ts::cup::Server_cup_interface::write_chat_message(const utf8_string& message)
+{
+}
+
 void ts::cup::Server_cup_interface::advance_if_ready()
 {
     if (awaiting_clients_.empty() && !awaiting_self_)

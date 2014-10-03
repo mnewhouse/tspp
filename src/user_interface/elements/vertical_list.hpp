@@ -76,14 +76,24 @@ template <typename... Args>
 ItemType* ts::gui::Vertical_list<ItemType>::create_row(Args&&... args)
 {
     auto child = create_child<ItemType>(std::forward<Args>(args)...);
-    child->set_auto_sizing(false);
 
     auto& style = current_style();
+    child->set_auto_sizing(false);
     child->set_size(style.row_size);
     
     auto num_rows = rows_.size();
     Vector2<double> position;
     position.y = num_rows * (style.row_size.y + style.row_spacing);
+
+    if (style.row_size.y == 0.0)
+    {
+        child->set_auto_sizing(true);
+        if (num_rows != 0)
+        {
+            auto prev_row = rows_.back();
+            position.y = prev_row->position().y + prev_row->size().y + style.row_spacing;
+        }
+    }
 
     child->set_position(position);
 
@@ -108,6 +118,12 @@ void ts::gui::Vertical_list<ItemType>::delete_row(std::size_t index)
     auto& style = current_style();
 
     position.y = index * (style.row_size.y + style.row_spacing);
+    if (index != 0 && style.row_size.y == 0.0)
+    {
+        auto prev_row = rows_[index - 1];
+        position.y = prev_row->position().y + prev_row->size().y + style.row_spacing;
+    }
+
 
     for (; it != rows_.end(); ++it, ++index)
     {
@@ -163,9 +179,26 @@ void ts::gui::Vertical_list<ItemType>::apply_style(const Vertical_list_style& st
 template <typename ItemType>
 void ts::gui::Vertical_list<ItemType>::apply_style_impl(const Vertical_list_style& style)
 {
-    for (auto row : rows_)
+    if (style.row_size.y == 0.0)
     {
-        row->set_size(style.row_size);
+        Vector2<double> position;
+
+        for (auto row : rows_)
+        {
+            row->set_auto_sizing(true);
+            row->set_position(position);
+
+            position.y += row->size().y + style.row_spacing;
+        }
+    }
+
+    else
+    {
+        for (auto row : rows_)
+        {
+            row->set_auto_sizing(false);
+            row->set_size(style.row_size);
+        }
     }
 }
 

@@ -40,3 +40,8 @@ void ts::cup::Local_cup_interface::signal_ready()
 {
     advance();
 }
+
+void ts::cup::Local_cup_interface::write_chat_message(const utf8_string& message)
+{
+    output_chat_message(Composite_message(message));
+}

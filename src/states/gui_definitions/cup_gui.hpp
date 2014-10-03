@@ -47,6 +47,8 @@ namespace ts
 
             void show_car_selection_dialog();      
             Loading_progress_dialog* progress_dialog();
+
+            void output_chat_message(const cup::Composite_message& message);
             
 
         private:
@@ -69,6 +71,11 @@ namespace ts
 
             gui::Context* context_;
             gui::Text_element* header_text_;
+
+            using chatbox_type = gui::Vertical_list<gui::Text_element>;
+            gui::Text_style chatbox_text_style_;
+            chatbox_type* chatbox_;
+
             std::atomic<bool> car_selection_ready_;
 
             gui::Document_handle cup_document_;

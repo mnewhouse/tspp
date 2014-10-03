@@ -27,7 +27,21 @@ ts::gui::Text_element::Text_element(utf8_string text, const Text_style& style)
     apply_style_impl(style);
 }
 
+ts::gui::Text_element::Text_element(graphics::Composite_text text, const Text_style& style)
+: Stylable_element(style),
+  text_item_(std::move(text), style.font, style.character_size)
+{
+    apply_style_impl(style);
+}
+
 ts::gui::Text_element::Text_element(utf8_string text, const Styler_type& styler)
+: Stylable_element(styler),
+  text_item_(std::move(text), styler.default_style().font, styler.default_style().character_size)
+{
+    apply_style_impl(styler.default_style());
+}
+
+ts::gui::Text_element::Text_element(graphics::Composite_text text, const Styler_type& styler)
 : Stylable_element(styler),
   text_item_(std::move(text), styler.default_style().font, styler.default_style().character_size)
 {
@@ -63,6 +77,7 @@ void ts::gui::Text_element::apply_style_impl(const Text_style& style)
 ts::Vector2<double> ts::gui::Text_element::content_size() const
 {
     const auto& bounds = text_item_.bounds();
+
     return { bounds.right(), bounds.bottom() };
 }
 

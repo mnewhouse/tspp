@@ -22,6 +22,7 @@
 
 #include "cup.hpp"
 #include "cup_listener.hpp"
+#include "chatbox.hpp"
 
 namespace ts
 {
@@ -43,17 +44,22 @@ namespace ts
             void end_cup();
 
             const Cup* cup() const;
+            Chatbox* chatbox();
 
             Player_handle add_player(const Player& player, controls::Slot control_slot = controls::invalid_slot);
             
             virtual void select_cars(const std::vector<Car_selection>& car_selection) = 0;
             virtual void signal_ready() = 0;
+            virtual void write_chat_message(const utf8_string& message) = 0;
 
         protected:
+            void output_chat_message(const Composite_message& message);
             void set_player_car(Player_handle player_handle, resources::Car_handle car_handle);
 
         private:
             Cup* cup_;
+
+            Chatbox chatbox_;
         };
     }
 }
