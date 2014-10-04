@@ -50,6 +50,10 @@ namespace ts
         private:
             void handle_join_request(const network::Client_message& message);
             void handle_bad_join_request(network::Client_handle client);
+
+            void handle_message(const network::Client_message& message);
+            void handle_ready_signal(const network::Client_message& message);
+            void handle_car_selection(const network::Client_message& message);
             
             void disconnect_client(network::Client_handle client_handle);
 

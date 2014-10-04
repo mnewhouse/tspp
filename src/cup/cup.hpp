@@ -54,6 +54,9 @@ namespace ts
 
             const std::vector<resources::Track_handle>& track_list() const;         
 
+            void select_car(resources::Car_handle car_handle);
+            void set_car_mode(resources::Car_mode car_mode);
+
             const std::vector<resources::Car_handle>& car_list() const;
             resources::Car_mode car_mode() const;
 

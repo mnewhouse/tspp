@@ -52,6 +52,12 @@ ts::cup::Player_handle ts::cup::Cup_interface::add_player(const Player& player)
     return cup_->add_player(player);
 }
 
+
+ts::cup::Player_handle ts::cup::Cup_interface::add_player(const Player& player, Player_id player_id)
+{
+    return cup_->add_player(player, player_id);
+}
+
 void ts::cup::Cup_interface::set_player_car(Player_handle player_handle, resources::Car_handle car_handle)
 {
     cup_->set_player_car(player_handle, car_handle);
@@ -70,4 +76,24 @@ void ts::cup::Cup_interface::set_cup_state(Cup_state state)
 void ts::cup::Cup_interface::set_cup_progress(std::size_t progress)
 {
     cup_->set_cup_progress(progress);
+}
+
+void ts::cup::Cup_interface::select_car(const resources::Car_handle& car_handle)
+{
+    cup_->select_car(car_handle);
+}
+
+void ts::cup::Cup_interface::set_car_mode(const resources::Car_mode car_mode)
+{
+    cup_->set_car_mode(car_mode);
+}
+
+void ts::cup::Cup_interface::add_track(const resources::Track_handle& track_handle)
+{
+    cup_->add_track(track_handle);
+}
+
+void ts::cup::Cup_interface::clear_tracks()
+{
+    cup_->clear_tracks();
 }

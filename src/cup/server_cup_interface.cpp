@@ -20,12 +20,12 @@
 #include "stdinc.hpp"
 #include "server_cup_interface.hpp"
 #include "cup.hpp"
-
-#include "network/server.hpp"
-
 #include "cup_messages.hpp"
 
+#include "network/server.hpp"
 #include "network/message_reader.hpp"
+
+#include "resources/resource_store.hpp"
 
 ts::cup::Server_cup_interface::Server_cup_interface(Cup* cup, network::Server* server, const resources::Resource_store* resource_store)
 : Cup_interface(cup),
@@ -70,15 +70,21 @@ void ts::cup::Server_cup_interface::handle_join_request(const network::Client_me
         out_message.message = make_join_acknowledgement_message(join_request.registration_key, client->client_key());
         server_->send_message(out_message);
 
+        // Also send various messages describing our lovely cup.
         out_message.message = make_cup_state_message(cup()->cup_state());
         server_->send_message(out_message);
 
-        out_message.message = make_cup_progress_message(cup()->cup_progress());
+        out_message.message = make_cup_progress_message(cup()->cup_progress(), cup()->current_track());
         server_->send_message(out_message);
 
         out_message.message = make_player_information_message(local_players, remote_players);
         server_->send_message(out_message);
 
+        out_message.message = make_track_information_message(resource_store_->track_settings(), resource_store_->track_store());
+        server_->send_message(out_message);
+
+        out_message.message = make_car_information_message(resource_store_->car_settings(), resource_store_->car_store());
+        server_->send_message(out_message);
     }    
 }
 
@@ -104,29 +110,7 @@ void ts::cup::Server_cup_interface::update(std::size_t frame_duration)
 {
     while (server_->get_message(message_buffer_))
     {
-        const auto& client = message_buffer_.client;
-        const auto& message = message_buffer_.message;
-
-        network::Message_reader message_reader(message);
-
-        std::uint32_t type = 0;
-        message_reader >> type;
-
-        if (client_player_mapping_.count(client->client_key()) == 0)
-        {
-            // The first message a client sends has to be a join request.
-
-            if (type != Message_type::join_request)
-            {
-                // ... but it isn't.
-                handle_bad_join_request(client);
-            }
-
-            else
-            {
-                handle_join_request(message_buffer_);
-            }
-        }
+        handle_message(message_buffer_);
     }
 }
 
@@ -176,11 +160,91 @@ void ts::cup::Server_cup_interface::on_state_change(Cup_state old_state, Cup_sta
     if (new_state == Cup_state::Car_selection)
     {
         wait_for_everyone();
-
     }
 
     if (new_state == Cup_state::Initializing)
     {
         wait_for_everyone();
+    }
+}
+
+void ts::cup::Server_cup_interface::handle_message(const network::Client_message& client_message)
+{    
+    const auto& client = client_message.client;
+    const auto& message = client_message.message;
+
+    network::Message_reader message_reader(message);
+
+    std::uint32_t type = 0;
+    message_reader >> type;
+
+    if (client_player_mapping_.count(client->client_key()) == 0)
+    {
+        // The first message a client sends has to be a join request.
+
+        if (type != Message_type::join_request)
+        {
+            // ... but it isn't.
+            handle_bad_join_request(client);
+        }
+
+        else
+        {
+            handle_join_request(client_message);
+        }
+    }
+
+    else
+    {
+        switch (type)
+        {
+        case Message_type::ready_signal:
+            handle_ready_signal(client_message);
+            break;
+
+        case Message_type::car_selection:
+            handle_car_selection(client_message);
+            break;
+        }
+    }
+}
+
+void ts::cup::Server_cup_interface::handle_ready_signal(const network::Client_message& message)
+{
+    awaiting_clients_.erase(message.client->client_key());
+
+    advance_if_ready();
+}
+
+void ts::cup::Server_cup_interface::handle_car_selection(const network::Client_message& message)
+{
+    // We have to be in the car selection state for this message to be accepted.
+    if (cup()->cup_state() != Cup_state::Car_selection)
+    {
+        return;
+    }
+
+    auto client = message.client;
+    auto car_selection_message = parse_car_selection_message(message.message);
+
+    const auto& possible_cars = cup()->car_list();
+
+    for (const auto& entry : car_selection_message.car_selection)
+    {
+        auto range = client_player_mapping_.equal_range(client->client_key());
+        auto handle = entry.player_handle;
+
+        // Find the corresponding player in the players associated with the client
+        auto search_result = std::find_if(range.first, range.second, 
+                                          [handle](const std::pair<std::uint32_t, Player_handle>& mapping)
+        {
+            return mapping.second->handle == handle;
+        });
+
+        if (search_result != range.second && entry.car_id < possible_cars.size())
+        {
+            // Set the player's car to the car corresponding to the ID they sent us.
+            set_player_car(search_result->second, possible_cars[entry.car_id]);
+        }
     }
 }

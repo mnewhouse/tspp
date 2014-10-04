@@ -19,6 +19,14 @@
 
 #include "stdinc.hpp"
 #include "cup_messages.hpp"
+
+#include "resources/track_store.hpp"
+#include "resources/car_store.hpp"
+
+#include "resources/settings/car_settings.hpp"
+#include "resources/settings/track_settings.hpp"
+#include "resources/settings/player_settings.hpp"
+
 #include "network/message_reader.hpp"
 
 namespace ts
@@ -244,7 +252,7 @@ ts::cup::Message ts::cup::make_cup_state_message(Cup_state cup_state)
     return message;
 }
 
-ts::cup::Message ts::cup::make_cup_progress_message(std::size_t progress)
+ts::cup::Message ts::cup::make_cup_progress_message(std::size_t progress, const resources::Track_handle& track)
 {
     Message message(Message_type::cup_progress);
     message << progress;
@@ -331,4 +339,111 @@ ts::cup::Player_information_message ts::cup::parse_player_information_message(co
     }
 
     return result;
+}
+
+ts::cup::Message ts::cup::make_car_selection_message(const std::vector<Car_selection>& car_selection)
+{
+    Message message(Message_type::car_selection);
+
+    message << static_cast<std::uint32_t>(car_selection.size());
+    for (const auto& entry : car_selection)
+    {
+        message << entry.player_handle->handle;
+        message << static_cast<std::uint32_t>(entry.car_index);
+    }
+
+    return message;
+}
+
+ts::cup::Car_selection_message ts::cup::parse_car_selection_message(const Message& message)
+{
+    Message_reader message_reader(message);
+    Car_selection_message result;
+
+    std::uint32_t player_count = 0;
+    if (message_reader >> result.message_type >> player_count)
+    {
+        Car_selection_message::Entry entry;
+        for (std::uint32_t n = 0; n != player_count && message_reader >> entry.player_handle >> entry.car_id; ++n)
+        {
+            result.car_selection.push_back(entry);
+        }
+    }
+
+    return result;
+}
+
+ts::cup::Message ts::cup::make_track_information_message(const resources::Track_settings& track_settings, const resources::Track_store& track_store)
+{
+    const auto& selected_tracks = track_settings.selected_tracks();
+
+    Message result(Message_type::track_information);
+
+    result << static_cast<std::uint32_t>(selected_tracks.size());
+    for (auto& track_handle : selected_tracks)
+    {
+        result << track_handle.name();
+    }
+
+    return result;
+}
+
+ts::cup::Track_information_message ts::cup::parse_track_information_message(const Message& message)
+{
+    Track_information_message result;
+    Message_reader message_reader(message);
+
+    std::uint32_t track_count = 0;
+    if (message_reader >> result.message_type >> track_count)
+    {
+        utf8_string track_name;
+        for (std::uint32_t n = 0; n != track_count && message_reader >> track_name; ++n)
+        {
+            result.track_names.push_back(track_name);
+        }
+    }
+
+    return result;
+}
+
+ts::cup::Message ts::cup::make_car_information_message(const resources::Car_settings& car_settings, const resources::Car_store& car_store)
+{
+    const auto& selected_cars = car_settings.selected_cars();
+
+    Message result(Message_type::car_information);
+    
+    result << static_cast<std::uint16_t>(car_settings.car_mode());
+    result << static_cast<std::uint32_t>(selected_cars.size());
+    for (auto& car_handle : selected_cars)
+    {
+        result << car_handle.car_name();
+    }
+
+    return result;
+}
+
+ts::cup::Car_information_message ts::cup::parse_car_information_message(const Message& message)
+{
+    Car_information_message result;
+    Message_reader message_reader(message);
+
+    std::uint32_t track_count = 0;
+    std::uint16_t car_mode = 0;
+    if (message_reader >> result.message_type >> car_mode >> track_count)
+    {
+        utf8_string car_name;
+        for (std::uint32_t n = 0; n != track_count && message_reader >> car_name; ++n)
+        {
+            result.car_names.push_back(car_name);
+        }
+
+        result.car_mode = static_cast<resources::Car_mode>(car_mode);
+    }
+
+    return result;
+}
+
+ts::cup::Message ts::cup::make_ready_signal_message()
+{
+    return Message(Message_type::ready_signal);
 }

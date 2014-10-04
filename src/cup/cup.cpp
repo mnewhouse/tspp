@@ -50,6 +50,16 @@ std::size_t ts::cup::Cup::cup_progress() const
     return cup_progress_;
 }
 
+void ts::cup::Cup::select_car(resources::Car_handle car_handle)
+{
+    car_settings_.select_car(car_handle);
+}
+
+void ts::cup::Cup::set_car_mode(resources::Car_mode car_mode)
+{
+    car_settings_.set_car_mode(car_mode);
+}
+
 ts::resources::Car_mode ts::cup::Cup::car_mode() const
 {
     return car_settings_.car_mode();

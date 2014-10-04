@@ -24,6 +24,9 @@
 #include "cup_listener.hpp"
 #include "chatbox.hpp"
 
+#include "resources/settings/car_settings.hpp"
+#include "resources/settings/track_settings.hpp"
+
 namespace ts
 {
     namespace cup
@@ -34,6 +37,7 @@ namespace ts
         {
             Player_handle player_handle;
             resources::Car_handle car_handle;
+            std::uint32_t car_index;
         };
 
         class Cup_interface
@@ -51,7 +55,15 @@ namespace ts
             const Cup* cup() const;
             Chatbox* chatbox();
 
+            void clear_players();
             Player_handle add_player(const Player& player);
+            Player_handle add_player(const Player& player, Player_id handle);
+
+            void clear_tracks();
+            void add_track(const resources::Track_handle& track_handle);
+
+            void select_car(const resources::Car_handle& car_handle);
+            void set_car_mode(resources::Car_mode car_mode);            
             
             virtual void select_cars(const std::vector<Car_selection>& car_selection) = 0;
             virtual void signal_ready() = 0;

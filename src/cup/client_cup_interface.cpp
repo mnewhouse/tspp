@@ -25,6 +25,8 @@
 #include "network/message_reader.hpp"
 
 #include "resources/resource_store.hpp"
+#include "resources/track_store.hpp"
+#include "resources/car_store.hpp"
 
 ts::cup::Client_cup_interface::Client_cup_interface(Cup* cup, network::Client* client, const resources::Resource_store* resource_store)
 : Cup_interface(cup),
@@ -73,12 +75,14 @@ void ts::cup::Client_cup_interface::update()
 
 void ts::cup::Client_cup_interface::select_cars(const std::vector<Car_selection>& car_selection)
 {
-
+    auto message = make_car_selection_message(car_selection);
+    client_->send_message(message);
 }
 
 void ts::cup::Client_cup_interface::signal_ready()
 {
-
+    auto message = make_ready_signal_message();
+    client_->send_message(message);
 }
 
 void ts::cup::Client_cup_interface::write_chat_message(const utf8_string& message)
@@ -122,12 +126,71 @@ void ts::cup::Client_cup_interface::handle_cup_state_message(const Message& mess
     set_cup_state(cup_state_message.cup_state);
 }
 
+void ts::cup::Client_cup_interface::handle_cup_progress_message(const Message& message)
+{
+    auto cup_progress_message = parse_cup_progress_message(message);
+    set_cup_progress(cup_progress_message.cup_progress);
+}
+
+void ts::cup::Client_cup_interface::handle_player_information_message(const Message& message)
+{
+    auto player_information = parse_player_information_message(message);
+    for (auto& player : player_information.players)
+    {
+        add_player(player, player.handle);
+    }
+}
+
+void ts::cup::Client_cup_interface::handle_track_information_message(const Message& message)
+{
+    const auto& track_store = resource_store_->track_store();
+
+    clear_tracks();
+
+    auto track_information = parse_track_information_message(message);
+    for (const auto& track_name : track_information.track_names)
+    {
+        auto track_handle = track_store.get_track_by_name(track_name);
+        add_track(track_handle);
+    }
+}
+
+void ts::cup::Client_cup_interface::handle_car_information_message(const Message& message)
+{
+    const auto& car_store = resource_store_->car_store();
+    auto car_information = parse_car_information_message(message);
+
+    set_car_mode(car_information.car_mode);
+
+    for (const auto& car_name : car_information.car_names)
+    {
+        auto car_handle = car_store.get_car_by_name(car_name);
+        select_car(car_handle);
+    }
+}
+
 void ts::cup::Client_cup_interface::handle_message(const Message& message)
 {
     switch (message.type())
     {
     case Message_type::cup_state:
         handle_cup_state_message(message);
+        break;
+
+    case Message_type::player_information:
+        handle_player_information_message(message);
+        break;
+
+    case Message_type::track_information:
+        handle_track_information_message(message);
+        break;
+
+    case Message_type::car_information:
+        handle_car_information_message(message);
+        break;
+
+    case Message_type::cup_progress:
+        handle_cup_progress_message(message);
         break;
     }
 }

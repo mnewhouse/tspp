@@ -63,6 +63,10 @@ namespace ts
 
             void handle_acknowledgement_message(const network::Message& message);
             void handle_cup_state_message(const network::Message& message);
+            void handle_cup_progress_message(const network::Message& message);
+            void handle_player_information_message(const network::Message& message);
+            void handle_track_information_message(const network::Message& message);
+            void handle_car_information_message(const network::Message& message);
 
             Cup* cup_;
             network::Client* client_;

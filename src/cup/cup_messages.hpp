@@ -22,21 +22,32 @@
 #ifndef MESSAGE_DEFINITIONS_HPP
 #define MESSAGE_DEFINITIONS_HPP
 
-#include "resources/settings/player_settings.hpp"
-
-#include "cup.hpp"
+#include "cup_interface.hpp"
 
 #include "network/message.hpp"
 
+#include "resources/settings/player_settings.hpp"
+#include "resources/settings/track_settings.hpp"
+#include "resources/settings/car_settings.hpp"
+
 namespace ts
 {
+    namespace resources
+    {
+        class Track_store;
+        class Car_store;
+
+        class Track_handle;
+        class Car_handle;
+    }
+
     namespace cup
     {
         using network::Message;
 
         struct Message_type
         {
-            static const std::uint32_t join_request = 2201;
+            static const std::uint32_t join_request = 1201;
             static const std::uint32_t join_acknowledgement = 2211;
 
             static const std::uint32_t bad_request = 2221;
@@ -45,11 +56,15 @@ namespace ts
 
             static const std::uint32_t cup_state = 2301;
             static const std::uint32_t cup_progress = 2302;
+            static const std::uint32_t action_initialization = 2351;
 
             static const std::uint32_t player_information = 2441;
             static const std::uint32_t track_information = 2401;
             static const std::uint32_t resource_information = 2411;
             static const std::uint32_t car_information = 2421;
+
+            static const std::uint32_t car_selection = 1471;
+            static const std::uint32_t ready_signal = 1481;
 
         };
 
@@ -94,7 +109,32 @@ namespace ts
             {
                 Player_id handle;
             };
-            std::vector<Player> players;
+            std::vector<Player_definition> players;
+        };
+
+        struct Track_information_message
+        {
+            std::uint32_t message_type = 0;
+            std::vector<utf8_string> track_names;
+        };
+
+        struct Car_information_message
+        {
+            std::uint32_t message_type = 0;
+            resources::Car_mode car_mode = resources::Car_mode::Fixed;
+            std::vector<utf8_string> car_names;
+        };
+
+        struct Car_selection_message
+        {
+            std::uint32_t message_type = 0;
+            struct Entry
+            {
+                Player_id player_handle;
+                std::uint32_t car_id;
+            };
+
+            std::vector<Entry> car_selection;
         };
 
         Message make_join_request_message(std::uint64_t join_key, const resources::Player_settings& player_settings, const resources::Player_store& player_store);
@@ -111,16 +151,21 @@ namespace ts
         Message make_cup_state_message(cup::Cup_state cup_state);
         Cup_state_message parse_cup_state_message(const Message& message);
 
-        Message make_cup_progress_message(std::size_t progress);
+        Message make_cup_progress_message(std::size_t progress, const resources::Track_handle& track_handle);
         Cup_progress_message parse_cup_progress_message(const Message& message);
 
         Message make_player_information_message(const std::vector<Player_handle>& local_players, const std::vector<Player_handle>& remote_players);
         Player_information_message parse_player_information_message(const Message& message);
 
-        Message make_track_information_message(const resources::Track_handle& track_handle);
-        Message make_car_information_message(const resources::Car_settings& car_settings, const resources::Car_store& car_store);
+        Message make_track_information_message(const resources::Track_settings& track_settings, const resources::Track_store& track_store);
+        Track_information_message parse_track_information_message(const Message& message);
 
-        Message make_initialization_message();
+        Message make_car_information_message(const resources::Car_settings& car_settings, const resources::Car_store& car_store);
+        Car_information_message parse_car_information_message(const Message& message);
+
+        Message make_car_selection_message(const std::vector<Car_selection>& car_selection);
+        Car_selection_message parse_car_selection_message(const Message& message);
+
         Message make_ready_signal_message();
     }
 }
