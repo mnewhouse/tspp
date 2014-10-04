@@ -17,26 +17,36 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
+#include "stdinc.hpp"
+#include "player_settings.hpp"
 
-#ifndef CUP_PLAYER_HPP
-#define CUP_PLAYER_HPP
-
-#include "controls/control.hpp"
-#include "resources/player_color.hpp"
-
-namespace ts
+ts::resources::Player_settings::Player_settings()
 {
-    namespace cup
+    std::fill(selected_players_.begin(), selected_players_.end(), 0);
+}
+
+const std::array<ts::resources::Player_store::unique_id, 4> ts::resources::Player_settings::selected_players() const
+{
+    return selected_players_;
+}
+
+void ts::resources::Player_settings::select_player(Player_store::unique_id player_id, int slot)
+{
+    if (slot >= 0 && slot < 4)
     {
-        struct Player
+        for (auto& id : selected_players_)
         {
-            controls::Slot control_slot = controls::invalid_slot;
-            utf8_string nickname;
-            std::uint64_t id;
-            resources::Player_color color;
-        };
+            if (id == player_id) id = 0;
+        }
+
+        selected_players_[slot] = player_id;
     }
 }
 
-#endif
+void ts::resources::Player_settings::deselect_player(int slot)
+{
+    if (slot >= 0 && slot < 4)
+    {
+        selected_players_[slot] = 0;
+    }
+}

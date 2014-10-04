@@ -29,24 +29,17 @@ namespace ts
     namespace resources
     {
         class Car_handle
+            : public Pointer_handle<const Car_definition>
         {
         public:
             explicit Car_handle(const Car_definition* car_def = nullptr);
+            explicit Car_handle(utf8_string car_name);
 
-            const Car_definition* operator->() const;
-            const Car_definition& operator*() const;
-            operator bool() const;
+            const utf8_string& car_name() const;
 
         private:
-            const Car_definition* car_def_;
+            utf8_string car_name_;
         };
-
-        bool operator==(const Car_handle& lhs, const Car_handle& rhs);
-        bool operator!=(const Car_handle& lhs, const Car_handle& rhs);
-        bool operator<(const Car_handle& lhs, const Car_handle& rhs);
-        bool operator>(const Car_handle& lhs, const Car_handle& rhs);
-        bool operator<=(const Car_handle& lhs, const Car_handle& rhs);
-        bool operator>=(const Car_handle& lhs, const Car_handle& rhs);
     }
 }
 

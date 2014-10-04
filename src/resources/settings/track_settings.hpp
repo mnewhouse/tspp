@@ -19,24 +19,37 @@
 
 #pragma once
 
-#ifndef CUP_PLAYER_HPP
-#define CUP_PLAYER_HPP
+#ifndef TRACK_SETTINGS_HPP
+#define TRACK_SETTINGS_HPP
 
-#include "controls/control.hpp"
-#include "resources/player_color.hpp"
+#include "resources/track_handle.hpp"
 
 namespace ts
 {
-    namespace cup
+    namespace resources
     {
-        struct Player
+        class Track_settings
         {
-            controls::Slot control_slot = controls::invalid_slot;
-            utf8_string nickname;
-            std::uint64_t id;
-            resources::Player_color color;
+        public:
+            void add_track(Track_handle track);
+            void add_track_if_not_selected(Track_handle track);
+
+            bool is_selected(Track_handle track) const;
+            void remove_track(Track_handle track);
+            void remove_track(std::size_t index);
+
+            void move_forward(std::size_t index);
+            void move_backward(std::size_t index);
+
+            void clear_selection();
+
+            const std::vector<Track_handle>& selected_tracks() const;
+
+        private:
+            std::vector<Track_handle> selected_tracks_;
         };
     }
 }
+
 
 #endif

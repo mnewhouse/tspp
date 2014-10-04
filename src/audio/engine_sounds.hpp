@@ -24,10 +24,15 @@
 
 #include "audio_store.hpp"
 
-#include "resources/settings.hpp"
+#include "resources/settings/audio_settings.hpp"
 
 namespace ts
 {
+    namespace world
+    {
+        class Car;
+    }
+
     namespace audio
     {
         class Engine_sound_controller

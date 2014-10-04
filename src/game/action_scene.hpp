@@ -27,10 +27,14 @@
 #include "track_builder.hpp"
 #include "view_context.hpp"
 
-#include "resources/settings.hpp"
-
 namespace ts
 {
+    namespace resources
+    {
+        class Video_settings;
+        struct Player_color;
+    }
+
     namespace world
     {
         class Car;

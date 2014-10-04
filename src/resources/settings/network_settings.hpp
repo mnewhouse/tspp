@@ -19,22 +19,18 @@
 
 #pragma once
 
-#ifndef CUP_PLAYER_HPP
-#define CUP_PLAYER_HPP
-
-#include "controls/control.hpp"
-#include "resources/player_color.hpp"
+#ifndef NETWORK_SETTINGS_HPP
+#define NETWORK_SETTINGS_HPP
 
 namespace ts
 {
-    namespace cup
+    namespace resources
     {
-        struct Player
+        class Network_settings
         {
-            controls::Slot control_slot = controls::invalid_slot;
-            utf8_string nickname;
-            std::uint64_t id;
-            resources::Player_color color;
+        public:
+            std::uint16_t server_port = 8821;
+            std::uint16_t client_port = 8822;
         };
     }
 }

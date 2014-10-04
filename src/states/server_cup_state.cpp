@@ -23,19 +23,22 @@
 
 #include "cup/local_players.hpp"
 
+#include "resources/settings/network_settings.hpp"
+
 ts::states::impl::Server_cup_state_members::Server_cup_state_members(resources::Resource_store* resource_store)
-: cup_(cup::Cup_type::Server, resource_store),
+: cup_(cup::Cup_type::Server),
+  cup_config_(&cup_, resource_store),
   server_(),
   server_cup_interface_(&cup_, &server_, resource_store)
 {
-    cup::add_selected_local_players(&server_cup_interface_, resource_store->settings.player_settings, resource_store->players);
+    cup::add_selected_local_players(&server_cup_interface_, resource_store->player_settings(), resource_store->player_store());
 }
 
 ts::states::Server_cup_state::Server_cup_state(state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
 : Server_cup_state_members(resource_store),
   Cup_state_base(&server_cup_interface_, state_machine, context, resource_store)
 {
-    auto& network_settings = resource_store->settings.network_settings;
+    auto& network_settings = resource_store->network_settings();
     server_.listen(network_settings.server_port);
 
     cup_.add_cup_listener(this);    

@@ -20,8 +20,10 @@
 #ifndef STATES_SERVER_CUP_STATE_HPP
 #define STATES_SERVER_CUP_STATE_HPP
 
+
 #include "cup_state_base.hpp"
 
+#include "cup/cup_config.hpp"
 #include "cup/server_cup_interface.hpp"
 
 #include "network/server.hpp"
@@ -37,6 +39,7 @@ namespace ts
                 Server_cup_state_members(resources::Resource_store* resource_store);
 
                 cup::Cup cup_;
+                cup::Cup_config cup_config_;
                 network::Server server_;
                 cup::Server_cup_interface server_cup_interface_;
             };

@@ -19,37 +19,83 @@
 
 #pragma once
 
-#ifndef RESOURCES_RESOURCES_HPP
-#define RESOURCES_RESOURCES_HPP
-
-#include "track_store.hpp"
-#include "car_store.hpp"
-#include "player_store.hpp"
-#include "script_manager.hpp"
-
-#include "font_library.hpp"
-#include "settings.hpp"
+#ifndef RESOURCES_RESOURCE_STORE_HPP
+#define RESOURCES_RESOURCE_STORE_HPP
 
 namespace ts
 {
     namespace resources
     {
+        class Car_store;
+        class Track_store;
+        class Player_store;
+        class Script_manager;
+        class Font_library;
+
+        struct Settings;
+
+        class Video_settings;
+        class Car_settings;
+        class Track_settings;
+        class Script_settings;
+        class Input_settings;
+        class Player_settings;
+        class Network_settings;
+        class Audio_settings;
+
         struct Resource_store
         {
-            Resource_store()
-            : cars(config::car_directory),
-              tracks(config::track_root_directory),
-              players(config::players_file),
-              scripts(config::script_root_directory),
-              settings(config::settings_file, &cars, &tracks)
-            {}
+            Resource_store();
+            ~Resource_store();
 
-            Car_store cars;
-            Track_store tracks;
-            Player_store players;
-            Script_manager scripts;
-            Settings settings;
-            Font_library font_library;
+            Resource_store(const Resource_store&) = delete;
+            Resource_store& operator=(const Resource_store&) = delete;
+
+            Car_store& car_store();
+            Track_store& track_store();
+            Player_store& player_store();
+            Script_manager& script_manager();
+            Settings& settings();
+            Font_library& font_library();
+
+            const Car_store& car_store() const;
+            const Track_store& track_store() const;
+            const Player_store& player_store() const;
+            const Script_manager& script_manager() const;
+            const Settings& settings() const;
+            const Font_library& font_library() const;
+
+            const Car_settings& car_settings() const;
+            Car_settings& car_settings();
+
+            const Video_settings& video_settings() const;
+            Video_settings& video_settings();
+
+            const Track_settings& track_settings() const;
+            Track_settings& track_settings();
+
+            const Script_settings& script_settings() const;
+            Script_settings& script_settings();
+
+            const Input_settings& input_settings() const;
+            Input_settings& input_settings();
+
+            const Player_settings& player_settings() const;
+            Player_settings& player_settings();
+
+            const Network_settings& network_settings() const;
+            Network_settings& network_settings();
+
+            const Audio_settings& audio_settings() const;
+            Audio_settings& audio_settings();
+
+        private:
+            std::unique_ptr<Car_store> car_store_;
+            std::unique_ptr<Track_store> track_store_;
+            std::unique_ptr<Player_store> player_store_;
+            std::unique_ptr<Script_manager> script_manager_;
+            std::unique_ptr<Settings> settings_;
+            std::unique_ptr<Font_library> font_library_;
         };
     }
 }

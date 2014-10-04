@@ -474,7 +474,7 @@ void ts::states::Car_selection_dialog::load_dialog()
     {
         auto row = selection_list_->create_row();
 
-        auto car_index = get_car_index(player_handle->car_data.car);
+        auto car_index = get_car_index(player_handle->car);
 
         const auto& car = possible_cars_[car_index];
 

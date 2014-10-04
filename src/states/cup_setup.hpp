@@ -27,6 +27,11 @@
 #include "user_interface/document_handle.hpp"
 #include "user_interface/elements/elements.hpp"
 
+#include "resources/track_store.hpp"
+#include "resources/car_handle.hpp"
+
+#include "resources/settings/car_settings.hpp"
+
 namespace ts
 {
     namespace states

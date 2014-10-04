@@ -28,6 +28,11 @@
 
 namespace ts
 {
+    namespace resources
+    {
+        struct Resource_store;
+    }
+
     namespace cup
     {
         class Client_cup_interface

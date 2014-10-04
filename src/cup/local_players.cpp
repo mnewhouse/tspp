@@ -23,12 +23,12 @@
 #include "cup_interface.hpp"
 
 #include "resources/player_store.hpp"
-#include "resources/settings.hpp"
+#include "resources/settings/player_settings.hpp"
 
 void ts::cup::add_selected_local_players(Cup_interface* cup_interface, const resources::Player_settings& player_settings,
                                          const resources::Player_store& player_store)
 {
-    auto& selected_players = player_settings.selected_players;
+    const auto& selected_players = player_settings.selected_players();
 
     for (controls::Slot slot = 0; slot != selected_players.size(); ++slot)
     {

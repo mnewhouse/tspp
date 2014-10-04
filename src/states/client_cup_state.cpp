@@ -22,7 +22,7 @@
 #include "client_action_state.hpp"
 
 ts::states::impl::Client_cup_state_members::Client_cup_state_members(resources::Resource_store* resource_store)
-: cup_(cup::Cup_type::Remote, resource_store),
+: cup_(cup::Cup_type::Remote),
   client_(),
   client_cup_interface_(&cup_, &client_, resource_store)
 {

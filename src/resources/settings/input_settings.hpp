@@ -17,24 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #pragma once
 
-#ifndef CUP_PLAYER_HPP
-#define CUP_PLAYER_HPP
+#ifndef INPUT_SETTINGS_HPP
+#define INPUT_SETTINGS_HPP
 
-#include "controls/control.hpp"
-#include "resources/player_color.hpp"
+#include "controls/key_mapping.hpp"
 
 namespace ts
 {
-    namespace cup
+    namespace resources
     {
-        struct Player
+        class Input_settings
         {
-            controls::Slot control_slot = controls::invalid_slot;
-            utf8_string nickname;
-            std::uint64_t id;
-            resources::Player_color color;
+        public:
+            controls::Key_mapping key_mapping;
         };
     }
 }

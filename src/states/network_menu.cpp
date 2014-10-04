@@ -29,6 +29,8 @@
 
 #include "gui_definitions/window_template.hpp"
 
+#include "resources/settings/network_settings.hpp"
+
 namespace ts
 {
     std::pair<utf8_string, std::uint16_t> extract_port_from_address(utf8_string address, std::uint16_t default_port);
@@ -154,7 +156,7 @@ void ts::states::Network_menu::initiate_client_connection(utf8_string address_st
                                                                main_menu_->context(),
                                                                main_menu_->resource_store());
 
-        auto& network_settings = main_menu_->resource_store()->settings.network_settings;
+        auto& network_settings = main_menu_->resource_store()->network_settings();
 
         auto address = extract_port_from_address(std::move(address_string), network_settings.server_port);
 

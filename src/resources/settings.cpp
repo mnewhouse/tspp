@@ -21,7 +21,6 @@
 #include "settings.hpp"
 
 #include "car_store.hpp"
-#include "track_store.hpp"
 
 namespace ts
 {
@@ -35,7 +34,6 @@ namespace ts
         std::istream& operator>>(std::istream& stream, Video_settings& video_settings);
         std::istream& operator>>(std::istream& stream, Input_settings& input_settings);
         std::istream& operator>>(std::istream& stream, Audio_settings& audio_settings);
-        std::istream& operator>>(std::istream& stream, Game_settings& game_settings);
         std::istream& operator>>(std::istream& stream, Track_settings& track_settings);
         std::istream& operator>>(std::istream& stream, Car_settings& car_settings);
         std::istream& operator>>(std::istream& stream, Player_settings& player_settings);
@@ -44,7 +42,6 @@ namespace ts
         std::ostream& operator<<(std::ostream& stream, const Video_settings& video_settings);
         std::ostream& operator<<(std::ostream& stream, const Input_settings& input_settings);
         std::ostream& operator<<(std::ostream& stream, const Audio_settings& audio_settings);
-        std::ostream& operator<<(std::ostream& stream, const Game_settings& game_settings);
         std::ostream& operator<<(std::ostream& stream, const Track_settings& track_settings);
         std::ostream& operator<<(std::ostream& stream, const Car_settings& car_settings);
         std::ostream& operator<<(std::ostream& stream, const Player_settings& player_settings);
@@ -52,10 +49,8 @@ namespace ts
     }
 }
 
-ts::resources::Settings::Settings(utf8_string file_name, const Car_store* car_store, const Track_store* track_store)
-: file_name_(std::move(file_name)),
-  car_settings(car_store),
-  track_settings(track_store)
+ts::resources::Settings::Settings(utf8_string file_name)
+: file_name_(std::move(file_name))
 {
     load_settings(file_name_, *this);
 }
@@ -63,64 +58,6 @@ ts::resources::Settings::Settings(utf8_string file_name, const Car_store* car_st
 ts::resources::Settings::~Settings()
 {
     save_settings(file_name_, *this);
-}
-
-const std::vector<ts::resources::Car_handle>& ts::resources::Car_settings::selected_cars() const
-{
-    return selected_cars_;
-}
-
-ts::resources::Car_mode ts::resources::Car_settings::car_mode() const
-{
-    return car_mode_;
-}
-
-const ts::resources::Car_store* ts::resources::Car_settings::car_store() const
-{
-    return car_store_;
-}
-
-void ts::resources::Car_settings::select_car(Car_handle car_handle)
-{
-    if (car_mode_ == Car_mode::Fixed)
-    {
-        selected_cars_.clear();
-        selected_cars_.push_back(car_handle);
-    }
-
-    else if (!is_car_selected(car_handle))
-    {
-        selected_cars_.push_back(car_handle);
-    }
-}
-
-void ts::resources::Car_settings::deselect_car(Car_handle car_handle)
-{
-    if (selected_cars_.size() != 1 || selected_cars_.front() != car_handle)
-    {
-        auto remove_it = std::remove(selected_cars_.begin(), selected_cars_.end(), car_handle);
-        selected_cars_.erase(remove_it, selected_cars_.end());
-    }
-}
-
-void ts::resources::Car_settings::set_car_mode(Car_mode car_mode)
-{
-    if (car_mode == Car_mode::Fixed)
-    {
-        if (!selected_cars_.empty()) selected_cars_.resize(1);
-    }
-
-    car_mode_ = car_mode;
-}
-
-bool ts::resources::Car_settings::is_car_selected(Car_handle car_handle) const
-{
-    return std::find(selected_cars_.begin(), selected_cars_.end(), car_handle) != selected_cars_.end();
-}
-
-ts::resources::Player_settings::Player_settings()
-{
-    std::fill(selected_players.begin(), selected_players.end(), 0);
 }
 
 void ts::resources::load_settings(const utf8_string& file_name, Settings& settings)
@@ -157,11 +94,6 @@ void ts::resources::load_settings(std::istream& stream, Settings& settings)
                     stream >> settings.audio_settings;
                 }
 
-                else if (section == "game")
-                {
-                    stream >> settings.game_settings;
-                }
-
                 else if (section == "tracks")
                 {
                     stream >> settings.track_settings;
@@ -189,9 +121,6 @@ void ts::resources::load_settings(std::istream& stream, Settings& settings)
 void ts::resources::save_settings(const utf8_string& file_name, const Settings& settings)
 {
     boost::filesystem::ofstream stream(file_name.string());
-    stream << "Section Game\n";
-    stream << settings.game_settings;
-    stream << "End\n\n";
 
     stream << "Section Video\n";
     stream << settings.video_settings;
@@ -332,16 +261,6 @@ std::istream& ts::resources::operator>>(std::istream& stream, Audio_settings& au
     return stream;
 }
 
-std::istream& ts::resources::operator>>(std::istream& stream, Game_settings& game_settings)
-{
-    for (std::string line, directive; directive != "end" && std::getline(stream, line);)
-    {
-        std::istringstream line_stream(line);
-        if (!read_directive(line_stream, directive)) continue;
-    }
-
-    return stream;
-}
 
 std::istream& ts::resources::operator>>(std::istream& stream, Track_settings& track_settings)
 {
@@ -355,7 +274,9 @@ std::istream& ts::resources::operator>>(std::istream& stream, Track_settings& tr
             std::string track_path;
             if (line_stream >> track_path)
             {
-                track_settings.selected_tracks.emplace_back(std::move(track_path));
+                Track_handle track_handle(std::move(track_path));
+
+                track_settings.add_track(track_handle);
             }
         }
     }
@@ -365,8 +286,6 @@ std::istream& ts::resources::operator>>(std::istream& stream, Track_settings& tr
 
 std::istream& ts::resources::operator>>(std::istream& stream, Car_settings& car_settings)
 {
-    const auto* car_store = car_settings.car_store();
-
     Car_mode car_mode = Car_mode::Free;
     car_settings.set_car_mode(car_mode);
 
@@ -404,12 +323,8 @@ std::istream& ts::resources::operator>>(std::istream& stream, Car_settings& car_
             std::string car_name;
             if (line_stream >> car_name)
             {
-                auto car_handle = car_store->get_car_by_name(std::move(car_name));
-
-                if (car_handle)
-                {
-                    car_settings.select_car(car_handle);
-                }                
+                Car_handle car_handle(std::move(car_name));
+                car_settings.select_car(car_handle);
             }
         }
     }
@@ -432,7 +347,7 @@ std::istream& ts::resources::operator>>(std::istream& stream, Player_settings& p
             Player_store::unique_id unique_id;
             if (line_stream >> control_slot >> unique_id)
             {
-                player_settings.selected_players[control_slot] = unique_id;
+                player_settings.select_player(unique_id, control_slot);
             }
         }
     }
@@ -487,14 +402,9 @@ std::ostream& ts::resources::operator<<(std::ostream& stream, const Audio_settin
     return stream;
 }
 
-std::ostream& ts::resources::operator<<(std::ostream& stream, const Game_settings& game_settings)
-{
-    return stream;
-}
-
 std::ostream& ts::resources::operator<<(std::ostream& stream, const Track_settings& track_settings)
 {
-    for (const auto& track_handle : track_settings.selected_tracks)
+    for (const auto& track_handle : track_settings.selected_tracks())
     {
         stream << "SelectedTrack " << track_handle.path() << "\n";
     }
@@ -530,7 +440,7 @@ std::ostream& ts::resources::operator<<(std::ostream& stream, const Car_settings
 
 std::ostream& ts::resources::operator<<(std::ostream& stream, const Player_settings& player_settings)
 {
-    const auto& selected_players = player_settings.selected_players;
+    const auto& selected_players = player_settings.selected_players();
 
     for (auto player_slot = 0; player_slot != selected_players.size(); ++player_slot)
     {

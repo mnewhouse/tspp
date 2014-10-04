@@ -25,6 +25,7 @@
 #include "drawable_entity.hpp"
 
 #include "resources/player_color.hpp"
+#include "resources/settings/video_settings.hpp"
 
 #include "world/car.hpp"
 

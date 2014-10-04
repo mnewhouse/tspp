@@ -97,7 +97,7 @@ namespace ts
             Action_loader();
             ~Action_loader();
 
-            void async_load(cup::Stage_data stage_data, const resources::Resource_store& resource_store);
+            void async_load(cup::Stage_data stage_data, const resources::Resource_store* resource_store);
 
             bool complete() const;
             Loaded_scene transfer_loaded_scene();
@@ -108,7 +108,7 @@ namespace ts
             bool is_loading() const;
 
         private:
-            Loaded_scene load_scene(cup::Stage_data stage_data, const resources::Resource_store& resource_store);
+            Loaded_scene load_scene(cup::Stage_data stage_data, const resources::Resource_store* resource_store);
 
             std::future<Loaded_scene> loader_future_;
             std::atomic<double> progress_ = 0.0;

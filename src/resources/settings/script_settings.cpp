@@ -17,26 +17,23 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
+#include "stdinc.hpp"
+#include "script_settings.hpp"
 
-#ifndef CUP_PLAYER_HPP
-#define CUP_PLAYER_HPP
-
-#include "controls/control.hpp"
-#include "resources/player_color.hpp"
-
-namespace ts
+void ts::resources::Script_settings::enable_script(utf8_string script_name)
 {
-    namespace cup
+    auto it = std::find(loaded_scripts_.begin(), loaded_scripts_.end(), script_name);
+    if (it == loaded_scripts_.end())
     {
-        struct Player
-        {
-            controls::Slot control_slot = controls::invalid_slot;
-            utf8_string nickname;
-            std::uint64_t id;
-            resources::Player_color color;
-        };
+        loaded_scripts_.push_back(std::move(script_name));
     }
 }
 
-#endif
+void ts::resources::Script_settings::disable_script(const utf8_string& script_name)
+{
+    auto it = std::find(loaded_scripts_.begin(), loaded_scripts_.end(), script_name);
+    if (it != loaded_scripts_.end())
+    {
+        loaded_scripts_.erase(it);
+    }
+}

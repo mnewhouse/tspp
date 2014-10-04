@@ -72,7 +72,7 @@ void ts::states::Cup_state_base::on_state_change(cup::Cup_state old_state, cup::
 
     if (new_state == cup::Cup_state::Initializing)
     {
-        action_loader_.async_load(cup_interface_->cup()->make_stage_data(), *resource_store());
+        action_loader_.async_load(cup_interface_->cup()->make_stage_data(), resource_store());
 
         auto progress_dialog = cup_gui_.progress_dialog();
         progress_dialog->show();

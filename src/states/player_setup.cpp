@@ -22,6 +22,8 @@
 
 #include "gui_definitions/window_template.hpp"
 
+#include "resources/settings/player_settings.hpp"
+
 
 ts::states::Player_setup_menu::Player_setup_menu(Main_menu* main_menu)
 : main_menu_(main_menu),
@@ -90,7 +92,7 @@ void ts::states::Player_setup_menu::return_from_color_selection(resources::Playe
         player_setup_document_->set_visible(true);
     }
 
-    resource_store()->players.set_player_color(player, new_color);
+    resource_store()->player_store().set_player_color(player, new_color);
 
     player_selection_menu_->update_color_preview(player, new_color);
 
@@ -99,12 +101,14 @@ void ts::states::Player_setup_menu::return_from_color_selection(resources::Playe
 
 void ts::states::Player_setup_menu::update_selection()
 {
-    auto& player_store = main_menu_->resource_store()->players;
-    auto& player_settings = main_menu_->resource_store()->settings.player_settings;
+    auto& player_store = main_menu_->resource_store()->player_store();
+    auto& player_settings = main_menu_->resource_store()->player_settings();
+
+    const auto& selected_players = player_settings.selected_players();
 
     for (auto slot = 0; slot != 4; ++slot)
     {
-        auto unique_id = player_settings.selected_players[slot];
+        auto unique_id = selected_players[slot];
         auto text_elem = slots_[slot].name_text;
         auto color_elem = slots_[slot].color_element;
         auto& color_background = slots_[slot].color_background;
@@ -177,9 +181,9 @@ ts::gui::Document_handle ts::states::Player_setup_menu::create_player_setup_docu
     auto slot_elem_style = gui::make_background_style<gui::Plain_background>(sf::Color(100, 100, 100, 35));
     auto slot_elem_hover_style = gui::make_background_style<gui::Plain_background>(sf::Color(255, 255, 255, 35));
 
-    const auto& player_store = main_menu_->resource_store()->players;
-    const auto& player_settings = main_menu_->resource_store()->settings.player_settings;
-    const auto& selected_players = player_settings.selected_players;
+    const auto& player_store = main_menu_->resource_store()->player_store();
+    const auto& player_settings = main_menu_->resource_store()->player_settings();
+    const auto& selected_players = player_settings.selected_players();
 
     using namespace gui::events;
 
@@ -261,7 +265,7 @@ ts::gui::Document_handle ts::states::Player_selection_menu::create_player_select
     auto& font_library = context->font_library();
     auto screen_size = context->screen_size();
 
-    const auto& player_store = player_setup_menu_->resource_store()->players;
+    const auto& player_store = player_setup_menu_->resource_store()->player_store();
 
     auto font = font_library.font_by_name(gui::fonts::Sans);
 
@@ -631,7 +635,7 @@ void ts::states::Player_selection_menu::update_color_preview(resources::Player_h
 
 ts::resources::Player_handle ts::states::Player_selection_menu::create_player(const utf8_string& player_name)
 {
-    auto& player_store = player_setup_menu_->resource_store()->players;
+    auto& player_store = player_setup_menu_->resource_store()->player_store();
 
     auto player_handle = player_store.create_player(player_name);
 
@@ -651,7 +655,7 @@ void ts::states::Player_selection_menu::delete_player()
 {
     if (selected_player_)
     {
-        auto& player_store = player_setup_menu_->resource_store()->players;
+        auto& player_store = player_setup_menu_->resource_store()->player_store();
 
         player_store.delete_player(selected_player_);
         selected_player_ = resources::Player_handle();
@@ -777,22 +781,11 @@ void ts::states::Player_selection_menu::deselect_all()
 
 void ts::states::Player_selection_menu::select_player(resources::Player_handle player_handle)
 {
-    auto& player_settings = player_setup_menu_->resource_store()->settings.player_settings;
-    auto& selected_players = player_settings.selected_players;
+    auto& player_settings = player_setup_menu_->resource_store()->player_settings();
+    auto& selected_players = player_settings.selected_players();
 
     auto internal_id = player_handle ? player_handle->internal_id : 0;
-
-    using unique_id = resources::Player_store::unique_id;
-
-    std::transform(selected_players.begin(), selected_players.end(), selected_players.begin(),
-        [internal_id](unique_id id) -> unique_id
-    {
-        if (id == internal_id) return 0;
-
-        return id;
-    });
-    
-    player_settings.selected_players[current_slot_] = internal_id;
+    player_settings.select_player(internal_id, current_slot_);
 
     player_setup_menu_->update_selection();
 

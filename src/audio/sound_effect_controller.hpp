@@ -24,7 +24,7 @@
 
 #include "audio_store.hpp"
 
-#include "resources/settings.hpp"
+#include "resources/settings/audio_settings.hpp"
 
 namespace ts
 {

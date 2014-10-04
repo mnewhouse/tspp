@@ -36,7 +36,7 @@ namespace ts
 
 ts::states::Settings_menu::Settings_menu(Main_menu* main_menu)
 : main_menu_(main_menu),
-  settings_(&main_menu->resource_store()->settings),
+  settings_(&main_menu->resource_store()->settings()),
 
   settings_navigation_(create_navigation(main_menu->context())),
   control_settings_(std::make_unique<Control_settings_menu>(main_menu->context(), &settings_->input_settings)),

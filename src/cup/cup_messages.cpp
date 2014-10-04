@@ -110,24 +110,35 @@ ts::cup::Message ts::cup::make_join_request_message(std::uint64_t join_key, cons
                                                               const resources::Player_store& player_store)
 {
     std::vector<resources::Player_handle> players;
-    for (auto player_id : player_settings.selected_players)
+    std::uint32_t player_count = 0;
+
+    for (auto player_id : player_settings.selected_players())
     {
-        if (auto player_handle = player_store.get_player_by_id(player_id))
+        auto player_handle = player_store.get_player_by_id(player_id);
+        if (player_handle)
         {
-            players.push_back(player_handle);
+            player_count = 0;
         }
+
+        players.push_back(player_handle);
     }
 
     Message message(Message_type::join_request);
     message << join_key;
-
-    std::uint32_t player_count = players.size();
     message << player_count;
+
+    std::int16_t slot = 0;
     for (auto player_handle : players)
     {
-        message << player_handle->id;
-        message << player_handle->name;
-        message << player_handle->color;
+        if (player_handle)
+        {
+            message << slot;
+            message << player_handle->id;
+            message << player_handle->name;
+            message << player_handle->color;
+        }
+
+        ++slot;
     }
 
     return message;
@@ -145,7 +156,7 @@ ts::cup::Join_request ts::cup::parse_join_request_message(const Message& message
         for (std::uint32_t idx = 0; idx != player_count; ++idx)
         {
             Player player;
-            if (message_reader >> player.id >> player.nickname >> player.color)
+            if (message_reader >> player.control_slot >> player.id >> player.nickname >> player.color)
             {
                 result.players.push_back(player);
             }
@@ -223,4 +234,101 @@ ts::cup::Join_refusal ts::cup::parse_join_refusal_message(const Message& message
     }
 
     return join_refusal;    
+}
+
+ts::cup::Message ts::cup::make_cup_state_message(Cup_state cup_state)
+{
+    Message message(Message_type::cup_state);
+    message << static_cast<std::uint32_t>(cup_state);
+
+    return message;
+}
+
+ts::cup::Message ts::cup::make_cup_progress_message(std::size_t progress)
+{
+    Message message(Message_type::cup_progress);
+    message << progress;
+
+    return message;
+}
+
+ts::cup::Cup_state_message ts::cup::parse_cup_state_message(const Message& message)
+{
+    Message_reader message_reader(message);
+
+    Cup_state_message result;
+
+    std::uint32_t cup_state = 0;
+    if (message_reader >> result.message_type >> cup_state)
+    {
+        result.cup_state = static_cast<Cup_state>(cup_state);
+    }
+
+    return result;
+}
+
+ts::cup::Cup_progress_message ts::cup::parse_cup_progress_message(const Message& message)
+{
+    Message_reader message_reader(message);
+
+    Cup_progress_message result;
+    message_reader >> result.message_type >> result.cup_progress;
+
+    return result;
+}
+
+ts::cup::Message ts::cup::make_player_information_message(const std::vector<Player_handle>& local_players, const std::vector<Player_handle>& remote_players)
+{
+    Message message(Message_type::player_information);
+    message << static_cast<std::uint32_t>(local_players.size() + remote_players.size());
+    for (auto player : local_players)
+    {
+        message << player->handle;
+        message << static_cast<std::int16_t>(player->control_slot);
+        message << player->id;
+        message << player->nickname;
+        message << player->color;
+    }
+
+    for (auto player : remote_players)
+    {
+        message << player->handle;
+        message << static_cast<std::int16_t>(controls::invalid_slot);
+        message << player->id;
+        message << player->nickname;
+        message << player->color;
+    }    
+
+    return message;
+}
+
+ts::cup::Player_information_message ts::cup::parse_player_information_message(const Message& message)
+{
+    Message_reader message_reader(message);
+    Player_information_message result;
+
+    std::uint32_t player_count = 0;
+    if (message_reader >> result.message_type >> player_count)
+    {
+        for (std::uint32_t idx = 0; idx != player_count; ++idx)
+        {
+            Player_id handle;
+            std::int16_t control_slot;
+            utf8_string nickname;
+            resources::Player_color color;
+
+            if (message_reader >> handle >> control_slot >> nickname >> color)
+            {
+                Player_information_message::Player_definition player;
+                player.handle = handle;
+                player.control_slot = control_slot;
+                player.color = color;
+                player.nickname = std::move(nickname);
+
+                result.players.push_back(player);
+            }            
+        }
+    }
+
+    return result;
 }

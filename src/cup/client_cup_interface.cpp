@@ -118,6 +118,8 @@ void ts::cup::Client_cup_interface::handle_acknowledgement_message(const Message
 
 void ts::cup::Client_cup_interface::handle_cup_state_message(const Message& message)
 {
+    auto cup_state_message = parse_cup_state_message(message);
+    set_cup_state(cup_state_message.cup_state);
 }
 
 void ts::cup::Client_cup_interface::handle_message(const Message& message)
@@ -139,8 +141,8 @@ void ts::cup::Client_cup_interface::registration_error(utf8_string error_string)
 
 void ts::cup::Client_cup_interface::send_registration_request()
 {
-    const auto& player_store = resource_store_->players;
-    const auto& player_settings = resource_store_->settings.player_settings;
+    const auto& player_store = resource_store_->player_store();
+    const auto& player_settings = resource_store_->player_settings();
 
     auto message = make_join_request_message(registration_key_, player_settings, player_store);
     client_->send_message(std::move(message));

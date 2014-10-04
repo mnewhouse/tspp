@@ -55,15 +55,30 @@ void ts::cup::Server_cup_interface::handle_join_request(const network::Client_me
 
     else
     {
+        auto remote_players = cup()->player_list();
+        std::vector<Player_handle> local_players;
+
         // Send acknowledgement message back, and add the players to the cup.
         for (auto& player : join_request.players)
         {
             auto player_handle = add_player(player);
+
+            local_players.push_back(player_handle);
             client_player_mapping_.emplace(client->client_key(), player_handle);            
         }
 
         out_message.message = make_join_acknowledgement_message(join_request.registration_key, client->client_key());
         server_->send_message(out_message);
+
+        out_message.message = make_cup_state_message(cup()->cup_state());
+        server_->send_message(out_message);
+
+        out_message.message = make_cup_progress_message(cup()->cup_progress());
+        server_->send_message(out_message);
+
+        out_message.message = make_player_information_message(local_players, remote_players);
+        server_->send_message(out_message);
+
     }    
 }
 

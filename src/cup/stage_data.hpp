@@ -39,9 +39,9 @@ namespace ts
         struct Car_data
         {
             controls::Slot control_slot;
-            resources::Car_handle car;
             resources::Player_color color;
-            std::size_t start_pos;
+            resources::Car_handle car;
+            std::uint32_t start_pos;
         };
 
         struct Stage_data

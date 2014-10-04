@@ -24,10 +24,11 @@
 #include "cup/local_players.hpp"
 
 ts::states::impl::Local_cup_state_members::Local_cup_state_members(resources::Resource_store* resource_store)
-: cup_(cup::Cup_type::Local, resource_store),
+: cup_(cup::Cup_type::Local), 
+  cup_config_(&cup_, resource_store),
   local_cup_interface_(&cup_)
 {
-    cup::add_selected_local_players(&local_cup_interface_, resource_store->settings.player_settings, resource_store->players);
+    cup::add_selected_local_players(&local_cup_interface_, resource_store->player_settings(), resource_store->player_store());
     local_cup_interface_.advance();
 }
 

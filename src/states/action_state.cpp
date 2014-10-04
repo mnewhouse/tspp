@@ -28,6 +28,7 @@
 #include "audio/sound_controller.hpp"
 #include "world/world.hpp"
 #include "script/interfaces/client_interface.hpp"
+#include "resources/settings/input_settings.hpp"
 
 ts::states::Action_state_base::Action_state_base(game::Loaded_scene loaded_scene, state_machine_type* state_machine, 
                                                  gui::Context* context, resources::Resource_store* resource_store)
@@ -38,7 +39,7 @@ ts::states::Action_state_base::Action_state_base(game::Loaded_scene loaded_scene
   sound_controller_(std::move(loaded_scene.sound_controller)),
   client_script_interface_(std::move(loaded_scene.client_script_interface)),
   
-  control_interface_(std::make_unique<controls::Control_interface>(resource_store->settings.input_settings.key_mapping))
+  control_interface_(std::make_unique<controls::Control_interface>(resource_store->input_settings().key_mapping))
 {
     add_render_scene(&*action_scene_);
 

@@ -29,6 +29,11 @@
 
 namespace ts
 {
+    namespace resources
+    {
+        struct Resource_store;
+    }
+
     namespace states
     {
         class Car_selection_dialog;

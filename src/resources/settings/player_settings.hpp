@@ -19,22 +19,27 @@
 
 #pragma once
 
-#ifndef CUP_PLAYER_HPP
-#define CUP_PLAYER_HPP
+#ifndef PLAYER_SETTINGS_HPP
+#define PLAYER_SETTINGS_HPP
 
-#include "controls/control.hpp"
-#include "resources/player_color.hpp"
+#include "resources/player_store.hpp"
 
 namespace ts
 {
-    namespace cup
-    {
-        struct Player
+    namespace resources
+    {        
+        class Player_settings
         {
-            controls::Slot control_slot = controls::invalid_slot;
-            utf8_string nickname;
-            std::uint64_t id;
-            resources::Player_color color;
+        public:
+            Player_settings();
+
+            const std::array<Player_store::unique_id, 4> selected_players() const;
+
+            void select_player(Player_store::unique_id, int slot);
+            void deselect_player(int slot);
+
+        private:
+            std::array<Player_store::unique_id, 4> selected_players_;
         };
     }
 }

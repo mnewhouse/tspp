@@ -24,6 +24,8 @@
 
 #include "states/main_menu.hpp"
 
+#include "resources/settings/video_settings.hpp"
+#include "resources/settings/script_settings.hpp"
 #include "resources/resource_store.hpp"
 
 #include <SFML/Graphics.hpp>
@@ -78,7 +80,7 @@ void ts::game::Game::main()
 {
     resources::Resource_store resource_store;
 
-    auto& video_settings = resource_store.settings.video_settings;
+    auto& video_settings = resource_store.video_settings();
     auto video_mode = get_video_mode(video_settings);
 
     video_settings.screen_resolution.x = video_mode.width;
@@ -87,7 +89,7 @@ void ts::game::Game::main()
 
     sf::RenderWindow render_window(video_mode, config::window_title, get_window_style(video_settings));
 
-    gui::Context gui_context(&render_window, &resource_store.font_library);
+    gui::Context gui_context(&render_window, &resource_store.font_library());
     core::State_machine<Game_state> state_machine;    
 
     {
@@ -97,7 +99,7 @@ void ts::game::Game::main()
 
     state_machine.update();
 
-    resource_store.settings.script_settings.loaded_scripts.insert("test");
+    resource_store.script_settings().enable_script("test");
 
     auto current_time = std::chrono::high_resolution_clock::now();
 

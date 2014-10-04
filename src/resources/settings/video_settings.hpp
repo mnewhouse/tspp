@@ -19,24 +19,26 @@
 
 #pragma once
 
-#ifndef CUP_PLAYER_HPP
-#define CUP_PLAYER_HPP
-
-#include "controls/control.hpp"
-#include "resources/player_color.hpp"
+#ifndef VIDEO_SETTINGS_HPP
+#define VIDEO_SETTINGS_HPP
 
 namespace ts
 {
-    namespace cup
+    namespace resources
     {
-        struct Player
+        class Video_settings
         {
-            controls::Slot control_slot = controls::invalid_slot;
-            utf8_string nickname;
-            std::uint64_t id;
-            resources::Player_color color;
+        public:
+            Video_settings();
+
+            bool full_screen = true;
+            bool vertical_sync = false;
+            Vector2u screen_resolution;
+            Vector2u current_screen_resolution;
+            double zoom_level = 1.0;
         };
     }
 }
 
 #endif
+

@@ -19,22 +19,22 @@
 
 #pragma once
 
-#ifndef CUP_PLAYER_HPP
-#define CUP_PLAYER_HPP
-
-#include "controls/control.hpp"
-#include "resources/player_color.hpp"
+#ifndef AUDIO_SETTINGS_HPP
+#define AUDIO_SETTINGS_HPP
 
 namespace ts
 {
-    namespace cup
+    namespace resources
     {
-        struct Player
+        class Audio_settings
         {
-            controls::Slot control_slot = controls::invalid_slot;
-            utf8_string nickname;
-            std::uint64_t id;
-            resources::Player_color color;
+        public:
+            double effects_volume = 0.8;
+            double engine_volume = 0.8;
+            double remote_engine_volume = 0.5;
+
+            std::size_t engine_channels = 8;
+            std::size_t effects_channels = 8;
         };
     }
 }

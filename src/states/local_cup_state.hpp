@@ -26,6 +26,7 @@
 
 #include "cup/cup.hpp"
 #include "cup/cup_listener.hpp"
+#include "cup/cup_config.hpp"
 #include "cup/local_cup_interface.hpp"
 
 namespace ts
@@ -39,6 +40,7 @@ namespace ts
                 Local_cup_state_members(resources::Resource_store* resource_store);
 
                 cup::Cup cup_;
+                cup::Cup_config cup_config_;
                 cup::Local_cup_interface local_cup_interface_;
             };
         }

@@ -19,22 +19,41 @@
 
 #pragma once
 
-#ifndef CUP_PLAYER_HPP
-#define CUP_PLAYER_HPP
+#ifndef CAR_SETTINGS_HPP
+#define CAR_SETTINGS_HPP
 
-#include "controls/control.hpp"
-#include "resources/player_color.hpp"
+#include "resources/car_handle.hpp"
 
 namespace ts
 {
-    namespace cup
+    namespace resources
     {
-        struct Player
+        class Car_store;
+
+        enum class Car_mode
         {
-            controls::Slot control_slot = controls::invalid_slot;
-            utf8_string nickname;
-            std::uint64_t id;
-            resources::Player_color color;
+            Fixed,
+            Free,
+            Random
+        };
+        
+        class Car_settings
+        {
+        public:
+            void select_car(Car_handle car);
+            void deselect_car(Car_handle car);
+
+            const std::vector<Car_handle>& selected_cars() const;
+
+            void set_car_mode(Car_mode car_mode);
+            Car_mode car_mode() const;
+
+            bool is_car_selected(Car_handle car) const;
+            void load_car_definitions(const Car_store* car_store);
+
+        private:
+            std::vector<Car_handle> selected_cars_;
+            Car_mode car_mode_ = Car_mode::Free;
         };
     }
 }

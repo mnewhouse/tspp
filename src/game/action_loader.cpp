@@ -31,6 +31,9 @@
 #include "resources/pattern_builder.hpp"
 #include "resources/resource_store.hpp"
 
+#include "resources/settings/video_settings.hpp"
+#include "resources/settings/audio_settings.hpp"
+
 #include "script/script_engine.hpp"
 #include "script/interfaces/client_interface.hpp"
 
@@ -44,11 +47,11 @@ ts::game::Action_loader::~Action_loader()
 {
 }
 
-void ts::game::Action_loader::async_load(cup::Stage_data stage_data, const resources::Resource_store& resource_store)
+void ts::game::Action_loader::async_load(cup::Stage_data stage_data, const resources::Resource_store* resource_store)
 {
     phase_ = Loading_phase::Initializing;
 
-    auto callable = [this](cup::Stage_data stage_data, const resources::Resource_store& resource_store)
+    auto callable = [this](cup::Stage_data stage_data, const resources::Resource_store* resource_store)
     {
         return load_scene(std::move(stage_data), resource_store);
     };
@@ -82,10 +85,8 @@ bool ts::game::Action_loader::is_loading() const
     return phase_ != Loading_phase::None;
 }
 
-ts::game::Loaded_scene ts::game::Action_loader::load_scene(cup::Stage_data stage_data, const resources::Resource_store& resource_store)
+ts::game::Loaded_scene ts::game::Action_loader::load_scene(cup::Stage_data stage_data, const resources::Resource_store* resource_store)
 {
-    const auto& settings = resource_store.settings;
-
     phase_ = Loading_phase::Preprocessing;
     progress_ = 0.0;
 
@@ -186,8 +187,8 @@ ts::game::Loaded_scene ts::game::Action_loader::load_scene(cup::Stage_data stage
         increment_progress();
     }
 
-    auto current_resolution = settings.video_settings.current_screen_resolution;
-    loaded_scene.action_scene = std::make_unique<Action_scene>(std::move(track_scene), settings.video_settings);
+    auto current_resolution = resource_store->video_settings().current_screen_resolution;
+    loaded_scene.action_scene = std::make_unique<Action_scene>(std::move(track_scene), resource_store->video_settings());
 
     progress_ = 0.0;
     phase_ = Loading_phase::Creating_entities;
@@ -225,7 +226,7 @@ ts::game::Loaded_scene ts::game::Action_loader::load_scene(cup::Stage_data stage
     sound_effects.skid_sound = audio_store.load_from_file("sound/skid.wav");
     increment_progress();
 
-    loaded_scene.sound_controller = std::make_unique<audio::Sound_controller>(settings.audio_settings, sound_effects);
+    loaded_scene.sound_controller = std::make_unique<audio::Sound_controller>(resource_store->audio_settings(), sound_effects);
 
     loaded_scene.client_script_interface = std::make_unique<script_api::Client_interface>(&*loaded_scene.world,
                                                                                           &*loaded_scene.action_scene);

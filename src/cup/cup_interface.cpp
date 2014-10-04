@@ -60,3 +60,13 @@ void ts::cup::Cup_interface::output_chat_message(const Composite_message& messag
 {
     chatbox_.output_message(message);
 }
+
+void ts::cup::Cup_interface::set_cup_state(Cup_state state)
+{
+    cup_->set_cup_state(state);
+}
+
+void ts::cup::Cup_interface::set_cup_progress(std::size_t progress)
+{
+    cup_->set_cup_progress(progress);
+}

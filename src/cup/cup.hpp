@@ -25,15 +25,16 @@
 #include "player.hpp"
 #include "stage_data.hpp"
 
-#include "resources/settings.hpp"
-#include "resources/settings_copy.hpp"
+#include "resources/track_handle.hpp"
+#include "resources/car_handle.hpp"
+
+#include "resources/settings/car_settings.hpp"
+#include "resources/settings/track_settings.hpp"
 
 namespace ts
 {
     namespace resources
     {
-        class Track_handle;
-        struct Resource_store;
         struct Car_definition;
     }
 
@@ -58,12 +59,14 @@ namespace ts
             End
         };
 
-        using Player_id = std::uint8_t;
+        using Player_id = std::uint16_t;
+
         struct Cup_player_data
             : public Player
         {
-            Player_id player_id;
-            Car_data car_data;
+            Player_id handle;
+            std::uint32_t start_pos;
+            resources::Car_handle car;
         };
 
         using Player_handle = Pointer_handle<const Cup_player_data>;
@@ -71,12 +74,14 @@ namespace ts
         class Cup
         {
         public:
-            
-
-            Cup(Cup_type cup_type, resources::Resource_store* resource_store);
+            Cup(Cup_type cup_type);
+            ~Cup();
 
             void add_track(resources::Track_handle track_handle);
-            const std::vector<resources::Track_handle>& track_list() const;            
+            void remove_track(resources::Track_handle track_handle);
+            void clear_tracks();
+
+            const std::vector<resources::Track_handle>& track_list() const;         
 
             const std::vector<resources::Car_handle>& car_list() const;
             resources::Car_mode car_mode() const;
@@ -89,7 +94,13 @@ namespace ts
             std::size_t cup_progress() const;
 
             void set_cup_state(Cup_state cup_state);
-            void set_cup_progress(std::size_t index);           
+            void set_cup_progress(std::size_t index);
+
+            void load_car_settings(const resources::Car_settings& car_settings);
+            void load_track_settings(const resources::Track_settings& track_settings);
+
+            const resources::Car_settings& car_settings() const;
+            const resources::Track_settings& track_settings() const;
 
             void end();
             void restart();
@@ -97,9 +108,12 @@ namespace ts
 
             resources::Track_handle current_track() const;
 
-            Player_handle add_player(const Player& player, controls::Slot player_slot = controls::invalid_slot);
+            Player_handle add_player(const Player& player, Player_id player_id);
+            Player_handle add_player(const Player& player);
             void remove_player(Player_handle player_handle);
+
             const std::vector<Player_handle>& local_players() const;
+            const std::vector<Player_handle>& player_list() const;
 
             std::size_t player_count() const;
             std::size_t max_players() const;
@@ -120,17 +134,16 @@ namespace ts
             Cup_type cup_type_;
             Cup_state state_;
 
-            resources::Resource_store* resource_store_;
+            std::uint32_t max_players_;
 
-            resources::Settings_copy<resources::Car_settings> car_settings_;
-            resources::Settings_copy<resources::Track_settings> track_settings_;
-            resources::Settings_copy<resources::Script_settings> script_settings_;
-            resources::Settings_copy<resources::Cup_settings> cup_settings_;
+            resources::Track_settings track_settings_;
+            resources::Car_settings car_settings_;
 
             std::vector<resources::Script_handle> loaded_scripts_;
 
             std::size_t cup_progress_;
             std::map<Player_id, Cup_player_data> player_map_;
+            std::vector<Player_handle> player_list_;
             std::vector<Player_handle> local_players_;
 
             std::vector<Cup_listener*> cup_listeners_;

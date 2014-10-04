@@ -27,6 +27,8 @@
 #include "user_interface/elements/elements.hpp"
 #include "user_interface/elements/player_color_background.hpp"
 
+#include "resources/player_store.hpp"
+
 namespace ts
 {
     namespace states

@@ -43,6 +43,9 @@ namespace ts
             void advance();
             void end_cup();
 
+            void set_cup_state(Cup_state cup_state);
+            void set_cup_progress(std::size_t progress);
+
             const Cup* cup() const;
             Chatbox* chatbox();
 

@@ -27,6 +27,11 @@
 #include "user_interface/elements/elements.hpp"
 #include "gui_definitions/window_template.hpp"
 
+#include "resources/car_store.hpp"
+
+#include "resources/settings/track_settings.hpp"
+#include "resources/settings/car_settings.hpp"
+
 ts::states::Cup_setup_menu::Cup_setup_menu(Main_menu* main_menu)
 : main_menu_(main_menu),
   network_menu_(nullptr)
@@ -250,15 +255,17 @@ void ts::states::Cup_setup_menu::create_navigation_document(gui::Context* contex
 
 void ts::states::Cup_setup_menu::check_startability()
 {
-    auto& settings = main_menu_->resource_store()->settings;
-    bool startable = !settings.car_settings.selected_cars().empty() && !settings.track_settings.selected_tracks.empty();
+    auto& track_settings = main_menu_->resource_store()->track_settings();
+    auto& car_settings = main_menu_->resource_store()->car_settings();
+
+    bool startable = !car_settings.selected_cars().empty() && !track_settings.selected_tracks().empty();
 
     start_button_->set_active(startable);
 }
 
 ts::states::Track_setup_menu::Track_setup_menu(Cup_setup_menu* cup_setup_menu)
 : cup_setup_menu_(cup_setup_menu),
-  current_directory_(cup_setup_menu->resource_store()->tracks.root_directory()),
+  current_directory_(cup_setup_menu->resource_store()->track_store().root_directory()),
   track_setup_document_(create_track_setup_document(cup_setup_menu)),
   random_selection_dialog_(create_random_selection_dialog(cup_setup_menu))  
 {
@@ -578,7 +585,7 @@ ts::gui::Document_handle ts::states::Track_setup_menu::create_track_setup_docume
         }
     });
 
-    auto& track_store = cup_setup_menu->resource_store()->tracks;
+    auto& track_store = cup_setup_menu->resource_store()->track_store();
     open_directory(track_store.root_directory());
 
     populate_selected_tracks_list();
@@ -592,18 +599,17 @@ void ts::states::Track_setup_menu::remove_selection()
 {
     if (selection_index_ != 0)
     {
-        auto& track_settings = cup_setup_menu_->resource_store()->settings.track_settings;
-        auto& selected_tracks = track_settings.selected_tracks;
+        auto& track_settings = cup_setup_menu_->resource_store()->track_settings();
 
         auto index = selection_index_ - 1;
 
         track_selection_list_->delete_row(index);
+        track_settings.remove_track(index);
 
-        auto it = selected_tracks.erase(selected_tracks.begin() + index);
-        while (it != selected_tracks.end())
+        for (auto it = track_settings.selected_tracks().begin() + index; it != track_settings.selected_tracks().end(); ++it, ++index)
         {
-            auto text = track_selection_list_->get_row(index++);
-            text->set_text(make_selected_track_string(*it++, index));
+            auto text = track_selection_list_->get_row(index);
+            text->set_text(make_selected_track_string(*it, index + 1));
         }
 
         select_track(selection_index_);
@@ -616,12 +622,12 @@ void ts::states::Track_setup_menu::move_selection_up()
 {
     if (selection_index_ > 1)
     {
-        auto& track_settings = cup_setup_menu_->resource_store()->settings.track_settings;
-        auto& selected_tracks = track_settings.selected_tracks;
+        auto& track_settings = cup_setup_menu_->resource_store()->track_settings();
+        const auto& selected_tracks = track_settings.selected_tracks();
 
         auto index = selection_index_ - 1;
 
-        std::swap(selected_tracks[index], selected_tracks[index - 1]);
+        track_settings.move_forward(index);
 
         auto prev_row = track_selection_list_->get_row(index - 1);
         prev_row->set_text(make_selected_track_string(selected_tracks[index - 1], index));
@@ -635,14 +641,14 @@ void ts::states::Track_setup_menu::move_selection_up()
 
 void ts::states::Track_setup_menu::move_selection_down()
 {
-    auto& track_settings = cup_setup_menu_->resource_store()->settings.track_settings;
-    auto& selected_tracks = track_settings.selected_tracks;
+    auto& track_settings = cup_setup_menu_->resource_store()->track_settings();
+    const auto& selected_tracks = track_settings.selected_tracks();
 
     if (selection_index_ < selected_tracks.size())
     {
         auto index = selection_index_ - 1;
 
-        std::swap(selected_tracks[index], selected_tracks[index + 1]);
+        track_settings.move_backward(index);
 
         auto next_row = track_selection_list_->get_row(index + 1);
         next_row->set_text(make_selected_track_string(selected_tracks[index + 1], index + 2));
@@ -656,22 +662,22 @@ void ts::states::Track_setup_menu::move_selection_down()
 
 void ts::states::Track_setup_menu::clear_selection()
 {
-    auto& track_settings = cup_setup_menu_->resource_store()->settings.track_settings;
+    auto& track_settings = cup_setup_menu_->resource_store()->track_settings();
 
     track_selection_list_->clear();
 
-    track_settings.selected_tracks.clear();
+    track_settings.clear_selection();
 
     cup_setup_menu_->check_startability();
 }
 
 void ts::states::Track_setup_menu::populate_selected_tracks_list()
 {
-    auto& track_settings = cup_setup_menu_->resource_store()->settings.track_settings;
+    auto& track_settings = cup_setup_menu_->resource_store()->track_settings();
 
     track_selection_list_->clear();
 
-    for (auto& track : track_settings.selected_tracks)
+    for (auto& track : track_settings.selected_tracks())
     {
         append_selected_track(track);
     }
@@ -740,9 +746,9 @@ void ts::states::Track_setup_menu::select_track(std::size_t index)
 
 void ts::states::Track_setup_menu::add_track(resources::Track_handle track)
 {
-    auto& track_settings = cup_setup_menu_->resource_store()->settings.track_settings;
-    track_settings.selected_tracks.push_back(track);
+    auto& track_settings = cup_setup_menu_->resource_store()->track_settings();    
 
+    track_settings.add_track(track);
     append_selected_track(track);
 
     auto scroll_bar = selection_scroll_pane_->vertical_scroll_bar();
@@ -829,9 +835,9 @@ void ts::states::Track_setup_menu::open_directory(resources::Track_directory dir
 
 void ts::states::Track_setup_menu::select_random_tracks()
 {
-    auto& track_store = cup_setup_menu_->resource_store()->tracks;
-    auto& track_settings = cup_setup_menu_->resource_store()->settings.track_settings;
-    auto& selected_tracks = track_settings.selected_tracks;
+    auto& track_store = cup_setup_menu_->resource_store()->track_store();
+    auto& track_settings = cup_setup_menu_->resource_store()->track_settings();
+    const auto& selected_tracks = track_settings.selected_tracks();
 
     auto random_count = track_number_input_->value();
 
@@ -839,18 +845,23 @@ void ts::states::Track_setup_menu::select_random_tracks()
 
     if (allow_duplicates_)
     {
-        std::generate_n(std::back_inserter(selected_tracks), random_count, 
-            [this, &track_store]()
+        for (auto n = 0; n != random_count; ++n)
         {
-            return track_store.random_track(current_directory_);
-        });
+            track_settings.add_track(track_store.random_track(current_directory_));
+        }
     }
     
     else
     {
         std::set<resources::Track_handle> disallowed(selected_tracks.begin(), selected_tracks.end());
+        std::vector<resources::Track_handle> random_selection;
 
-        track_store.select_random_tracks(current_directory_, random_count, std::back_inserter(selected_tracks), disallowed);
+        track_store.select_random_tracks(current_directory_, random_count, std::back_inserter(random_selection), disallowed);
+
+        for (auto&& track : random_selection)
+        {
+            track_settings.add_track(std::move(track));
+        }
     }
 
     for (auto it = selected_tracks.begin() + prior_size; it != selected_tracks.end(); ++it)
@@ -886,7 +897,7 @@ void ts::states::Track_setup_menu::hide()
 }
 
 ts::states::Car_setup_menu::Car_setup_menu(Cup_setup_menu* cup_setup_menu)
-: car_settings_(&cup_setup_menu->resource_store()->settings.car_settings),
+: car_settings_(&cup_setup_menu->resource_store()->car_settings()),
   cup_setup_menu_(cup_setup_menu),
   car_setup_document_(create_car_setup_document(cup_setup_menu))
 {
@@ -926,7 +937,7 @@ ts::gui::Document_handle ts::states::Car_setup_menu::create_car_setup_document(C
     auto car_text_hover_style = car_text_style;
     car_text_hover_style.color = sf::Color(255, 150, 0);
 
-    auto& car_store = cup_setup_menu->resource_store()->cars;
+    auto& car_store = cup_setup_menu->resource_store()->car_store();
     for (auto car_handle : car_store)
     {
         auto row = car_list->create_row();

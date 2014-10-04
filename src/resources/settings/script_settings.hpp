@@ -19,22 +19,23 @@
 
 #pragma once
 
-#ifndef CUP_PLAYER_HPP
-#define CUP_PLAYER_HPP
-
-#include "controls/control.hpp"
-#include "resources/player_color.hpp"
+#ifndef SCRIPT_SETTINGS_HPP
+#define SCRIPT_SETTINGS_HPP
 
 namespace ts
 {
-    namespace cup
+    namespace resources
     {
-        struct Player
+        class Script_settings
         {
-            controls::Slot control_slot = controls::invalid_slot;
-            utf8_string nickname;
-            std::uint64_t id;
-            resources::Player_color color;
+        public:
+            void enable_script(utf8_string script_name);
+            void disable_script(const utf8_string& script_name);
+
+            const std::vector<utf8_string>& loaded_scripts() const;
+
+        private:
+            std::vector<utf8_string> loaded_scripts_;
         };
     }
 }

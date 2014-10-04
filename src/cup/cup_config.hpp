@@ -19,22 +19,35 @@
 
 #pragma once
 
-#ifndef CUP_PLAYER_HPP
-#define CUP_PLAYER_HPP
-
-#include "controls/control.hpp"
-#include "resources/player_color.hpp"
+#ifndef LOCAL_CUP_HPP
+#define LOCAL_CUP_HPP
 
 namespace ts
 {
+    namespace resources
+    {
+        struct Resource_store;
+    }
+
     namespace cup
     {
-        struct Player
+        class Cup;
+
+        void load_cup_config(Cup* cup, const resources::Resource_store* resource_store);
+        void save_cup_config(const Cup* cup, resources::Resource_store* resource_store);
+
+        class Cup_config
         {
-            controls::Slot control_slot = controls::invalid_slot;
-            utf8_string nickname;
-            std::uint64_t id;
-            resources::Player_color color;
+        public:
+            Cup_config(Cup* cup, resources::Resource_store* resource_store);
+            ~Cup_config();
+
+            Cup_config(const Cup_config&) = delete;
+            Cup_config& operator=(const Cup_config&) = delete;
+
+        private:
+            Cup* cup_;
+            resources::Resource_store* resource_store_;
         };
     }
 }

@@ -21,51 +21,20 @@
 #include "car_handle.hpp"
 
 ts::resources::Car_handle::Car_handle(const Car_definition* car_def)
-: car_def_(car_def)
+: Pointer_handle(car_def)
+{
+    if (car_def)
+    {
+        car_name_ = car_def->car_name;
+    }
+}
+
+ts::resources::Car_handle::Car_handle(utf8_string car_name)
+: car_name_(car_name)
 {
 }
 
-const ts::resources::Car_definition* ts::resources::Car_handle::operator->() const
+const ts::utf8_string& ts::resources::Car_handle::car_name() const
 {
-    return car_def_;
-}
-
-const ts::resources::Car_definition& ts::resources::Car_handle::operator*() const
-{
-    return *car_def_;
-}
-
-ts::resources::Car_handle::operator bool() const
-{
-    return car_def_ != nullptr;
-}
-
-bool ts::resources::operator==(const Car_handle& lhs, const Car_handle& rhs)
-{
-    return &*lhs == &*rhs;
-}
-
-bool ts::resources::operator!=(const Car_handle& lhs, const Car_handle& rhs)
-{
-    return &*lhs != &*rhs;
-}
-
-bool ts::resources::operator<(const Car_handle& lhs, const Car_handle& rhs)
-{
-    return &*lhs < &*rhs;
-}
-
-bool ts::resources::operator>(const Car_handle& lhs, const Car_handle& rhs)
-{
-    return &*lhs > &*rhs;
-}
-
-bool ts::resources::operator<=(const Car_handle& lhs, const Car_handle& rhs)
-{
-    return &*lhs <= &*rhs;
-}
-
-bool ts::resources::operator>=(const Car_handle& lhs, const Car_handle& rhs)
-{
-    return &*lhs >= &*rhs;
+    return car_name_;
 }

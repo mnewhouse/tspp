@@ -78,6 +78,8 @@ set(SRC src/main.cpp
 		src/cup/client_cup_interface.cpp
 		src/cup/cup.hpp
 		src/cup/cup.cpp
+		src/cup/cup_config.hpp
+		src/cup/cup_config.cpp
 		src/cup/cup_interface.hpp
 		src/cup/cup_interface.cpp
 		src/cup/cup_listener.hpp
@@ -169,6 +171,7 @@ set(SRC src/main.cpp
         src/resources/player_store.hpp
         src/resources/player_store.cpp
         src/resources/resource_store.hpp
+		src/resources/resource_store.cpp
         src/resources/script_manager.hpp
         src/resources/script_manager.cpp
         src/resources/script_resource.hpp
@@ -191,6 +194,20 @@ set(SRC src/main.cpp
         src/resources/track_store.cpp
         src/resources/wall_definition.hpp
         src/resources/wall_definition.cpp
+
+		src/resources/settings/audio_settings.hpp
+		src/resources/settings/car_settings.hpp
+		src/resources/settings/car_settings.cpp
+		src/resources/settings/input_settings.hpp
+		src/resources/settings/network_settings.hpp
+		src/resources/settings/player_settings.hpp
+		src/resources/settings/player_settings.cpp
+		src/resources/settings/script_settings.hpp
+		src/resources/settings/script_settings.cpp
+		src/resources/settings/track_settings.hpp
+		src/resources/settings/track_settings.cpp
+		src/resources/settings/video_settings.hpp
+		src/resources/settings/video_settings.cpp
         
         src/resources/fonts/font_base.hpp
         src/resources/fonts/monospace.hpp
@@ -359,6 +376,7 @@ SOURCE_GROUP(graphics REGULAR_EXPRESSION src/graphics/[^/]+)
 SOURCE_GROUP(network REGULAR_EXPRESSION src/network/[^/]+)
 SOURCE_GROUP(resources REGULAR_EXPRESSION src/resources/[^/]+)
 SOURCE_GROUP(resources\\fonts REGULAR_EXPRESSION src/resources/fonts/[^/]+)
+SOURCE_GROUP(resources\\settings REGULAR_EXPRESSION src/resources/settings/[^/]+)
 SOURCE_GROUP(states REGULAR_EXPRESSION src/states/[^/]+)
 SOURCE_GROUP(states\\gui_definitions REGULAR_EXPRESSION src/states/gui_definitions/[^/]+)
 SOURCE_GROUP(script REGULAR_EXPRESSION src/script/[^/]+)

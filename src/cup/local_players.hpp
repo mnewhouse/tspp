@@ -26,7 +26,7 @@ namespace ts
 {
     namespace resources
     {
-        struct Player_settings;
+        class Player_settings;
         class Player_store;
     }
 
