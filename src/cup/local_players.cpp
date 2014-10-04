@@ -40,7 +40,8 @@ void ts::cup::add_selected_local_players(Cup_interface* cup_interface, const res
             player.color = player_handle->color;
             player.id = player_handle->id;
             player.nickname = player_handle->name;
-            cup_interface->add_player(player, slot);
+            player.control_slot = slot;
+            cup_interface->add_player(player);
         }        
     }
 }

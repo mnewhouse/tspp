@@ -85,6 +85,7 @@ set(SRC src/main.cpp
 		src/cup/cup_listener.hpp
 		src/cup/cup_messages.hpp
 		src/cup/cup_messages.cpp
+		src/cup/cup_metadata.hpp
 		src/cup/local_cup_interface.hpp
 		src/cup/local_cup_interface.cpp
 		src/cup/local_players.hpp

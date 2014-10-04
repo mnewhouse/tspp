@@ -28,6 +28,7 @@
 #include "user_interface/document.hpp"
 #include "user_interface/elements/elements.hpp"
 
+#include "cup/cup.hpp"
 #include "cup/cup_interface.hpp"
 
 namespace ts

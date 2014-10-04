@@ -26,6 +26,7 @@
 
 #include "network/client.hpp"
 
+#include "cup/cup.hpp"
 #include "cup/client_cup_interface.hpp"
 
 namespace ts

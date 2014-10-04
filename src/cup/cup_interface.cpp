@@ -19,6 +19,7 @@
 
 #include "stdinc.hpp"
 #include "cup_interface.hpp"
+#include "cup.hpp"
 
 ts::cup::Cup_interface::Cup_interface(Cup* cup)
   : cup_(cup)
@@ -46,9 +47,9 @@ void ts::cup::Cup_interface::end_cup()
     cup_->end();
 }
 
-ts::cup::Player_handle ts::cup::Cup_interface::add_player(const Player& player, controls::Slot control_slot)
+ts::cup::Player_handle ts::cup::Cup_interface::add_player(const Player& player)
 {
-    return cup_->add_player(player, control_slot);
+    return cup_->add_player(player);
 }
 
 void ts::cup::Cup_interface::set_player_car(Player_handle player_handle, resources::Car_handle car_handle)

@@ -33,7 +33,7 @@ void ts::controls::Control_interface::forward_input(const sf::Event& event, cons
         auto range = key_mapping_.get_all_binds_by_key(key);
 
         for (auto it = range.first; it != range.second; ++it)
-        {            
+        {
             control_center.set_control_state(it->first.slot, it->second, state);
         }       
     };

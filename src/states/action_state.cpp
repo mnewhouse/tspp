@@ -24,7 +24,6 @@
 #include "game/action_scene.hpp"
 #include "controls/control_center.hpp"
 #include "controls/control_interface.hpp"
-#include "graphics/texture.hpp"
 #include "audio/sound_controller.hpp"
 #include "world/world.hpp"
 #include "script/interfaces/client_interface.hpp"

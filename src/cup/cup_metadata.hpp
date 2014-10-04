@@ -19,24 +19,45 @@
 
 #pragma once
 
-#ifndef CUP_LISTENER_HPP
-#define CUP_LISTENER_HPP
+#ifndef CUP_STATE_HPP
+#define CUP_STATE_HPP
 
-#include "cup_metadata.hpp"
+#include "player.hpp"
+
+#include "resources/car_handle.hpp"
 
 namespace ts
 {
     namespace cup
     {
-        struct Cup_listener
+        enum class Cup_state
         {
-            virtual void on_state_change(Cup_state old_state, Cup_state new_state) {}
-            virtual void on_restart() {}
-            virtual void on_end() {}
-
-        protected:
-            ~Cup_listener() = default;
+            Registering,
+            Cup,
+            Car_selection,
+            Initializing,
+            Action,
+            End
         };
+
+        enum class Cup_type
+        {
+            Local,
+            Server,
+            Remote
+        };
+
+        using Player_id = std::uint16_t;
+
+        struct Cup_player_data
+            : public Player
+        {
+            Player_id handle;
+            std::uint32_t start_pos;
+            resources::Car_handle car;
+        };
+
+        using Player_handle = Pointer_handle<const Cup_player_data>;
     }
 }
 

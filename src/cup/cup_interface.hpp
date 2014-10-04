@@ -20,7 +20,7 @@
 #ifndef CUP_INTERFACE_HPP
 #define CUP_INTERFACE_HPP
 
-#include "cup.hpp"
+#include "cup_metadata.hpp"
 #include "cup_listener.hpp"
 #include "chatbox.hpp"
 
@@ -28,6 +28,8 @@ namespace ts
 {
     namespace cup
     {
+        class Cup;
+
         struct Car_selection
         {
             Player_handle player_handle;
@@ -49,7 +51,7 @@ namespace ts
             const Cup* cup() const;
             Chatbox* chatbox();
 
-            Player_handle add_player(const Player& player, controls::Slot control_slot = controls::invalid_slot);
+            Player_handle add_player(const Player& player);
             
             virtual void select_cars(const std::vector<Car_selection>& car_selection) = 0;
             virtual void signal_ready() = 0;

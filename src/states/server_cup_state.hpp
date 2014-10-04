@@ -23,6 +23,7 @@
 
 #include "cup_state_base.hpp"
 
+#include "cup/cup.hpp"
 #include "cup/cup_config.hpp"
 #include "cup/server_cup_interface.hpp"
 

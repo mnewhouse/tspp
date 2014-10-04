@@ -24,6 +24,8 @@
 
 #include "cup/cup_interface.hpp"
 
+#include "resources/track_handle.hpp"
+
 #include "user_interface/gui_context.hpp"
 #include "user_interface/elements/elements.hpp"
 

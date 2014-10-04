@@ -20,6 +20,8 @@
 #include "stdinc.hpp"
 #include "cup_gui.hpp"
 
+#include "cup/cup.hpp"
+
 #include "resources/track.hpp"
 #include "game/car_image_generator.hpp"
 

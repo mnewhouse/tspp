@@ -22,7 +22,7 @@
 #ifndef CUP_HPP
 #define CUP_HPP
 
-#include "player.hpp"
+#include "cup_metadata.hpp"
 #include "stage_data.hpp"
 
 #include "resources/track_handle.hpp"
@@ -41,35 +41,6 @@ namespace ts
     namespace cup
     {
         struct Cup_listener;
-
-        enum class Cup_type
-        {
-            Local,
-            Server,
-            Remote
-        };
-
-        enum class Cup_state
-        {
-            Registering,
-            Cup,
-            Car_selection,
-            Initializing,
-            Action,
-            End
-        };
-
-        using Player_id = std::uint16_t;
-
-        struct Cup_player_data
-            : public Player
-        {
-            Player_id handle;
-            std::uint32_t start_pos;
-            resources::Car_handle car;
-        };
-
-        using Player_handle = Pointer_handle<const Cup_player_data>;
 
         class Cup
         {
