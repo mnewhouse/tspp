@@ -48,7 +48,7 @@ void ts::cup::Client_cup_interface::update()
         {
             switch (message_buffer_.type())
             {
-            case Message_type::join_acknowledgement:
+            case Message_type::registration_acknowledgement:
                 handle_acknowledgement_message(message_buffer_);
                 break;
 
@@ -85,8 +85,10 @@ void ts::cup::Client_cup_interface::signal_ready()
     client_->send_message(message);
 }
 
-void ts::cup::Client_cup_interface::write_chat_message(const utf8_string& message)
+void ts::cup::Client_cup_interface::write_chat_message(const utf8_string& text)
 {
+    auto message = make_chat_message(text);
+    client_->send_message(message);
 }
 
 void ts::cup::Client_cup_interface::handle_invalid_response()
@@ -106,7 +108,7 @@ void ts::cup::Client_cup_interface::handle_version_mismatch()
 
 void ts::cup::Client_cup_interface::handle_acknowledgement_message(const Message& message)
 {
-    auto join_acknowledgement = parse_join_acknowledgement_message(message);
+    auto join_acknowledgement = parse_registration_acknowledgement_message(message);
 
     if (join_acknowledgement.registration_key != registration_key_)
     {
@@ -122,27 +124,37 @@ void ts::cup::Client_cup_interface::handle_acknowledgement_message(const Message
 
 void ts::cup::Client_cup_interface::handle_cup_state_message(const Message& message)
 {
+    std::cout << "MSG_CUP_STATE\n";
+
     auto cup_state_message = parse_cup_state_message(message);
     set_cup_state(cup_state_message.cup_state);
 }
 
 void ts::cup::Client_cup_interface::handle_cup_progress_message(const Message& message)
 {
+    std::cout << "MSG_CUP_PROGRESS\n";
+
     auto cup_progress_message = parse_cup_progress_message(message);
     set_cup_progress(cup_progress_message.cup_progress);
 }
 
 void ts::cup::Client_cup_interface::handle_player_information_message(const Message& message)
 {
+    std::cout << "MSG_PLAYER_INFO\n";
+
     auto player_information = parse_player_information_message(message);
     for (auto& player : player_information.players)
     {
         add_player(player, player.handle);
     }
+
+    std::cout << player_information.players.size() << " players.\n";
 }
 
 void ts::cup::Client_cup_interface::handle_track_information_message(const Message& message)
 {
+    std::cout << "MSG_TRACK_INFO\n";
+
     const auto& track_store = resource_store_->track_store();
 
     clear_tracks();
@@ -151,12 +163,21 @@ void ts::cup::Client_cup_interface::handle_track_information_message(const Messa
     for (const auto& track_name : track_information.track_names)
     {
         auto track_handle = track_store.get_track_by_name(track_name);
+        if (track_handle)
+        {
+            std::cout << track_handle.name() << std::endl;
+        }
+
         add_track(track_handle);
     }
+
+    std::cout << track_information.track_names.size() << " tracks.\n";
 }
 
 void ts::cup::Client_cup_interface::handle_car_information_message(const Message& message)
 {
+    std::cout << "MSG_CAR_INFO\n";
+
     const auto& car_store = resource_store_->car_store();
     auto car_information = parse_car_information_message(message);
 
@@ -165,8 +186,15 @@ void ts::cup::Client_cup_interface::handle_car_information_message(const Message
     for (const auto& car_name : car_information.car_names)
     {
         auto car_handle = car_store.get_car_by_name(car_name);
+        if (car_handle)
+        {
+            std::cout << car_handle->car_name << "\n";
+        }
+
         select_car(car_handle);
     }
+
+    std::cout << car_information.car_names.size() << " cars selected\n";
 }
 
 void ts::cup::Client_cup_interface::handle_message(const Message& message)
@@ -192,7 +220,18 @@ void ts::cup::Client_cup_interface::handle_message(const Message& message)
     case Message_type::cup_progress:
         handle_cup_progress_message(message);
         break;
+
+    case Message_type::chatbox_output:
+        handle_chatbox_output_message(message);
+        break;
+
     }
+}
+
+void ts::cup::Client_cup_interface::handle_chatbox_output_message(const Message& message)
+{
+    auto message_definition = parse_chatbox_output_message(message);
+    output_chat_message(message_definition.message);
 }
 
 void ts::cup::Client_cup_interface::registration_error(utf8_string error_string)
@@ -207,7 +246,7 @@ void ts::cup::Client_cup_interface::send_registration_request()
     const auto& player_store = resource_store_->player_store();
     const auto& player_settings = resource_store_->player_settings();
 
-    auto message = make_join_request_message(registration_key_, player_settings, player_store);
+    auto message = make_registration_request_message(registration_key_, player_settings, player_store);
     client_->send_message(std::move(message));
     
     registration_status_ = Registration_status::Registering;

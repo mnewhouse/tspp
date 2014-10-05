@@ -64,3 +64,9 @@ void ts::cup::Chatbox::remove_chatbox_listener(Chatbox_listener* listener)
 {
     chatbox_listeners_.erase(std::remove(chatbox_listeners_.begin(), chatbox_listeners_.end(), listener), chatbox_listeners_.end());
 }
+
+
+ts::cup::Composite_message ts::cup::format_chat_message(const utf8_string& sender, const utf8_string& message)
+{
+    return Chat_message("<" + sender + "> ", sf::Color(150, 200, 255)) + Chat_message(message, sf::Color(255, 255, 255));
+}

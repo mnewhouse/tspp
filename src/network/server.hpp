@@ -73,6 +73,7 @@ namespace ts
 
             bool get_message(Client_message& message);
             void send_message(Client_message message, Message_protocol protocol = Message_protocol::Tcp);
+            void send_message_to_all(const Message& message, Message_protocol = Message_protocol::Tcp);
 
             void close_client_connection(Client_handle client_handle);
 

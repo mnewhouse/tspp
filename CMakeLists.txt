@@ -280,6 +280,8 @@ set(SRC src/main.cpp
 		src/states/client_action_state.cpp
 		src/states/client_cup_state.hpp
 		src/states/client_cup_state.cpp
+		src/states/cup_gui.hpp
+		src/states/cup_gui.cpp
         src/states/cup_setup.hpp
         src/states/cup_setup.cpp
         src/states/cup_state_base.hpp
@@ -303,8 +305,6 @@ set(SRC src/main.cpp
         
         src/states/gui_definitions/background_document.hpp
         src/states/gui_definitions/background_document.cpp
-		src/states/gui_definitions/cup_gui.hpp
-		src/states/gui_definitions/cup_gui.cpp
         src/states/gui_definitions/window_template.hpp
         src/states/gui_definitions/window_template.cpp
         

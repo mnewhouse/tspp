@@ -68,6 +68,8 @@ namespace ts
             void handle_track_information_message(const network::Message& message);
             void handle_car_information_message(const network::Message& message);
 
+            void handle_chatbox_output_message(const network::Message& message);
+
             Cup* cup_;
             network::Client* client_;
             network::Message message_buffer_;

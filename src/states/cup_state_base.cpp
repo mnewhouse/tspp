@@ -20,10 +20,10 @@
 #include "stdinc.hpp"
 #include "cup_state_base.hpp"
 #include "action_state.hpp"
+#include "cup_gui.hpp"
 
 #include "gui_definitions/window_template.hpp"
 #include "gui_definitions/background_document.hpp"
-#include "gui_definitions/cup_gui.hpp"
 
 #include "user_interface/document.hpp"
 #include "user_interface/elements/elements.hpp"

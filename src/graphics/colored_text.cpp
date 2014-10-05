@@ -71,6 +71,16 @@ const ts::utf8_string& ts::graphics::Composite_text::text() const
     return text_;
 }
 
+ts::graphics::Composite_text::iterator ts::graphics::Composite_text::begin() const
+{
+    return iterator(components_.begin(), components_.end());
+}
+
+ts::graphics::Composite_text::iterator ts::graphics::Composite_text::end() const
+{
+    return iterator(components_.end(), components_.end());
+}
+
 ts::graphics::Composite_text ts::graphics::operator+(Composite_text lhs, const Composite_text& rhs)
 {
     lhs += rhs;
@@ -95,4 +105,64 @@ ts::graphics::Composite_text ts::graphics::operator+(const Colored_text& lhs, co
     Composite_text result(lhs);
     result += rhs;
     return result;
+}
+
+ts::graphics::Composite_text_iterator::Composite_text_iterator(component_iterator component_it, component_iterator component_end)
+: component_it_(component_it),
+  component_end_(component_end)
+{
+    if (component_it != component_end)
+    {
+        text_it_ = component_it->text.begin();
+
+        // Skip the empty components, so that it's either dereferenceable OR equal to the end iterator
+        while (text_it_ == component_it_->text.end() && ++component_it_ != component_end_)
+        {
+            text_it_ = component_it_->text.begin();
+        }
+    }
+}
+
+ts::graphics::Composite_text_iterator::value_type ts::graphics::Composite_text_iterator::operator*() const
+{
+    value_type result;
+    result.color = component_it_->color;
+    result.code_point = *text_it_;
+    return result;
+}
+
+ts::graphics::Composite_text_iterator& ts::graphics::Composite_text_iterator::operator++()
+{
+    // Increment the text iterator
+    ++text_it_;
+
+    // If component end is reached, go to the next one
+    // Also skip empty components
+    while (text_it_ == component_it_->text.end() && ++component_it_ != component_end_)
+    {
+        text_it_ = component_it_->text.begin();
+    }
+
+    return *this;
+}
+
+ts::graphics::Composite_text_iterator ts::graphics::Composite_text_iterator::operator++(int)
+{
+    auto temp = *this;
+    ++*this;
+    return temp;
+}
+
+
+bool ts::graphics::Composite_text_iterator::operator==(const Composite_text_iterator& other) const
+{
+    if (component_it_ == component_end_ && other.component_it_ == other.component_end_) return true;
+    if (component_it_ != other.component_it_) return false;
+    
+    return component_it_ != component_end_ && text_it_ == other.text_it_;
+}
+
+bool ts::graphics::Composite_text_iterator::operator!=(const Composite_text_iterator& other) const
+{
+    return !(*this == other);
 }

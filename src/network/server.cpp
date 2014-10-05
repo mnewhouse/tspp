@@ -53,6 +53,16 @@ void ts::network::Server::send_message(Client_message client_message, Message_pr
     outgoing_queue_.push(message);
 }
 
+void ts::network::Server::send_message_to_all(const Message& message, Message_protocol protocol)
+{
+    // Leave client handle "empty", to signify all clients
+    Outgoing_message outgoing_message;
+    outgoing_message.message = message;
+    outgoing_message.protocol = protocol;
+
+    outgoing_queue_.push(outgoing_message);
+}
+
 bool ts::network::Server::listen(std::uint16_t port_number)
 {
     auto status = socket_listener_.listen(port_number);
@@ -139,12 +149,34 @@ void ts::network::Server::send_outgoing_messages()
 
         if (protocol == Message_protocol::Tcp)
         {
-            client->socket_->send(packet);
+            if (client)
+            {
+                client->socket_->send(packet);
+            }
+
+            else
+            {
+                for (const auto& client_info : clients_)
+                {
+                    client_info.second.socket_->send(packet);
+                }
+            }
         }
 
         else if (protocol == Message_protocol::Udp)
         {
-            udp_socket_.send(packet, client->remote_address(), client->remote_port());
+            if (client)
+            {
+                udp_socket_.send(packet, client->remote_address(),client->remote_port());
+            }
+
+            else
+            {
+                for (const auto& client_info : clients_)
+                {
+                    udp_socket_.send(packet, client_info.second.remote_address(), client_info.second.remote_port());
+                }
+            }            
         }       
     }
 }

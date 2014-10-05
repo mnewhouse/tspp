@@ -63,6 +63,8 @@ namespace ts
         private:
             std::vector<Chatbox_listener*> chatbox_listeners_;
         };
+
+        Composite_message format_chat_message(const utf8_string& sender, const utf8_string& message);
     }
 }
 #endif

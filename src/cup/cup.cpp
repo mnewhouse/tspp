@@ -248,13 +248,18 @@ ts::cup::Stage_data ts::cup::Cup::make_stage_data() const
     Stage_data stage_data;
     stage_data.track_handle = current_track();
 
-    for (auto& player_data : player_map_)
+    for (const auto& player_data : player_map_)
     {
         Car_data car_data;
         car_data.car = player_data.second.car;
+        car_data.color = player_data.second.color;
         car_data.start_pos = player_data.second.start_pos;
         car_data.control_slot = player_data.second.control_slot;
-        stage_data.cars.push_back(car_data);
+
+        if (car_data.car)
+        {
+            stage_data.cars.push_back(car_data);
+        }        
     }
 
     if (car_mode() == resources::Car_mode::Fixed && !car_list().empty())

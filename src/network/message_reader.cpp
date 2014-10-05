@@ -199,6 +199,8 @@ ts::network::Message_reader& ts::network::Message_reader::operator>>(utf8_string
     std::int32_t length;
     if (*this >> length)
     {
+        length = clamp(length, 0, 1024);
+
         if (end_ - ptr_ < length)
         {
             failbit_ = true;

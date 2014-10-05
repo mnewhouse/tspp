@@ -30,7 +30,7 @@ namespace ts
         {
         public:
             Message() = default;
-            Message(std::uint32_t type);
+            explicit Message(std::uint32_t type);
             Message(const std::uint8_t* data, std::size_t data_size);
 
             void assign(const std::uint8_t* data, std::size_t data_size);

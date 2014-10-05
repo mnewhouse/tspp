@@ -49,7 +49,7 @@ namespace ts
 
 ts::cup::Message& ts::cup::operator<<(Message& message, sf::Color color)
 {
-    return message << color.r << color.g << color.b;
+    return message << color.r << color.g << color.b << color.a;
 }
 
 ts::cup::Message& ts::cup::operator<<(Message& message, const resources::Color_base& color_base)
@@ -79,7 +79,7 @@ ts::cup::Message& ts::cup::operator<<(Message& message, const resources::Player_
 
 ts::cup::Message_reader& ts::cup::operator>>(Message_reader& reader, sf::Color& color)
 {
-    return reader >> color.r >> color.g >> color.b;
+    return reader >> color.r >> color.g >> color.b >> color.a;
 }
 
 ts::cup::Message_reader& ts::cup::operator>>(Message_reader& reader, resources::Color_base& color_base)
@@ -114,81 +114,77 @@ ts::cup::Message_reader& ts::cup::operator>>(Message_reader& reader, resources::
     return reader >> player_color.base_color >> player_color.primary_extra >> player_color.secondary_extra;
 }
 
-ts::cup::Message ts::cup::make_join_request_message(std::uint64_t join_key, const resources::Player_settings& player_settings, 
-                                                              const resources::Player_store& player_store)
+ts::cup::Message ts::cup::make_registration_request_message(std::uint64_t registration_key, const resources::Player_settings& player_settings, 
+                                                            const resources::Player_store& player_store)
 {
-    std::vector<resources::Player_handle> players;
-    std::uint32_t player_count = 0;
+    std::vector<std::pair<std::int16_t, resources::Player_handle>> players;
 
+    std::int16_t slot = 0;
     for (auto player_id : player_settings.selected_players())
     {
         auto player_handle = player_store.get_player_by_id(player_id);
         if (player_handle)
         {
-            player_count = 0;
-        }
-
-        players.push_back(player_handle);
-    }
-
-    Message message(Message_type::join_request);
-    message << join_key;
-    message << player_count;
-
-    std::int16_t slot = 0;
-    for (auto player_handle : players)
-    {
-        if (player_handle)
-        {
-            message << slot;
-            message << player_handle->id;
-            message << player_handle->name;
-            message << player_handle->color;
+            players.push_back(std::make_pair(slot, player_handle));
         }
 
         ++slot;
     }
 
+    Message message(Message_type::registration_request);
+    message << registration_key;
+    message << static_cast<std::uint32_t>(players.size());
+
+    for (auto player_info : players)
+    {
+        auto slot = player_info.first;
+        auto player_handle = player_info.second;
+        
+        message << slot;
+        message << player_handle->id;
+        message << player_handle->name;
+        message << player_handle->color;
+    }
+
     return message;
 }
 
-ts::cup::Join_request ts::cup::parse_join_request_message(const Message& message)
+ts::cup::Registration_request ts::cup::parse_registration_request_message(const Message& message)
 {
     Message_reader message_reader(message);
-    Join_request result;
+    Registration_request result;
 
     std::uint32_t player_count = 0;
-    if (message_reader >> result.message_type >> result.registration_key >> player_count && 
-        result.message_type == Message_type::join_request)
+    if (message_reader >> result.message_type >> result.registration_key >> player_count)
     {
-        for (std::uint32_t idx = 0; idx != player_count; ++idx)
+        Player_definition p;
+        std::int16_t slot = 0;
+
+        for (std::uint32_t idx = 0; idx != player_count && message_reader >> slot >> p.id >> p.nickname >> p.color; ++idx)
         {
-            Player player;
-            if (message_reader >> player.control_slot >> player.id >> player.nickname >> player.color)
-            {
-                result.players.push_back(player);
-            }
+            p.control_slot = slot;
+            result.players.push_back(p);
         }
     }
 
     return result;
 }
 
-ts::cup::Message ts::cup::make_join_acknowledgement_message(std::uint64_t join_key, std::uint32_t client_key)
+ts::cup::Message ts::cup::make_registration_acknowledgement_message(std::uint64_t registration_key, std::uint32_t client_key)
 {
-    join_key ^= client_key;
-    join_key ^= static_cast<std::uint64_t>(client_key * client_key) << 32;
+    registration_key ^= client_key;
+    registration_key ^= static_cast<std::uint64_t>(client_key * client_key) << 32;
 
-    Message result(Message_type::join_acknowledgement);
-    result << join_key;
+    Message result(Message_type::registration_acknowledgement);
+    result << registration_key;
     result << client_key;
     return result;
 }
 
-ts::cup::Join_acknowledgement ts::cup::parse_join_acknowledgement_message(const Message& message)
+ts::cup::Registration_acknowledgement ts::cup::parse_registration_acknowledgement_message(const Message& message)
 {
     Message_reader message_reader(message);
-    Join_acknowledgement result;
+    Registration_acknowledgement result;
 
     if (message_reader >> result.message_type >> result.registration_key >> result.client_key)
     {
@@ -231,9 +227,9 @@ ts::cup::Message ts::cup::make_version_mismatch_message(std::uint64_t registrati
     return message;
 }
 
-ts::cup::Join_refusal ts::cup::parse_join_refusal_message(const Message& message)
+ts::cup::Registration_refusal ts::cup::parse_registration_refusal_message(const Message& message)
 {
-    Join_refusal join_refusal;
+    Registration_refusal join_refusal;
     Message_reader message_reader(message);
     if (message_reader >> join_refusal.message_type >> join_refusal.registration_key)
     {
@@ -285,17 +281,17 @@ ts::cup::Cup_progress_message ts::cup::parse_cup_progress_message(const Message&
     return result;
 }
 
-ts::cup::Message ts::cup::make_player_information_message(const std::vector<Player_handle>& local_players, const std::vector<Player_handle>& remote_players)
+ts::cup::Message ts::cup::make_player_information_message(const std::vector<Player_definition>& local_players, const std::vector<Player_handle>& remote_players)
 {
     Message message(Message_type::player_information);
     message << static_cast<std::uint32_t>(local_players.size() + remote_players.size());
     for (auto player : local_players)
     {
-        message << player->handle;
-        message << static_cast<std::int16_t>(player->control_slot);
-        message << player->id;
-        message << player->nickname;
-        message << player->color;
+        message << player.handle;
+        message << static_cast<std::int16_t>(player.control_slot);
+        message << player.id;
+        message << player.nickname;
+        message << player.color;
     }
 
     for (auto player : remote_players)
@@ -322,15 +318,17 @@ ts::cup::Player_information_message ts::cup::parse_player_information_message(co
         {
             Player_id handle;
             std::int16_t control_slot;
+            std::uint64_t id;
             utf8_string nickname;
             resources::Player_color color;
 
-            if (message_reader >> handle >> control_slot >> nickname >> color)
+            if (message_reader >> handle >> control_slot >> id >> nickname >> color)
             {
-                Player_information_message::Player_definition player;
-                player.handle = handle;
+                Player_definition player;
+                player.handle = handle;                
                 player.control_slot = control_slot;
                 player.color = color;
+                player.id = id;
                 player.nickname = std::move(nickname);
 
                 result.players.push_back(player);
@@ -446,4 +444,56 @@ ts::cup::Car_information_message ts::cup::parse_car_information_message(const Me
 ts::cup::Message ts::cup::make_ready_signal_message()
 {
     return Message(Message_type::ready_signal);
+}
+
+ts::cup::Message ts::cup::make_chat_message(const utf8_string& message)
+{
+    Message result(Message_type::chat_message);
+    result << message;
+
+    return result;
+}
+
+ts::cup::Chat_message_definition ts::cup::parse_chat_message(const Message& message)
+{
+    Message_reader message_reader(message);
+    Chat_message_definition result;
+
+    message_reader >> result.message_type >> result.message;
+
+    return result;
+}
+
+ts::cup::Message ts::cup::make_chatbox_output_message(const Composite_message& message)
+{
+    Message result(Message_type::chatbox_output);
+
+    const auto& components = message.components();
+    result << static_cast<std::uint32_t>(components.size());
+
+    for (const auto& component : components)
+    {
+        result << component.color;
+        result << component.text;
+    }
+
+    return result;
+}
+
+ts::cup::Chatbox_output_message ts::cup::parse_chatbox_output_message(const Message& message)
+{
+    Message_reader message_reader(message);
+    Chatbox_output_message result;
+
+    std::uint32_t num_components = 0;
+    if (message_reader >> result.message_type >> num_components)
+    {
+        Chat_message component;
+        for (std::uint32_t n = 0; n != num_components && message_reader >> component.color >> component.text; ++n)
+        {
+            result.message.append(component);
+        }
+    }
+
+    return result;
 }

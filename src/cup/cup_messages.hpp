@@ -47,8 +47,14 @@ namespace ts
 
         struct Message_type
         {
-            static const std::uint32_t join_request = 1201;
-            static const std::uint32_t join_acknowledgement = 2211;
+            // Client -> server messages
+            static const std::uint32_t registration_request = 1201;
+            static const std::uint32_t car_selection = 1471;
+            static const std::uint32_t ready_signal = 1481;
+            static const std::uint32_t chat_message = 1691;
+
+            // Server -> client messages
+            static const std::uint32_t registration_acknowledgement = 2211;
 
             static const std::uint32_t bad_request = 2221;
             static const std::uint32_t too_many_players = 2222;
@@ -63,26 +69,30 @@ namespace ts
             static const std::uint32_t resource_information = 2411;
             static const std::uint32_t car_information = 2421;
 
-            static const std::uint32_t car_selection = 1471;
-            static const std::uint32_t ready_signal = 1481;
-
+            static const std::uint32_t chatbox_output = 2831;
         };
 
-        struct Join_request
+        struct Player_definition
+            : public Player
+        {
+            Player_id handle = 0;
+        };
+
+        struct Registration_request
         {
             std::uint32_t message_type = 0;
             std::uint64_t registration_key = 0;
-            std::vector<cup::Player> players;
+            std::vector<Player_definition> players;
         };
 
-        struct Join_acknowledgement
+        struct Registration_acknowledgement
         {
             std::uint32_t message_type = 0;
             std::uint64_t registration_key = 0;
             std::uint32_t client_key = 0;
         };
 
-        struct Join_refusal
+        struct Registration_refusal
         {
             std::uint32_t message_type = 0;
             std::uint64_t registration_key = 0;
@@ -104,11 +114,6 @@ namespace ts
         {
             std::uint32_t message_type = 0;
 
-            struct Player_definition
-                : public Player
-            {
-                Player_id handle;
-            };
             std::vector<Player_definition> players;
         };
 
@@ -137,16 +142,38 @@ namespace ts
             std::vector<Entry> car_selection;
         };
 
-        Message make_join_request_message(std::uint64_t join_key, const resources::Player_settings& player_settings, const resources::Player_store& player_store);
-        Join_request parse_join_request_message(const Message& message);
+        struct Chat_message_definition
+        {
+            std::uint32_t message_type;
+            utf8_string message;
+        };
 
-        Message make_join_acknowledgement_message(std::uint64_t registration_key, std::uint32_t client_key);
-        Join_acknowledgement parse_join_acknowledgement_message(const Message& message);
+        struct Chatbox_output_message
+        {
+            std::uint32_t message_type;
+            Composite_message message;
+        };
+
+        // Client -> server messages
+        Message make_registration_request_message(std::uint64_t registration_key, const resources::Player_settings& player_settings, const resources::Player_store& player_store);
+        Registration_request parse_registration_request_message(const Message& message);
+
+        Message make_ready_signal_message();
+
+        Message make_chat_message(const utf8_string& message);
+        Chat_message_definition parse_chat_message(const Message& message);
+
+        Message make_car_selection_message(const std::vector<Car_selection>& car_selection);
+        Car_selection_message parse_car_selection_message(const Message& message);
+
+        // Server -> client messages
+        Message make_registration_acknowledgement_message(std::uint64_t registration_key, std::uint32_t client_key);
+        Registration_acknowledgement parse_registration_acknowledgement_message(const Message& message);
 
         Message make_too_many_players_message(std::uint64_t registration_key);
         Message make_bad_request_message(std::uint64_t registration_key);
         Message make_version_mismatch_message(std::uint64_t registration_key);
-        Join_refusal parse_join_refusal_message(const Message& message);
+        Registration_refusal parse_registration_refusal_message(const Message& message);
         
         Message make_cup_state_message(cup::Cup_state cup_state);
         Cup_state_message parse_cup_state_message(const Message& message);
@@ -154,7 +181,7 @@ namespace ts
         Message make_cup_progress_message(std::size_t progress, const resources::Track_handle& track_handle);
         Cup_progress_message parse_cup_progress_message(const Message& message);
 
-        Message make_player_information_message(const std::vector<Player_handle>& local_players, const std::vector<Player_handle>& remote_players);
+        Message make_player_information_message(const std::vector<Player_definition>& local_players, const std::vector<Player_handle>& remote_players);
         Player_information_message parse_player_information_message(const Message& message);
 
         Message make_track_information_message(const resources::Track_settings& track_settings, const resources::Track_store& track_store);
@@ -163,10 +190,9 @@ namespace ts
         Message make_car_information_message(const resources::Car_settings& car_settings, const resources::Car_store& car_store);
         Car_information_message parse_car_information_message(const Message& message);
 
-        Message make_car_selection_message(const std::vector<Car_selection>& car_selection);
-        Car_selection_message parse_car_selection_message(const Message& message);
+        Message make_chatbox_output_message(const Composite_message& composite_message);
+        Chatbox_output_message parse_chatbox_output_message(const Message& message);
 
-        Message make_ready_signal_message();
     }
 }
 

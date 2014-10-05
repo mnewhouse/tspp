@@ -41,7 +41,9 @@ ts::states::Server_cup_state::Server_cup_state(state_machine_type* state_machine
     auto& network_settings = resource_store->network_settings();
     server_.listen(network_settings.server_port);
 
-    cup_.add_cup_listener(this);    
+    cup_.add_cup_listener(this);
+
+    cup_.set_cup_state(cup::Cup_state::Registering);
 }
 
 ts::states::Server_cup_state::~Server_cup_state()

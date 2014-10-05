@@ -187,14 +187,10 @@ void ts::graphics::Text::update_geometry() const
 
     utf8::uint32_t previous_char = 0;
    
-    auto word_boundary = text_.text().begin(), line_boundary = word_boundary;
+    auto word_boundary = text_.begin(), line_boundary = word_boundary;
     std::size_t word_boundary_index = 0;
-    
-    auto current_component = text_.components().begin();
-    auto component_it = current_component->text.begin();
-    sf::Color current_color = current_component->color;
-    if (current_color.a == 0) current_color = color_;
-
+ 
+    /*
     auto advance_component_it = [&]()
     {
         if (current_component != text_.components().end() && component_it != current_component->text.end())
@@ -219,16 +215,17 @@ void ts::graphics::Text::update_geometry() const
             }
         }
     };
+    */
     
     // Loop through all code points
-    for (auto it = text_.text().begin(), end = text_.text().end(); it != end; )
+    for (auto it = text_.begin(), end = text_.end(); it != end; )
     {
-        advance_component_it();
+        auto char_info = *it++;
+        auto color = char_info.color.a == 0 ? color_ : char_info.color;
 
-        std::uint32_t code_point = *it; ++it;
-        position += font_.kerning(previous_char, code_point, character_size_);
+        position += font_.kerning(previous_char, char_info.code_point, character_size_);
 
-        auto& glyph = font_.glyph(code_point, character_size_);
+        auto& glyph = font_.glyph(char_info.code_point, character_size_);
 
         if (position.x == 0.0 && glyph.bounds.left < 0)
         {
@@ -236,28 +233,27 @@ void ts::graphics::Text::update_geometry() const
         }
         
         geometry_.character_offsets.push_back(position.x);
-        append_vertices(vertices, position, current_color, glyph.bounds, glyph.texture_rect);
+        append_vertices(vertices, position, color, glyph.bounds, glyph.texture_rect);
 
         // Test for combining marks
-        for (std::int32_t ccc; it != end && (ccc = unicode::combining_class(*it)) != 0; ++it)
+        for (std::int32_t ccc; it != end && (ccc = unicode::combining_class((char_info = *it).code_point)) != 0; ++it)
         {
-            advance_component_it();
-
-            auto& combining_mark = font_.glyph(*it, character_size_);
+            auto color = char_info.color.a == 0 ? color_ : char_info.color;
+            auto& combining_mark = font_.glyph(char_info.code_point, character_size_);
 
             // Center the combining mark
             auto centered_position = position;
             centered_position.x += (glyph.bounds.left - combining_mark.bounds.left) + ((glyph.bounds.width - combining_mark.bounds.width) / 2);
 
             geometry_.character_offsets.push_back(position.x);
-            append_vertices(vertices, centered_position, current_color, combining_mark.bounds, combining_mark.texture_rect);
+            append_vertices(vertices, centered_position, color, combining_mark.bounds, combining_mark.texture_rect);
         }
 
         position += glyph.advance_offset;
 
         if (word_wrap_width_ != 0)
         {           
-            if (unicode::is_space(code_point))
+            if (unicode::is_space(char_info.code_point))
             {
                 word_boundary = it;
                 word_boundary_index = vertices.size();
@@ -283,7 +279,7 @@ void ts::graphics::Text::update_geometry() const
             }
         }
 
-        previous_char = code_point;
+        previous_char = char_info.code_point;
     }
 
     geometry_.character_offsets.push_back(position.x);

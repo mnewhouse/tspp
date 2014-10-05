@@ -48,14 +48,18 @@ namespace ts
             virtual void write_chat_message(const utf8_string& message) override;
             
         private:
-            void handle_join_request(const network::Client_message& message);
-            void handle_bad_join_request(network::Client_handle client);
+            void handle_registration_request(const network::Client_message& message);
+            void handle_bad_registration_request(network::Client_handle client);
 
             void handle_message(const network::Client_message& message);
             void handle_ready_signal(const network::Client_message& message);
             void handle_car_selection(const network::Client_message& message);
+            void handle_chat_message(const network::Client_message& message);
             
             void disconnect_client(network::Client_handle client_handle);
+
+            utf8_string client_name(network::Client_handle client) const;
+            utf8_string my_name() const;
 
             void wait_for_everyone();
             void advance_if_ready();
@@ -67,7 +71,7 @@ namespace ts
             const resources::Resource_store* resource_store_;
             network::Client_message message_buffer_;
 
-            std::unordered_multimap<std::uint32_t, Player_handle> client_player_mapping_;
+            std::unordered_map<std::uint32_t, std::vector<Player_handle>> client_player_mapping_;
 
             std::unordered_set<std::uint32_t> awaiting_clients_;
             bool awaiting_self_;

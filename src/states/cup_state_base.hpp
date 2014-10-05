@@ -19,8 +19,10 @@
 
 #pragma once
 
-#ifndef STATES_CUP_STATE_ESSENTIALS_HPP
-#define STATES_CUP_STATE_ESSENTIALS_HPP
+#ifndef STATES_CUP_STATE_BASE_HPP
+#define STATES_CUP_STATE_BASE_HPP
+
+#include "cup_gui.hpp"
 
 #include "cup/cup_listener.hpp"
 
@@ -28,7 +30,6 @@
 
 #include "user_interface/gui_state.hpp"
 
-#include "gui_definitions/cup_gui.hpp"
 
 
 namespace ts

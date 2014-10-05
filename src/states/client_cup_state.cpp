@@ -32,6 +32,7 @@ ts::states::Client_cup_state::Client_cup_state(state_machine_type* state_machine
 : Client_cup_state_members(resource_store),
   Cup_state_base(&client_cup_interface_, state_machine, context, resource_store)
 {
+    cup_.add_cup_listener(this);
 }
 
 ts::states::Client_cup_state::~Client_cup_state()
