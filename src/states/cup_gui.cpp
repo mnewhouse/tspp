@@ -25,13 +25,12 @@
 #include "resources/track.hpp"
 #include "game/car_image_generator.hpp"
 
-#include "window_template.hpp"
-#include "background_document.hpp"
-
 #include "user_interface/document.hpp"
 #include "user_interface/elements/elements.hpp"
 
-#include "background_document.hpp"
+#include "gui_definitions/window_template.hpp"
+#include "gui_definitions/background_document.hpp"
+
 
 ts::states::Cup_GUI::Cup_GUI(cup::Cup_interface* cup_interface, gui::Context* context, const resources::Resource_store* resource_store)
     : cup_interface_(cup_interface),
@@ -145,7 +144,7 @@ void ts::states::Cup_GUI::create_cup_document(gui::Context* context)
     header_text_->set_position({ 0.0, 30.0 });
 
     chatbox_text_style_.font = monospace;
-    chatbox_text_style_.character_size = 14;
+    chatbox_text_style_.character_size = 15;
     chatbox_text_style_.color = sf::Color::White;
 
     Vector2<double> scroll_pane_size(window_size.x - 80.0, window_size.y - 220.0);
