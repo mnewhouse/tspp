@@ -26,8 +26,6 @@
 
 #include "cup/cup_listener.hpp"
 
-#include "game/action_loader.hpp"
-
 #include "user_interface/gui_state.hpp"
 
 
@@ -59,22 +57,27 @@ namespace ts
             virtual void on_end() override;
 
             void show_gui();
+
+            void begin_loading();
+            void set_loading_progress_text(const utf8_string& text);
+            void set_loading_progress(double progress);
+            void finish_loading();
+
             virtual void update(std::size_t frame_duration) override;
             virtual void on_activate() override;
 
             virtual void on_chat_message(const cup::Composite_message& message) override;
+
+        protected:
+            void launch_action(std::unique_ptr<Action_state_base> action_state);
             
 
         private:
-            void launch_action();
+            
             void return_to_main_menu();
 
-            virtual std::unique_ptr<Action_state_base> create_action_state(game::Loaded_scene loaded_scene) = 0;
-
             cup::Cup_interface* cup_interface_;
-            game::Action_loader action_loader_;
 
-            game::Loading_phase loading_phase_ = game::Loading_phase::None;
             std::chrono::high_resolution_clock::time_point completion_time_;
 
             Cup_GUI cup_gui_;

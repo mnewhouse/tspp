@@ -43,14 +43,14 @@ namespace ts
                 All_frames
             };
 
-            sf::Image operator()(const resources::Car_definition& car_definition, const resources::Player_color& color_scheme, Frame_mode = All_frames);
+            sf::Image operator()(const resources::Car_definition& car_definition, const resources::Player_color& color_scheme, Frame_mode = All_frames) const;
 
         private:
-            const sf::Image& get_image_by_filename(const utf8_string& file_name);
-            const sf::Image& load_image_from_file(const utf8_string& file_name);
+            const sf::Image& get_image_by_filename(const utf8_string& file_name) const;
+            const sf::Image& load_image_from_file(const utf8_string& file_name) const;
 
-            std::map<utf8_string, sf::Image> image_map_;
-            std::vector<char> file_buffer_;
+            mutable std::map<utf8_string, sf::Image> image_map_;
+            mutable std::vector<char> file_buffer_;
         };
     }
 }

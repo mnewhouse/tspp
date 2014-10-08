@@ -36,7 +36,6 @@ namespace ts
     namespace states
     {
         ts::utf8_string to_string(cup::Cup_state cup_state);
-        ts::utf8_string to_string(game::Loading_phase loading_phase);
     }
 }
 
@@ -66,27 +65,6 @@ void ts::states::Cup_state_base::on_activate()
 
 void ts::states::Cup_state_base::on_state_change(cup::Cup_state old_state, cup::Cup_state new_state)
 {
-    if (new_state == cup::Cup_state::Action)
-    {
-        launch_action();
-    }
-
-    if (new_state == cup::Cup_state::Initializing)
-    {
-        action_loader_.async_load(cup_interface_->cup()->make_stage_data(), resource_store());
-
-        auto progress_dialog = cup_gui_.progress_dialog();
-        progress_dialog->show();
-        progress_dialog->set_loading_state(to_string(action_loader_.phase()));
-        progress_dialog->set_progress(action_loader_.progress());
-        progress_dialog->set_max_progress(1.0);
-    }
-
-    else if (new_state == cup::Cup_state::Car_selection)
-    {
-        cup_gui_.show_car_selection_dialog();
-    }
-
     cup_gui_.set_cup_state_text(to_string(new_state));
 }
 
@@ -107,33 +85,6 @@ void ts::states::Cup_state_base::on_chat_message(const cup::Composite_message& m
 void ts::states::Cup_state_base::update(std::size_t frame_duration)
 {
     cup_gui_.update(frame_duration);
-
-    if (action_loader_.is_loading())
-    {
-        cup_gui_.progress_dialog()->set_progress(action_loader_.progress());
-
-        if (loading_phase_ != action_loader_.phase())
-        {
-            loading_phase_ = action_loader_.phase();
-
-            cup_gui_.progress_dialog()->set_loading_state(to_string(loading_phase_));
-
-            if (action_loader_.complete())
-            {
-                completion_time_ = std::chrono::high_resolution_clock::now();
-            }
-        }
-
-        if (action_loader_.complete())
-        {
-            auto now = std::chrono::high_resolution_clock::now();
-            if (now - completion_time_ >= std::chrono::milliseconds(200))
-            {
-                cup_gui_.progress_dialog()->hide();
-                cup_interface_->signal_ready();
-            }
-        }
-    }
 }
 
 void ts::states::Cup_state_base::return_to_main_menu()
@@ -141,14 +92,31 @@ void ts::states::Cup_state_base::return_to_main_menu()
     state_machine()->change_state();
 }
 
-void ts::states::Cup_state_base::launch_action()
+void ts::states::Cup_state_base::launch_action(std::unique_ptr<Action_state_base> action_state)
 {
     context()->hide_all();
 
-    // TODO: Delayed launching, for when loading isn't finished yet
-    auto action_state = create_action_state(action_loader_.transfer_loaded_scene());
-
     state_machine()->change_state(std::move(action_state));
+}
+
+void ts::states::Cup_state_base::begin_loading()
+{
+    cup_gui_.show_progress_dialog();
+}
+
+void ts::states::Cup_state_base::finish_loading()
+{
+    cup_gui_.hide_progress_dialog();
+}
+
+void ts::states::Cup_state_base::set_loading_progress(double progress)
+{
+    cup_gui_.set_loading_progress(progress);
+}
+
+void ts::states::Cup_state_base::set_loading_progress_text(const utf8_string& text)
+{
+    cup_gui_.set_loading_progress_text(text);
 }
 
 ts::utf8_string ts::states::to_string(cup::Cup_state cup_state)
@@ -169,44 +137,6 @@ ts::utf8_string ts::states::to_string(cup::Cup_state cup_state)
         return "Initializing";
     case State::End:
         return "Cup over";
-    default:
-        return "";
-    }
-}
-
-ts::utf8_string ts::states::to_string(game::Loading_phase phase)
-{
-    using game::Loading_phase;
-
-    switch (phase)
-    {
-    case Loading_phase::Initializing:
-        return "Initializing...";
-
-    case Loading_phase::Preprocessing:
-        return "Preprocessing...";
-
-    case Loading_phase::Building_pattern:
-        return "Building track pattern...";
-
-    case Loading_phase::Loading_track_textures:
-        return "Loading track textures...";
-
-    case Loading_phase::Building_track_scene:
-        return "Building track scene...";
-
-    case Loading_phase::Creating_world:
-        return "Creating world...";
-
-    case Loading_phase::Creating_entities:
-        return "Creating entities...";
-
-    case Loading_phase::Loading_audio:
-        return "Loading audio...";
-
-    case Loading_phase::Complete:
-        return "Complete!";
-
     default:
         return "";
     }

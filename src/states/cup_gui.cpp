@@ -56,9 +56,28 @@ void ts::states::Cup_GUI::hide()
     cup_document_->set_visible(false);
 }
 
-ts::states::Loading_progress_dialog* ts::states::Cup_GUI::progress_dialog()
+void ts::states::Cup_GUI::show_progress_dialog()
 {
-    return progress_dialog_.get();
+    cup_document_->set_active(false);
+
+    progress_dialog_->show();
+}
+
+void ts::states::Cup_GUI::hide_progress_dialog()
+{
+    cup_document_->set_active(true);
+
+    progress_dialog_->hide();
+}
+
+void ts::states::Cup_GUI::set_loading_progress(double progress)
+{
+    progress_dialog_->set_progress(progress);
+}
+
+void ts::states::Cup_GUI::set_loading_progress_text(utf8_string text)
+{
+    progress_dialog_->set_loading_state(std::move(text));
 }
 
 void ts::states::Cup_GUI::set_cup_state_text(utf8_string state_text)

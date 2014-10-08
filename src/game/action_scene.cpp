@@ -31,6 +31,14 @@
 
 #include "graphics/sprite.hpp"
 
+ts::game::Drawable_entity_definition::Drawable_entity_definition(std::shared_ptr<graphics::Texture> texture_)
+: texture(std::move(texture_)),
+  texture_rect(0, 0, texture->size().x, texture->size().y),
+  scale(1.0, 1.0),
+  image_type(resources::Image_type::Default)
+{
+}
+
 ts::game::Action_scene::Action_scene(Track_scene track_scene, const resources::Video_settings& video_settings)
 : track_scene_(std::move(track_scene)),
   view_context_(video_settings.current_screen_resolution, track_scene_.track_size),
@@ -48,15 +56,12 @@ ts::game::Action_scene::~Action_scene()
 {
 }
 
-void ts::game::Action_scene::add_car(const world::Car* car, const resources::Player_color& car_color)
+void ts::game::Action_scene::add_car(const world::Car* car, const Drawable_entity_definition& definition)
 {
-    const auto& car_definition = car->car_definition();
-    auto car_image = (*car_image_generator_)(car_definition, car_color);
-
-    auto texture = std::make_shared<graphics::Texture>(car_image, car_definition.image_rect);
-
-    drawable_entities_.emplace_back(car, texture, car_definition.image_type);
-    drawable_entities_.back().set_scale({ car_definition.image_scale, car_definition.image_scale });
+    Drawable_entity drawable_entity(car, definition.texture, definition.image_type);
+    drawable_entity.set_scale(definition.scale);
+    drawable_entity.set_texture_rect(definition.texture_rect);
+    drawable_entities_.push_back(drawable_entity);
 
     particle_generator_->add_car(car);
 }

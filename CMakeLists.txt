@@ -92,14 +92,16 @@ set(SRC src/main.cpp
 		src/cup/local_players.cpp
 		src/cup/player.hpp
 		src/cup/registration.hpp
+		src/cup/resource_downloader.hpp
 		src/cup/server_cup_interface.hpp
 		src/cup/server_cup_interface.cpp
-		src/cup/stage_data.hpp
 
         src/game/action_loader.hpp
         src/game/action_loader.cpp
         src/game/action_scene.hpp
         src/game/action_scene.cpp
+		src/game/audio_loader.hpp
+		src/game/audio_loader.cpp
         src/game/camera.hpp
         src/game/camera.cpp
         src/game/car_image_generator.hpp
@@ -109,13 +111,23 @@ set(SRC src/main.cpp
         src/game/game.hpp
         src/game/game.cpp        
         src/game/game_state.hpp
-        src/game/game_state.cpp        
+        src/game/game_state.cpp
+		src/game/generic_loader.hpp
+		src/game/loaded_scene.hpp
+		src/game/loaded_scene.cpp
+		src/game/local_loading_sequence.hpp
+		src/game/local_loading_sequence.cpp
         src/game/particle_generator.hpp
         src/game/particle_generator.cpp
+		src/game/stage_assembler.hpp
+		src/game/stage_assembler.cpp
+		src/game/stage_data.hpp
         src/game/track_builder.hpp
         src/game/track_builder.cpp
 		src/game/view_context.hpp
 		src/game/view_context.cpp
+		src/game/world_loader.hpp
+		src/game/world_loader.cpp
 
 		src/graphics/colored_text.hpp
 		src/graphics/colored_text.cpp

@@ -32,6 +32,7 @@ namespace ts
     namespace cup
     {
         class Cup;
+        struct Stage_data;
 
         struct Car_selection
         {
@@ -64,6 +65,8 @@ namespace ts
 
             void select_car(const resources::Car_handle& car_handle);
             void set_car_mode(resources::Car_mode car_mode);            
+
+            void initialize_action(const Stage_data& stage_data);
             
             virtual void select_cars(const std::vector<Car_selection>& car_selection) = 0;
             virtual void signal_ready() = 0;

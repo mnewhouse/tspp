@@ -24,6 +24,8 @@
 
 #include "graphics/render_scene.hpp"
 
+#include "resources/image_type.hpp"
+
 #include "track_builder.hpp"
 #include "view_context.hpp"
 
@@ -46,6 +48,16 @@ namespace ts
         class Particle_generator;
         class Drawable_entity;
 
+        struct Drawable_entity_definition
+        {
+            explicit Drawable_entity_definition(std::shared_ptr<graphics::Texture> texture);
+
+            std::shared_ptr<graphics::Texture> texture;
+            Int_rect texture_rect;
+            Vector2<double> scale;
+            resources::Image_type image_type;
+        };
+
         class Action_scene
             : public graphics::Render_scene
         {
@@ -55,7 +67,7 @@ namespace ts
 
             virtual void render(sf::RenderTarget& render_target, double frame_time) override;
 
-            void add_car(const world::Car* car, const resources::Player_color& color);
+            void add_car(const world::Car* car, const Drawable_entity_definition& drawable_definition);
             void remove_car(const world::Car* car);
 
             void set_followed_entity(const world::Entity* entity);

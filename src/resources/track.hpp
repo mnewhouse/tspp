@@ -49,6 +49,9 @@ namespace ts
             Track();
             explicit Track(const Track_handle& track_handle);
 
+            Track(const Track&) = delete;
+            Track& operator=(const Track&) = delete;
+
             void load_from_file(const utf8_string& file_name);
 
             const Terrain_library& terrain_library() const;

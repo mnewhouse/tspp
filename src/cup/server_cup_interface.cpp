@@ -319,3 +319,9 @@ void ts::cup::Server_cup_interface::handle_car_selection(const network::Client_m
         }
     }
 }
+
+void ts::cup::Server_cup_interface::send_initialization_message(const Stage_data& stage_data)
+{
+    auto message = make_action_initialization_message(stage_data);
+    server_->send_message_to_all(message);
+}

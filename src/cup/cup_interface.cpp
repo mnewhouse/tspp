@@ -97,3 +97,8 @@ void ts::cup::Cup_interface::clear_tracks()
 {
     cup_->clear_tracks();
 }
+
+void ts::cup::Cup_interface::initialize_action(const Stage_data& stage_data)
+{
+    cup_->initialize_action(stage_data);
+}

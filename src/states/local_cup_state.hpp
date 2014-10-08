@@ -31,6 +31,11 @@
 
 namespace ts
 {
+    namespace game
+    {
+        class Local_loading_sequence;
+    }
+
     namespace states
     {
         namespace impl
@@ -45,6 +50,8 @@ namespace ts
             };
         }
 
+        class Local_action_state;
+
         class Local_cup_state
             : private impl::Local_cup_state_members, public Cup_state_base
         {
@@ -58,8 +65,10 @@ namespace ts
             virtual void update(std::size_t frame_duration) override;
 
         private:
-            virtual std::unique_ptr<Action_state_base> create_action_state(game::Loaded_scene loaded_scene) override;
+            void begin_loading_sequence();
+            std::unique_ptr<Local_action_state> make_action_state();
 
+            std::unique_ptr<game::Local_loading_sequence> loading_sequence_;
         };
     }
 }

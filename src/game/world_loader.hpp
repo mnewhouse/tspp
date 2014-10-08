@@ -19,35 +19,45 @@
 
 #pragma once
 
-#ifndef STAGE_DATA_HPP
-#define STAGE_DATA_HPP
+#ifndef WORLD_LOADER_HPP
+#define WORLD_LOADER_HPP
 
-#include "cup_metadata.hpp"
+#include "generic_loader.hpp"
 
-#include "resources/car_handle.hpp"
-#include "resources/track_handle.hpp"
-#include "resources/player_color.hpp"
-
-#include "controls/control.hpp"
+#include "world/world.hpp"
 
 namespace ts
 {
-    namespace cup
+    namespace game
     {
-        struct Car_data
+        enum class World_loader_state
         {
-            std::uint16_t car_id;
-            Player_handle player;
-            resources::Player_color color;
-            resources::Car_handle car;
-            std::uint32_t start_pos;
+            None,
+            Preprocessing,
+            Creating_world,
+            Building_pattern,
+            Complete
         };
 
-        struct Stage_data
+        class World_loader
+            : public Generic_loader<World_loader_state, std::unique_ptr<world::World>>
         {
-            resources::Track_handle track;
-            std::vector<Car_data> cars;
+        public:
+            World_loader();
+            ~World_loader();
+
+            World_loader(const World_loader&) = delete;
+            World_loader& operator=(const World_loader&) = delete;
+
+            void async_load(resources::Track_handle track);
+
+            using State = World_loader_state;
+
+        private:
+            std::unique_ptr<world::World> load_world(resources::Track_handle track);
         };
+
+        utf8_string to_string(World_loader_state state);
     }
 }
 

@@ -50,6 +50,8 @@ namespace ts
             const world::Entity* entity() const;
             void set_scale(Vector2<double> scale);
 
+            void set_texture_rect(Int_rect texture_rect);
+
             void update_position();
             
         private:
@@ -57,6 +59,7 @@ namespace ts
             const world::Entity* entity_;
 
             resources::Image_type image_type_;
+            Int_rect texture_rect_;
             Vector2<double> scale_;
 
             Vector2<double> last_position_;            

@@ -32,17 +32,13 @@
 ts::states::Action_state_base::Action_state_base(game::Loaded_scene loaded_scene, state_machine_type* state_machine, 
                                                  gui::Context* context, resources::Resource_store* resource_store)
 : gui::State(state_machine, context, resource_store),
-  action_scene_(std::move(loaded_scene.action_scene)),
-  world_(std::move(loaded_scene.world)),
-  control_center_(std::move(loaded_scene.control_center)),
-  sound_controller_(std::move(loaded_scene.sound_controller)),
-  client_script_interface_(std::move(loaded_scene.client_script_interface)),
+  scene_(std::move(loaded_scene)),
   
   control_interface_(std::make_unique<controls::Control_interface>(resource_store->input_settings().key_mapping))
 {
-    add_render_scene(&*action_scene_);
+    add_render_scene(&*scene_.action_scene);
 
-    world_->add_world_listener(this);
+    scene_.world->add_world_listener(this);
 }
 
 ts::states::Action_state_base::~Action_state_base()
@@ -51,14 +47,14 @@ ts::states::Action_state_base::~Action_state_base()
 
 void ts::states::Action_state_base::on_activate()
 {
-    world_->launch_game();
+    scene_.world->launch_game();
 
-    sound_controller_->engine_sounds.start();
+    scene_.sound_controller->engine_sounds.start();
 }
 
 void ts::states::Action_state_base::handle_event(const sf::Event& event)
 {
-    control_interface_->forward_input(event, *control_center_);
+    control_interface_->forward_input(event, *scene_.control_center);
 
     if (event.type == sf::Event::KeyReleased) 
     {
@@ -71,25 +67,25 @@ void ts::states::Action_state_base::handle_event(const sf::Event& event)
 
 void ts::states::Action_state_base::update(std::size_t frame_duration)
 {
-    sound_controller_->update(frame_duration);
+    scene_.sound_controller->update(frame_duration);
 
-    action_scene_->update_entities(frame_duration);
+    scene_.action_scene->update_entities(frame_duration);
 
-    world_->update(frame_duration);
-    action_scene_->update(frame_duration);
+    scene_.world->update(frame_duration);
+    scene_.action_scene->update(frame_duration);
 }
 
 void ts::states::Action_state_base::on_car_create(world::Car* car)
 {
-    sound_controller_->engine_sounds.register_car(car);
+    scene_.sound_controller->engine_sounds.register_car(car);
 }
 
 void ts::states::Action_state_base::on_car_destroy(world::Car* car)
 {
-    sound_controller_->engine_sounds.unregister_car(car);
+    scene_.sound_controller->engine_sounds.unregister_car(car);
 }
 
 void ts::states::Action_state_base::on_collision(const world::Collision_result& collision)
 {
-    sound_controller_->collision_sounds.play_collision_sound(collision);
+    scene_.sound_controller->collision_sounds.play_collision_sound(collision);
 }

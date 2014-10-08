@@ -140,6 +140,11 @@ const std::vector<ts::cup::Player_handle>& ts::cup::Cup::player_list() const
     return player_list_;
 }
 
+const std::vector<ts::cup::Player_handle>& ts::cup::Cup::action_players() const
+{
+    return action_players_;
+}
+
 std::size_t ts::cup::Cup::player_count() const
 {
     return player_map_.size();
@@ -242,7 +247,18 @@ void ts::cup::Cup::set_player_car(Player_handle player, resources::Car_handle ca
     }
 }
 
+ts::cup::Player_handle ts::cup::Cup::get_player_by_id(Player_id player_id) const
+{
+    auto it = player_map_.find(player_id);
+    if (it == player_map_.end())
+    {
+        return Player_handle();
+    }
 
+    return Player_handle(&it->second);
+}
+
+/*
 ts::cup::Stage_data ts::cup::Cup::make_stage_data() const
 {
     Stage_data stage_data;
@@ -273,6 +289,7 @@ ts::cup::Stage_data ts::cup::Cup::make_stage_data() const
     stage_data.loaded_scripts = loaded_scripts_;
     return stage_data;
 }
+*/
 
 
 void ts::cup::Cup::advance()
@@ -282,18 +299,23 @@ void ts::cup::Cup::advance()
     case Cup_state::Registering:
         start_cup();
         break;
+
     case Cup_state::Cup:
         preinitialize_action();
         break;
+
     case Cup_state::Car_selection:
         initialize_action();
         break;
+
     case Cup_state::Initializing:
-        launch_action();
+        //launch_action();
         break;
+
     case Cup_state::Action:
         stop_action();
         break;
+
     case Cup_state::End:
         restart();
         break;
@@ -311,6 +333,16 @@ void ts::cup::Cup::start_cup()
     {
         set_cup_state(Cup_state::Cup);
     }
+}
+
+void ts::cup::Cup::initialize_action(const Stage_data& stage_data)
+{
+    set_cup_state(Cup_state::Initializing);
+
+    for (auto cup_listener : cup_listeners_)
+    {
+        cup_listener->on_initialize(stage_data);
+    }   
 }
 
 void ts::cup::Cup::launch_action()
@@ -340,6 +372,8 @@ void ts::cup::Cup::initialize_action()
 
 void ts::cup::Cup::preinitialize_action()
 {
+    action_players_ = player_list_;
+
     if (car_mode() == resources::Car_mode::Free && car_list().size() > 1)
     {
         set_cup_state(Cup_state::Car_selection);

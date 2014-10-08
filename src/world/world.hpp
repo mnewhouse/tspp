@@ -52,9 +52,10 @@ namespace ts
         class World
         {
         public:
-            explicit World(resources::Track track, resources::Pattern track_pattern);
+            explicit World(std::unique_ptr<resources::Track> track, resources::Pattern track_pattern);
 
-            Car* create_car(const resources::Car_definition& car_def, std::int32_t start_position);
+            Car* create_car(const resources::Car_definition& car_def, std::uint16_t car_id);
+            Car* create_car(const resources::Car_definition& car_def);
 
             void add_world_listener(World_listener* world_listener);
             void remove_world_listener(World_listener* world_listener);
@@ -80,7 +81,7 @@ namespace ts
             bool is_entity(Entity* entity) const;
             const std::vector<Entity*>& entity_list() const;
 
-            
+            Car* get_car_by_id(std::uint16_t id) const;
 
         private:
             void register_entity(Entity* entity);
@@ -96,9 +97,8 @@ namespace ts
 
             void load_track_objects();
 
-            Vector2f world_size_;
-
             std::vector<std::unique_ptr<Car>> car_list_;
+            std::unordered_map<std::uint16_t, Car*> car_id_map_;
 
             std::vector<Entity*> entity_list_;
             std::unordered_set<Entity*> entity_set_;            
@@ -116,8 +116,10 @@ namespace ts
             std::vector<Entity_position> position_buffer_;
             std::deque<Collision_result> collision_buffer_;
 
-            resources::Track track_;
+            std::unique_ptr<resources::Track> track_;
             resources::Pattern terrain_map_;
+            Vector2<double> world_size_;
+
             Static_collision_bitmap scenery_bitmap_;
 
             Control_point_manager control_point_manager_;

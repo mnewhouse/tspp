@@ -60,13 +60,14 @@ namespace ts
             void handle_too_many_players();
             void handle_invalid_response();
             void handle_version_mismatch();
-
+            
             void handle_acknowledgement_message(const network::Message& message);
             void handle_cup_state_message(const network::Message& message);
             void handle_cup_progress_message(const network::Message& message);
             void handle_player_information_message(const network::Message& message);
             void handle_track_information_message(const network::Message& message);
             void handle_car_information_message(const network::Message& message);
+            void handle_action_initialization_message(const network::Message& message);
 
             void handle_chatbox_output_message(const network::Message& message);
 

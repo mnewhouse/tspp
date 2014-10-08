@@ -70,9 +70,3 @@ const ts::utf8_string& ts::states::Client_cup_state::registration_error() const
 {
     return client_cup_interface_.registration_error();
 }
-
-
-std::unique_ptr<ts::states::Action_state_base> ts::states::Client_cup_state::create_action_state(game::Loaded_scene loaded_scene)
-{
-    return std::make_unique<Client_action_state>(std::move(loaded_scene), &client_, state_machine(), context(), resource_store());
-}

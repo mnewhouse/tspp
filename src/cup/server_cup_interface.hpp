@@ -35,6 +35,8 @@ namespace ts
 
     namespace cup
     {
+        struct Stage_data;
+
         class Server_cup_interface
             : public Cup_interface
         {
@@ -46,6 +48,8 @@ namespace ts
             virtual void select_cars(const std::vector<Car_selection>& car_selection) override;
             virtual void signal_ready() override;
             virtual void write_chat_message(const utf8_string& message) override;
+
+            void send_initialization_message(const Stage_data& stage_data);
             
         private:
             void handle_registration_request(const network::Client_message& message);

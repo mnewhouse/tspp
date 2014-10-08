@@ -72,6 +72,8 @@ namespace ts
             static const std::uint32_t chatbox_output = 2831;
         };
 
+        struct Stage_data;
+
         struct Player_definition
             : public Player
         {
@@ -144,14 +146,31 @@ namespace ts
 
         struct Chat_message_definition
         {
-            std::uint32_t message_type;
+            std::uint32_t message_type = 0;
             utf8_string message;
         };
 
         struct Chatbox_output_message
         {
-            std::uint32_t message_type;
+            std::uint32_t message_type = 0;
             Composite_message message;
+        };
+
+        struct Action_initialization_message
+        {
+            std::uint32_t message_type = 0;
+
+            struct Car
+            {
+                std::uint16_t car_id;                
+                std::uint16_t start_pos;
+                std::uint16_t player;
+                resources::Player_color color;
+
+                utf8_string car_name;
+            };
+
+            std::vector<Car> car_list;
         };
 
         // Client -> server messages
@@ -192,6 +211,9 @@ namespace ts
 
         Message make_chatbox_output_message(const Composite_message& composite_message);
         Chatbox_output_message parse_chatbox_output_message(const Message& message);
+
+        Message make_action_initialization_message(const Stage_data& stage_data);
+        Action_initialization_message parse_action_initialization_message(const Message& message);
 
     }
 }

@@ -19,8 +19,9 @@
 
 #include "stdinc.hpp"
 #include "client_cup_interface.hpp"
-
+#include "cup.hpp"
 #include "cup_messages.hpp"
+#include "stage_data.hpp"
 
 #include "network/message_reader.hpp"
 
@@ -124,37 +125,27 @@ void ts::cup::Client_cup_interface::handle_acknowledgement_message(const Message
 
 void ts::cup::Client_cup_interface::handle_cup_state_message(const Message& message)
 {
-    std::cout << "MSG_CUP_STATE\n";
-
     auto cup_state_message = parse_cup_state_message(message);
     set_cup_state(cup_state_message.cup_state);
 }
 
 void ts::cup::Client_cup_interface::handle_cup_progress_message(const Message& message)
 {
-    std::cout << "MSG_CUP_PROGRESS\n";
-
     auto cup_progress_message = parse_cup_progress_message(message);
     set_cup_progress(cup_progress_message.cup_progress);
 }
 
 void ts::cup::Client_cup_interface::handle_player_information_message(const Message& message)
 {
-    std::cout << "MSG_PLAYER_INFO\n";
-
     auto player_information = parse_player_information_message(message);
     for (auto& player : player_information.players)
     {
         add_player(player, player.handle);
     }
-
-    std::cout << player_information.players.size() << " players.\n";
 }
 
 void ts::cup::Client_cup_interface::handle_track_information_message(const Message& message)
 {
-    std::cout << "MSG_TRACK_INFO\n";
-
     const auto& track_store = resource_store_->track_store();
 
     clear_tracks();
@@ -170,14 +161,10 @@ void ts::cup::Client_cup_interface::handle_track_information_message(const Messa
 
         add_track(track_handle);
     }
-
-    std::cout << track_information.track_names.size() << " tracks.\n";
 }
 
 void ts::cup::Client_cup_interface::handle_car_information_message(const Message& message)
 {
-    std::cout << "MSG_CAR_INFO\n";
-
     const auto& car_store = resource_store_->car_store();
     auto car_information = parse_car_information_message(message);
 
@@ -186,15 +173,34 @@ void ts::cup::Client_cup_interface::handle_car_information_message(const Message
     for (const auto& car_name : car_information.car_names)
     {
         auto car_handle = car_store.get_car_by_name(car_name);
-        if (car_handle)
-        {
-            std::cout << car_handle->car_name << "\n";
-        }
 
         select_car(car_handle);
     }
+}
 
-    std::cout << car_information.car_names.size() << " cars selected\n";
+void ts::cup::Client_cup_interface::handle_action_initialization_message(const Message& message)
+{
+    auto action_data = parse_action_initialization_message(message);
+
+    const auto& car_store = resource_store_->car_store();
+
+    Stage_data stage_data;
+    for (const auto& car : action_data.car_list)
+    {
+        if (auto car_def = car_store.get_car_by_name(car.car_name))
+        {
+            Car_data car_data;
+            car_data.car = car_def;
+            car_data.car_id = car.car_id;
+            car_data.color = car.color;
+            car_data.start_pos = car.start_pos;
+            car_data.player = cup()->get_player_by_id(car.player);
+
+            stage_data.cars.push_back(car_data);
+        }
+    }
+
+    initialize_action(stage_data);
 }
 
 void ts::cup::Client_cup_interface::handle_message(const Message& message)
@@ -202,7 +208,7 @@ void ts::cup::Client_cup_interface::handle_message(const Message& message)
     switch (message.type())
     {
     case Message_type::cup_state:
-        handle_cup_state_message(message);
+        // handle_cup_state_message(message);
         break;
 
     case Message_type::player_information:
@@ -223,6 +229,10 @@ void ts::cup::Client_cup_interface::handle_message(const Message& message)
 
     case Message_type::chatbox_output:
         handle_chatbox_output_message(message);
+        break;
+
+    case Message_type::action_initialization:
+        handle_action_initialization_message(message);
         break;
 
     }

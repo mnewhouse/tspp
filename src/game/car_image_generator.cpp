@@ -58,7 +58,7 @@ namespace ts
     }
 }
 
-sf::Image ts::game::Car_image_generator::operator()(const resources::Car_definition& car_definition, const resources::Player_color& color_scheme, Frame_mode frame_mode)
+sf::Image ts::game::Car_image_generator::operator()(const resources::Car_definition& car_definition, const resources::Player_color& color_scheme, Frame_mode frame_mode) const
 {
     auto image = get_image_by_filename(car_definition.image_file);    
 
@@ -146,7 +146,7 @@ sf::Color ts::game::impl::colorize(sf::Color source_color, sf::Color target_colo
     return target_color;
 };
 
-const sf::Image& ts::game::Car_image_generator::get_image_by_filename(const utf8_string& file_name)
+const sf::Image& ts::game::Car_image_generator::get_image_by_filename(const utf8_string& file_name) const
 {
     auto it = image_map_.find(file_name);
     if (it == image_map_.end())
@@ -157,7 +157,7 @@ const sf::Image& ts::game::Car_image_generator::get_image_by_filename(const utf8
     return it->second;
 }
 
-const sf::Image& ts::game::Car_image_generator::load_image_from_file(const utf8_string& file_name)
+const sf::Image& ts::game::Car_image_generator::load_image_from_file(const utf8_string& file_name) const
 {
     boost::filesystem::ifstream stream(file_name.string(), std::ios::binary | std::ios::in);
 

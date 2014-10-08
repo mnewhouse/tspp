@@ -19,27 +19,46 @@
 
 #pragma once
 
-#ifndef CUP_LISTENER_HPP
-#define CUP_LISTENER_HPP
-
-#include "cup_metadata.hpp"
+#ifndef LOADED_SCENE_HPP
+#define LOADED_SCENE_HPP
 
 namespace ts
 {
-    namespace cup
+    namespace world
     {
-        struct Stage_data;
+        class World;
+    }
 
-        struct Cup_listener
+    namespace controls
+    {
+        class Control_center;
+    }
+
+    namespace audio
+    {
+        struct Sound_controller;
+    }
+
+    namespace game
+    {
+        class Action_scene;
+        class Car_image_generator;
+
+        struct Loaded_scene
         {
-            virtual void on_state_change(Cup_state old_state, Cup_state new_state) {}
-            virtual void on_restart() {}
-            virtual void on_end() {}
+            Loaded_scene();
+            ~Loaded_scene();
 
-            virtual void on_initialize(const Stage_data& stage_data) {}
+            Loaded_scene(Loaded_scene&&);
+            Loaded_scene& operator=(Loaded_scene&&);
 
-        protected:
-            virtual ~Cup_listener() = default;
+            std::unique_ptr<Action_scene> action_scene;
+            std::unique_ptr<Car_image_generator> car_image_generator;
+
+            std::unique_ptr<world::World> world;            
+            std::unique_ptr<audio::Sound_controller> sound_controller;
+            std::unique_ptr<controls::Control_center> control_center;
+            
         };
     }
 }

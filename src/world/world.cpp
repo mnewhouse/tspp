@@ -44,32 +44,40 @@ namespace ts
 }
 
 
-ts::world::World::World(resources::Track track, resources::Pattern track_pattern)
+ts::world::World::World(std::unique_ptr<resources::Track> track, resources::Pattern track_pattern)
 : track_(std::move(track)), 
   terrain_map_(std::move(track_pattern)),
-  scenery_bitmap_(terrain_map_, track_.terrain_library(), track_.num_levels()),
-  control_point_manager_(track_.control_points().begin(), track_.control_points().end())
+  world_size_(track_->size()),
+  scenery_bitmap_(terrain_map_, track_->terrain_library(), track_->num_levels()),
+  control_point_manager_(track_->control_points().begin(), track_->control_points().end())
 {
     add_world_listener(&control_point_manager_);
 }
 
-ts::world::Car* ts::world::World::create_car(const resources::Car_definition& car_def, std::int32_t start_position)
+ts::world::Car* ts::world::World::get_car_by_id(std::uint16_t car_id) const
 {
-    const auto& start_points = track().start_points();
-    if (start_position >= start_points.size())
+    auto it = car_id_map_.find(car_id);
+    if (it == car_id_map_.end())
     {
         return nullptr;
     }
 
+    return it->second;
+}
+
+ts::world::Car* ts::world::World::create_car(const resources::Car_definition& car_def, std::uint16_t car_id)
+{
+    auto car = create_car(car_def);
+    car_id_map_[car_id] = car;
+    return car;
+}
+
+ts::world::Car* ts::world::World::create_car(const resources::Car_definition& car_def)
+{
     car_list_.push_back(std::make_unique<Car>(this, car_def));
 
     auto car = &*car_list_.back();
     register_entity(car);
-
-    const auto& start_point = start_points[start_position];
-    car->set_position(start_point.position);
-    car->set_rotation(start_point.rotation);
-    car->set_z_position(start_point.level);
 
     for (auto listener : world_listeners_)
     {
@@ -95,14 +103,14 @@ const ts::resources::Terrain_definition& ts::world::World::terrain_at(Vector2i p
 
     auto terrain_id = terrain_map_(x, y);
 
-    return track_.terrain_library().terrain_by_id(terrain_id);
+    return track_->terrain_library().terrain_by_id(terrain_id);
 }
 
 const ts::resources::Terrain_definition& ts::world::World::terrain_at(Vector2i point, std::size_t level) const
 {
     auto terrain = terrain_at(point);
 
-    const auto& terrain_lib = track_.terrain_library();
+    const auto& terrain_lib = track_->terrain_library();
     auto sub_terrain = terrain_lib.sub_terrain(terrain.id, level);
     return terrain_lib.terrain_by_id(sub_terrain);
 }
@@ -138,7 +146,7 @@ void ts::world::World::update(std::size_t frame_duration)
         entity->update(fd);
 
         new_state.entity = entity;
-        new_state.position = clamp_position(compute_new_position(*entity, fd), track_.size());
+        new_state.position = clamp_position(compute_new_position(*entity, fd), track_->size());
         new_state.rotation = compute_new_rotation(*entity, fd);
         new_state.velocity = entity->velocity();
         new_state.angular_velocity = entity->angular_velocity();
@@ -250,7 +258,7 @@ void ts::world::World::update(std::size_t frame_duration)
 
                 apply_entity_state(target_state);
 
-                target_state.position = clamp_position(compute_new_position(*entity, time_left * fd), track_.size());     
+                target_state.position = clamp_position(compute_new_position(*entity, time_left * fd), world_size_);     
             }
 
             else if (time_step > 0.0)
@@ -320,7 +328,7 @@ void ts::world::World::update(std::size_t frame_duration)
     // Finally, set the entities' new states
     for (auto& entity_state : state_buffer_) 
     {
-        entity_state.position = clamp_position(entity_state.position, track_.size());
+        entity_state.position = clamp_position(entity_state.position, world_size_);
 
         apply_entity_state(entity_state);
     }
@@ -362,7 +370,7 @@ void ts::world::World::apply_entity_state(const Entity_state& new_state)
 void ts::world::World::terrain_transition(Entity* entity, const resources::Terrain_definition& old_terrain,
                                           const resources::Terrain_definition& new_terrain)
 {
-    const auto& terrain_library = track_.terrain_library();
+    const auto& terrain_library = track_->terrain_library();
 
     auto old_level = entity->z_level();
     auto new_level = old_level;
@@ -486,7 +494,7 @@ void ts::world::World::remove_world_listener(World_listener* world_listener)
 
 const ts::resources::Track& ts::world::World::track() const
 {
-    return track_;
+    return *track_;
 }
 
 const std::vector<std::unique_ptr<ts::world::Car>>& ts::world::World::car_list() const

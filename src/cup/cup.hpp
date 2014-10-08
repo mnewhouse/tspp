@@ -23,7 +23,6 @@
 #define CUP_HPP
 
 #include "cup_metadata.hpp"
-#include "stage_data.hpp"
 
 #include "resources/track_handle.hpp"
 #include "resources/car_handle.hpp"
@@ -41,6 +40,7 @@ namespace ts
     namespace cup
     {
         struct Cup_listener;
+        struct Stage_data;
 
         class Cup
         {
@@ -80,6 +80,8 @@ namespace ts
             void restart();
             void advance();
 
+            void initialize_action(const Stage_data& stage_data);
+
             resources::Track_handle current_track() const;
 
             Player_handle add_player(const Player& player, Player_id player_id);
@@ -88,13 +90,13 @@ namespace ts
 
             const std::vector<Player_handle>& local_players() const;
             const std::vector<Player_handle>& player_list() const;
+            const std::vector<Player_handle>& action_players() const;
 
             std::size_t player_count() const;
             std::size_t max_players() const;
+            Player_handle get_player_by_id(Player_id player_id) const;
 
-            void set_player_car(Player_handle player, resources::Car_handle car_handle);
-
-            Stage_data make_stage_data() const;
+            void set_player_car(Player_handle player, resources::Car_handle car_handle);            
 
         private:
             void launch_action();
@@ -113,12 +115,13 @@ namespace ts
             resources::Track_settings track_settings_;
             resources::Car_settings car_settings_;
 
-            std::vector<resources::Script_handle> loaded_scripts_;
+            //std::vector<resources::Script_handle> loaded_scripts_;
 
             std::size_t cup_progress_;
             std::map<Player_id, Cup_player_data> player_map_;
             std::vector<Player_handle> player_list_;
             std::vector<Player_handle> local_players_;
+            std::vector<Player_handle> action_players_;
 
             std::vector<Cup_listener*> cup_listeners_;
         };

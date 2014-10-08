@@ -31,6 +31,11 @@
 
 namespace ts
 {
+    namespace game
+    {
+        class Local_loading_sequence;
+    }
+
     namespace states
     {
         namespace impl
@@ -46,6 +51,8 @@ namespace ts
             };
         }
 
+        class Server_action_state;
+
         class Server_cup_state
             : private impl::Server_cup_state_members, public Cup_state_base
         {
@@ -56,11 +63,16 @@ namespace ts
             virtual ~Server_cup_state();
 
             virtual void update(std::size_t frame_duration) override;
+            virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
 
         private:
-            // Cup listener overrides
-            virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
-            virtual std::unique_ptr<Action_state_base> create_action_state(game::Loaded_scene loaded_scene) override;
+            void begin_loading_sequence();
+            void signal_if_ready();
+            void load_scene();
+
+            std::unique_ptr<Server_action_state> make_action_state();            
+
+            std::unique_ptr<game::Local_loading_sequence> loading_sequence_;
             
         };
     }

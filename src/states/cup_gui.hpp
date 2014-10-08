@@ -52,8 +52,13 @@ namespace ts
             void update(std::size_t frame_duration);
             void set_cup_state_text(utf8_string text);
 
-            void show_car_selection_dialog();      
-            Loading_progress_dialog* progress_dialog();
+            void show_car_selection_dialog();
+
+            void show_progress_dialog();
+            void hide_progress_dialog();
+
+            void set_loading_progress(double progress);
+            void set_loading_progress_text(utf8_string text);
 
             void output_chat_message(const cup::Composite_message& message);
             

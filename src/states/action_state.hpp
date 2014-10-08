@@ -22,7 +22,7 @@
 #ifndef STATES_ACTION_HPP
 #define STATES_ACTION_HPP
 
-#include "game/action_loader.hpp"
+#include "game/loaded_scene.hpp"
 
 #include "user_interface/gui_state.hpp"
 
@@ -57,11 +57,8 @@ namespace ts
         private:
             virtual void on_activate() override;
 
-            std::unique_ptr<world::World> world_;
-            std::unique_ptr<game::Action_scene> action_scene_;
-            std::unique_ptr<controls::Control_center> control_center_;
-            std::unique_ptr<audio::Sound_controller> sound_controller_;
-            std::unique_ptr<script_api::Client_interface> client_script_interface_;
+            game::Loaded_scene scene_;
+
             std::unique_ptr<controls::Control_interface> control_interface_;
         };
     }

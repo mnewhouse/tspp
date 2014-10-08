@@ -19,6 +19,7 @@
 
 #include "stdinc.hpp"
 #include "cup_messages.hpp"
+#include "stage_data.hpp"
 
 #include "resources/track_store.hpp"
 #include "resources/car_store.hpp"
@@ -492,6 +493,77 @@ ts::cup::Chatbox_output_message ts::cup::parse_chatbox_output_message(const Mess
         for (std::uint32_t n = 0; n != num_components && message_reader >> component.color >> component.text; ++n)
         {
             result.message.append(component);
+        }
+    }
+
+    return result;
+}
+
+ts::cup::Message ts::cup::make_action_initialization_message(const Stage_data& stage_data)
+{
+    Message message(Message_type::action_initialization);
+
+    std::vector<utf8_string> car_names;
+    for (const auto& car_info : stage_data.cars)
+    {
+        const auto& car_name = car_info.car->car_name;
+
+        if (std::find(car_names.begin(), car_names.end(), car_name) == car_names.end())
+        {
+            car_names.push_back(car_name);
+        }       
+    }
+
+    message << static_cast<std::uint32_t>(car_names.size());
+    for (const auto& car_name : car_names)
+    {
+        message << car_name;
+    }
+
+    message << static_cast<std::uint32_t>(stage_data.cars.size());
+    for (const auto& car_info : stage_data.cars)
+    {
+        const auto& car_name = car_info.car->car_name;
+        std::uint16_t car_index = std::find(car_names.begin(), car_names.end(), car_name) - car_names.begin();
+
+        message << car_index;
+        message << static_cast<std::uint16_t>(car_info.start_pos);
+        message << static_cast<std::uint16_t>(car_info.car_id);        
+        message << static_cast<std::uint16_t>(car_info.player->handle);
+        message << car_info.color;        
+    }
+
+    return message;
+}
+
+ts::cup::Action_initialization_message ts::cup::parse_action_initialization_message(const Message& message)
+{
+    Message_reader message_reader(message);
+    Action_initialization_message result;
+
+    std::vector<utf8_string> car_names;
+    std::uint32_t distinct_car_count = 0;
+    if (message_reader >> distinct_car_count)
+    {
+        utf8_string car_name;
+        for (std::uint32_t n = 0; n != distinct_car_count && message_reader >> car_name; ++n)
+        {
+            car_names.push_back(car_name);
+        }        
+
+        std::uint32_t car_count = 0;
+        if (message_reader >> car_count)
+        {
+            Action_initialization_message::Car car_def;
+            std::uint16_t car_index = 0;
+            for (std::uint32_t n = 0; n != car_count && message_reader >> car_index >> car_def.start_pos >>
+                 car_def.car_id >> car_def.player >> car_def.color; ++n)
+            {
+                if (car_index >= car_names.size()) continue;
+
+                car_def.car_name = car_names[car_index];
+                result.car_list.push_back(car_def);
+            }
         }
     }
 

@@ -19,24 +19,21 @@
 
 #pragma once
 
-#ifndef GAME_LOADER_HPP
-#define GAME_LOADER_HPP
+#ifndef AUDIO_LOADER_HPP
+#define AUDIO_LOADER_HPP
 
-#include "action_scene.hpp"
 #include "generic_loader.hpp"
+
+#include "audio/sound_controller.hpp"
+
 
 namespace ts
 {
-    namespace resources
-    {
-        struct Resource_store;
-    }
-
     namespace world
     {
         class World;
     }
-    
+
     namespace cup
     {
         struct Stage_data;
@@ -44,33 +41,22 @@ namespace ts
 
     namespace game
     {
-        class Action_scene;
-        class Car_image_generator;
-
-        enum class Action_loader_state
+        enum class Audio_loader_state
         {
             None,
-            Loading_track_textures,
-            Building_track_scene,
-            Loading_entity_textures,
+            Loading_audio
         };
 
-        class Action_loader
-            : public Generic_loader<Action_loader_state, std::unique_ptr<Action_scene>>
+        class Audio_loader
+            : public Generic_loader<Audio_loader_state, std::unique_ptr<audio::Sound_controller>>
         {
         public:
-            void async_load(const cup::Stage_data& stage_data, const world::World* world, const resources::Video_settings& video_settings);
-                            
-
-            using State = Action_loader_state;
+            void async_load(const cup::Stage_data& stage_data, const world::World* world, const resources::Audio_settings& audio_settings);
 
         private:
-            std::unique_ptr<Action_scene> load_scene(const cup::Stage_data& stage_data, const world::World* world, 
-                                                     const resources::Video_settings& video_settings);
-                                                     
+            std::unique_ptr<audio::Sound_controller> load_audio(const cup::Stage_data& stage_data, const world::World* world, 
+                                                                const resources::Audio_settings& audio_setting);
         };
-
-        utf8_string to_string(Action_loader_state state);
     }
 }
 

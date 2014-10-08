@@ -65,7 +65,6 @@ namespace ts
             virtual void update(std::size_t frame_duration) override;
 
         private:
-            virtual std::unique_ptr<Action_state_base> create_action_state(game::Loaded_scene loaded_scene) override;
         };
     }
 }

@@ -119,7 +119,6 @@ void ts::audio::Engine_sound_controller::update(std::size_t ticks)
 
             engine_sound->setPitch(new_pitch);
             engine_sound->setVolume(new_pitch * new_pitch * 100.0f);
-
         }
     }
 }

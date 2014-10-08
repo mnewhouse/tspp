@@ -19,21 +19,16 @@
 
 #pragma once
 
-#ifndef LOCAL_ACTION_STATE_HPP
-#define LOCAL_ACTION_STATE_HPP
-
-#include "action_state.hpp"
+#ifndef RESOURCE_DOWNLOADER_HPP
+#define RESOURCE_DOWNLOADER_HPP
 
 namespace ts
 {
-    namespace states
+    namespace cup
     {
-        class Local_action_state
-            : public Action_state_base
+        class Resource_downloader
         {
-        public:
-            Local_action_state(game::Loaded_scene loaded_scene, state_machine_type* state_machine,
-                               gui::Context* context, resources::Resource_store* resource_store);
+
         };
     }
 }

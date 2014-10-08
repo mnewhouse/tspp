@@ -25,9 +25,10 @@
 
 ts::game::Drawable_entity::Drawable_entity
     (const world::Entity* entity, std::shared_ptr<graphics::Texture> texture, resources::Image_type image_type)
-    : texture_(std::move(texture)), 
+    : texture_(std::move(texture)),
       entity_(entity), 
       image_type_(image_type),
+      texture_rect_(0, 0, texture_->size().x, texture_->size().y),
       scale_(1.0, 1.0),
       last_position_(entity->position())
 {
@@ -41,7 +42,7 @@ void ts::game::Drawable_entity::draw(sf::RenderTarget& render_target, sf::Render
 
     if (image_type_ == resources::Image_type::Rotational) 
     {
-        auto size = texture_->size();
+        Vector2i size(texture_rect_.width, texture_rect_.height);
 
         auto frame_count = size.x / size.y;
         auto frame_width = size.x / frame_count;
@@ -53,7 +54,7 @@ void ts::game::Drawable_entity::draw(sf::RenderTarget& render_target, sf::Render
         auto frame_rotation = Rotation<double>::degrees(frame_id * (360.0 / frame_count));
         auto rotation_offset = rotation - frame_rotation;
 
-        Int_rect rect(frame_id * frame_width, 0, frame_width, size.y);
+        Int_rect rect(texture_rect_.left + frame_id * frame_width, texture_rect_.top, frame_width, size.y);
 
         graphics::Sprite sprite(*texture_, rect);
         sprite.setRotation(float(rotation_offset.degrees()));
@@ -62,12 +63,11 @@ void ts::game::Drawable_entity::draw(sf::RenderTarget& render_target, sf::Render
         sprite.setOrigin(rect.width * 0.5f, rect.height * 0.5f);
 
         render_target.draw(sprite, states);
-
     }
 
     else 
     {
-        graphics::Sprite sprite(*texture_);
+        graphics::Sprite sprite(*texture_, texture_rect_);
         sprite.setRotation(static_cast<float>(rotation.degrees()));        
         sprite.setPosition(static_cast<float>(position.x), static_cast<float>(position.y));
         sprite.setScale(static_cast<float>(scale_.x), static_cast<float>(scale_.y));
@@ -81,6 +81,11 @@ void ts::game::Drawable_entity::set_scale(Vector2d scale)
 {
     scale_.x = 1.0 / scale.x;
     scale_.y = 1.0 / scale.y;
+}
+
+void ts::game::Drawable_entity::set_texture_rect(Int_rect rect)
+{
+    texture_rect_ = rect;
 }
 
 void ts::game::Drawable_entity::update_position()
