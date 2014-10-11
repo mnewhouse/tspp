@@ -22,8 +22,7 @@
 #include "local_action_state.hpp"
 
 #include "cup/local_players.hpp"
-
-#include "game/local_loading_sequence.hpp"
+#include "cup/stage_assembler.hpp"
 
 
 ts::states::impl::Local_cup_state_members::Local_cup_state_members(resources::Resource_store* resource_store)
@@ -39,8 +38,7 @@ ts::states::impl::Local_cup_state_members::Local_cup_state_members(resources::Re
 
 ts::states::Local_cup_state::Local_cup_state(state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
 : Local_cup_state_members(resource_store),
-  Cup_state_base(&local_cup_interface_, state_machine, context, resource_store),
-  loading_sequence_(std::make_unique<game::Local_loading_sequence>(&cup_, resource_store))
+  Cup_state_base(&local_cup_interface_, state_machine, context, resource_store)
 {
     cup_.add_cup_listener(this);
 }
@@ -55,7 +53,7 @@ void ts::states::Local_cup_state::on_state_change(cup::Cup_state old_state, cup:
 
     if (new_state == cup::Cup_state::Initializing)
     {
-        begin_loading_sequence();
+        start_loading();
     }
 
     if (new_state == cup::Cup_state::Action)
@@ -66,34 +64,19 @@ void ts::states::Local_cup_state::on_state_change(cup::Cup_state old_state, cup:
 
 std::unique_ptr<ts::states::Local_action_state> ts::states::Local_cup_state::make_action_state()
 {
-    return std::make_unique<ts::states::Local_action_state>(loading_sequence_->transfer_result(),
+    return std::make_unique<ts::states::Local_action_state>(transfer_loaded_scene(),
                                                             state_machine(), context(), resource_store());
 }
 
 void ts::states::Local_cup_state::update(std::size_t frame_duration)
 {
     Cup_state_base::update(frame_duration);
-
-    loading_sequence_->poll();
-
-    set_loading_progress(loading_sequence_->progress());
 }
 
 
-void ts::states::Local_cup_state::begin_loading_sequence()
+void ts::states::Local_cup_state::start_loading()
 {
-    loading_sequence_->set_completion_handler([this]()
-    {
-        local_cup_interface_.signal_ready();
-    });
+    auto stage_data = cup::assemble_stage(cup_);
 
-    loading_sequence_->set_state_change_handler([this](const utf8_string& new_state)
-    {
-        set_loading_progress_text(new_state);
-    });
-
-    loading_sequence_->async_load(cup_.current_track());
-
-    // Inform the GUI
-    begin_loading();
+    begin_loading_sequence(stage_data);
 }

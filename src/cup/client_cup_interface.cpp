@@ -23,7 +23,7 @@
 #include "cup_messages.hpp"
 #include "stage_data.hpp"
 
-#include "network/message_reader.hpp"
+#include "messages/message_reader.hpp"
 
 #include "resources/resource_store.hpp"
 #include "resources/track_store.hpp"
@@ -41,35 +41,20 @@ ts::cup::Client_cup_interface::~Client_cup_interface()
 {
 }
 
-void ts::cup::Client_cup_interface::update()
+bool ts::cup::Client_cup_interface::get_message(messages::Message& message) const
 {
-    while (client_->get_message(message_buffer_))
+    return client_->get_message(message);
+}
+
+void ts::cup::Client_cup_interface::update(std::size_t frame_duration, std::function<void(const messages::Message& message)> message_callback)
+{
+    while (get_message(message_buffer_))
     {
-        if (client_key_ == 0)
+        handle_message(message_buffer_);
+
+        if (message_callback)
         {
-            switch (message_buffer_.type())
-            {
-            case Message_type::registration_acknowledgement:
-                handle_acknowledgement_message(message_buffer_);
-                break;
-
-            case Message_type::version_mismatch:
-                handle_version_mismatch();
-                break;
-
-            case Message_type::too_many_players:
-                handle_too_many_players();
-                break;
-
-            default:
-                handle_invalid_response();
-                break;
-            }
-        }
-
-        else
-        {
-            handle_message(message_buffer_);
+            message_callback(message_buffer_);
         }
     }
 }
@@ -154,11 +139,6 @@ void ts::cup::Client_cup_interface::handle_track_information_message(const Messa
     for (const auto& track_name : track_information.track_names)
     {
         auto track_handle = track_store.get_track_by_name(track_name);
-        if (track_handle)
-        {
-            std::cout << track_handle.name() << std::endl;
-        }
-
         add_track(track_handle);
     }
 }
@@ -183,6 +163,7 @@ void ts::cup::Client_cup_interface::handle_action_initialization_message(const M
     auto action_data = parse_action_initialization_message(message);
 
     const auto& car_store = resource_store_->car_store();
+    const auto& track_store = resource_store_->track_store();
 
     Stage_data stage_data;
     for (const auto& car : action_data.car_list)
@@ -190,51 +171,78 @@ void ts::cup::Client_cup_interface::handle_action_initialization_message(const M
         if (auto car_def = car_store.get_car_by_name(car.car_name))
         {
             Car_data car_data;
-            car_data.car = car_def;
+            car_data.car_def = car_def;
             car_data.car_id = car.car_id;
-            car_data.color = car.color;
+            car_data.player.color = car.color;
             car_data.start_pos = car.start_pos;
-            car_data.player = cup()->get_player_by_id(car.player);
+            car_data.controller = cup()->get_player_by_id(car.player);
 
             stage_data.cars.push_back(car_data);
         }
     }
 
+    // TODO: Handle resource downloading
+    stage_data.track = track_store.get_track_by_name(action_data.track_name);
+
     initialize_action(stage_data);
 }
 
 void ts::cup::Client_cup_interface::handle_message(const Message& message)
-{
-    switch (message.type())
+{    
+    if (client_key_ == 0)
     {
-    case Message_type::cup_state:
-        // handle_cup_state_message(message);
-        break;
+        switch (message_buffer_.type())
+        {
+        case Message_type::registration_acknowledgement:
+            handle_acknowledgement_message(message_buffer_);
+            break;
 
-    case Message_type::player_information:
-        handle_player_information_message(message);
-        break;
+        case Message_type::version_mismatch:
+            handle_version_mismatch();
+            break;
 
-    case Message_type::track_information:
-        handle_track_information_message(message);
-        break;
+        case Message_type::too_many_players:
+            handle_too_many_players();
+            break;
 
-    case Message_type::car_information:
-        handle_car_information_message(message);
-        break;
+        default:
+            handle_invalid_response();
+            break;
+        }
+    }
 
-    case Message_type::cup_progress:
-        handle_cup_progress_message(message);
-        break;
+    else
+    {
+        switch (message.type())
+        {
+        case Message_type::cup_state:
+            handle_cup_state_message(message);
+            break;
 
-    case Message_type::chatbox_output:
-        handle_chatbox_output_message(message);
-        break;
+        case Message_type::player_information:
+            handle_player_information_message(message);
+            break;
 
-    case Message_type::action_initialization:
-        handle_action_initialization_message(message);
-        break;
+        case Message_type::track_information:
+            handle_track_information_message(message);
+            break;
 
+        case Message_type::car_information:
+            handle_car_information_message(message);
+            break;
+
+        case Message_type::cup_progress:
+            handle_cup_progress_message(message);
+            break;
+
+        case Message_type::chatbox_output:
+            handle_chatbox_output_message(message);
+            break;
+
+        case Message_type::action_initialization:
+            handle_action_initialization_message(message);
+            break;
+        }
     }
 }
 

@@ -22,24 +22,26 @@
 #include "server_action_state.hpp"
 
 #include "cup/local_players.hpp"
+#include "cup/stage_assembler.hpp"
 
 #include "resources/settings/network_settings.hpp"
 
-#include "game/local_loading_sequence.hpp"
+#include "action/server_action_interface.hpp"
+#include "network/server_message_source.hpp"
 
 ts::states::impl::Server_cup_state_members::Server_cup_state_members(resources::Resource_store* resource_store)
 : cup_(cup::Cup_type::Server),
   cup_config_(&cup_, resource_store),
   server_(),
-  server_cup_interface_(&cup_, &server_, resource_store)
+  message_center_(network::Server_message_source(&server_)),
+  server_cup_interface_(&cup_, &server_, resource_store)  
 {
     cup::add_selected_local_players(&server_cup_interface_, resource_store->player_settings(), resource_store->player_store());
 }
 
 ts::states::Server_cup_state::Server_cup_state(state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
 : Server_cup_state_members(resource_store),
-  Cup_state_base(&server_cup_interface_, state_machine, context, resource_store),
-  loading_sequence_(std::make_unique<game::Local_loading_sequence>(&cup_, resource_store))
+  Cup_state_base(&server_cup_interface_, state_machine, context, resource_store)
 {
     auto& network_settings = resource_store->network_settings();
     server_.listen(network_settings.server_port);
@@ -55,11 +57,6 @@ ts::states::Server_cup_state::~Server_cup_state()
 void ts::states::Server_cup_state::update(std::size_t frame_duration)
 {
     Cup_state_base::update(frame_duration);
-
-    server_cup_interface_.update(frame_duration);
-
-    loading_sequence_->poll();
-    set_loading_progress(loading_sequence_->progress());
 }
 
 void ts::states::Server_cup_state::on_state_change(cup::Cup_state old_state, cup::Cup_state new_state)
@@ -68,7 +65,7 @@ void ts::states::Server_cup_state::on_state_change(cup::Cup_state old_state, cup
 
     if (new_state == cup::Cup_state::Initializing)
     {
-        begin_loading_sequence();
+        start_loading();
     }
 
     if (new_state == cup::Cup_state::Action)
@@ -77,31 +74,23 @@ void ts::states::Server_cup_state::on_state_change(cup::Cup_state old_state, cup
     }
 }
 
-void ts::states::Server_cup_state::begin_loading_sequence()
+void ts::states::Server_cup_state::start_loading()
 {
-    loading_sequence_->set_completion_handler([this]()
-    {
-        server_cup_interface_.signal_ready();
-    });
+    auto stage_data = cup::assemble_stage(cup_);
 
-    loading_sequence_->set_stage_data_handler([this](const cup::Stage_data& stage_data)
-    {
-        // Send stage data to clients
-    });
+    server_cup_interface_.send_initialization_message(stage_data);
 
-    loading_sequence_->set_state_change_handler([this](const utf8_string& new_state)
-    {
-        set_loading_progress_text(new_state);
-    });
-
-    loading_sequence_->async_load(cup_.current_track());
-
-    begin_loading();
+    begin_loading_sequence(stage_data);
 }
 
 
 std::unique_ptr<ts::states::Server_action_state> ts::states::Server_cup_state::make_action_state()
 {
-    return std::make_unique<Server_action_state>(loading_sequence_->transfer_result(), &server_,
+    auto loaded_scene = transfer_loaded_scene();
+
+    auto action_interface = std::make_unique<action::Server_action_interface>(loaded_scene.stage.get(), server_cup_interface_.client_player_mapping(),
+                                                                              &message_center_);
+
+    return std::make_unique<Server_action_state>(std::move(loaded_scene), std::move(action_interface),
                                                  state_machine(), context(), resource_store());
 }

@@ -20,7 +20,9 @@
 #include "stdinc.hpp"
 #include "client_action_state.hpp"
 
-ts::states::Client_action_state::Client_action_state(game::Loaded_scene loaded_scene, network::Client* client, 
+#include "cup/client_cup_interface.hpp"
+
+ts::states::Client_action_state::Client_action_state(game::Loaded_scene loaded_scene, cup::Client_cup_interface* cup_interface, 
                                                      state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
     : Action_state_base(std::move(loaded_scene), state_machine, context, resource_store)
 {
@@ -28,4 +30,11 @@ ts::states::Client_action_state::Client_action_state(game::Loaded_scene loaded_s
 
 ts::states::Client_action_state::~Client_action_state()
 {
+}
+
+void ts::states::Client_action_state::update(std::size_t frame_duration)
+{
+    Action_state_base::update(frame_duration);
+
+    cup_interface_->update(frame_duration);
 }

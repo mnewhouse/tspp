@@ -35,6 +35,11 @@ namespace ts
         class Control_interface;
     }
 
+    namespace messages
+    {
+        class Message;
+    }
+
     namespace states
     {
         class Action_state_base

@@ -54,23 +54,6 @@ ts::world::World::World(std::unique_ptr<resources::Track> track, resources::Patt
     add_world_listener(&control_point_manager_);
 }
 
-ts::world::Car* ts::world::World::get_car_by_id(std::uint16_t car_id) const
-{
-    auto it = car_id_map_.find(car_id);
-    if (it == car_id_map_.end())
-    {
-        return nullptr;
-    }
-
-    return it->second;
-}
-
-ts::world::Car* ts::world::World::create_car(const resources::Car_definition& car_def, std::uint16_t car_id)
-{
-    auto car = create_car(car_def);
-    car_id_map_[car_id] = car;
-    return car;
-}
 
 ts::world::Car* ts::world::World::create_car(const resources::Car_definition& car_def)
 {
@@ -89,7 +72,6 @@ ts::world::Car* ts::world::World::create_car(const resources::Car_definition& ca
 
 void ts::world::World::launch_game()
 {
-    started_ = true;
     for (auto listener : world_listeners_)
     {
         listener->on_start();
@@ -348,6 +330,7 @@ void ts::world::World::update(std::size_t frame_duration)
 
     auto old_game_time = game_timer_.time();
     game_timer_.update(frame_duration);
+    world_time_ += frame_duration;
 
     for (auto listener : world_listeners_)
     {

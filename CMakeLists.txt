@@ -27,6 +27,13 @@ set(EXECUTABLE_NAME "tspp")
 set(SRC src/main.cpp 
         src/stdinc.hpp
 
+		src/action/action_messages.hpp
+		src/action/action_messages.cpp
+		src/action/server_action_interface.hpp
+		src/action/server_action_interface.cpp
+		src/action/stage.hpp
+		src/action/stage.cpp
+
         src/audio/audio_store.cpp
         src/audio/audio_store.hpp
         src/audio/collision_sounds.cpp
@@ -76,6 +83,8 @@ set(SRC src/main.cpp
 		src/cup/chatbox.cpp
 		src/cup/client_cup_interface.hpp
 		src/cup/client_cup_interface.cpp
+		src/cup/client_player_mapping.hpp
+		src/cup/client_player_mapping.cpp
 		src/cup/cup.hpp
 		src/cup/cup.cpp
 		src/cup/cup_config.hpp
@@ -86,6 +95,8 @@ set(SRC src/main.cpp
 		src/cup/cup_messages.hpp
 		src/cup/cup_messages.cpp
 		src/cup/cup_metadata.hpp
+		src/cup/download_messages.hpp
+		src/cup/download_messages.cpp
 		src/cup/local_cup_interface.hpp
 		src/cup/local_cup_interface.cpp
 		src/cup/local_players.hpp
@@ -93,8 +104,12 @@ set(SRC src/main.cpp
 		src/cup/player.hpp
 		src/cup/registration.hpp
 		src/cup/resource_downloader.hpp
+		src/cup/resource_downloader.cpp
 		src/cup/server_cup_interface.hpp
 		src/cup/server_cup_interface.cpp
+		src/cup/stage_assembler.hpp
+		src/cup/stage_assembler.cpp
+		src/cup/stage_data.hpp
 
         src/game/action_loader.hpp
         src/game/action_loader.cpp
@@ -115,19 +130,16 @@ set(SRC src/main.cpp
 		src/game/generic_loader.hpp
 		src/game/loaded_scene.hpp
 		src/game/loaded_scene.cpp
-		src/game/local_loading_sequence.hpp
-		src/game/local_loading_sequence.cpp
+		src/game/loading_sequence.hpp
+		src/game/loading_sequence.cpp
         src/game/particle_generator.hpp
         src/game/particle_generator.cpp
-		src/game/stage_assembler.hpp
-		src/game/stage_assembler.cpp
-		src/game/stage_data.hpp
         src/game/track_builder.hpp
         src/game/track_builder.cpp
 		src/game/view_context.hpp
 		src/game/view_context.cpp
-		src/game/world_loader.hpp
-		src/game/world_loader.cpp
+		src/game/stage_loader.hpp
+		src/game/stage_loader.cpp
 
 		src/graphics/colored_text.hpp
 		src/graphics/colored_text.cpp
@@ -149,15 +161,22 @@ set(SRC src/main.cpp
         src/graphics/texture_loader.hpp
         src/graphics/texture_loader.cpp
 
+		src/messages/message.hpp
+		src/messages/message.cpp
+		src/messages/message_center.hpp
+		src/messages/message_dispatcher.hpp
+		src/messages/message_listener.hpp
+		src/messages/message_reader.hpp
+		src/messages/message_reader.cpp		
+
 		src/network/client.hpp
 		src/network/client.cpp
-		src/network/message.hpp
-		src/network/message.cpp
+		src/network/client_handle.hpp
 		src/network/message_protocol.hpp
-		src/network/message_reader.hpp
-		src/network/message_reader.cpp
 		src/network/server.hpp
 		src/network/server.cpp
+		src/network/server_message_source.hpp
+		src/network/server_message_source.cpp
 
         src/resources/car_definition.hpp
         src/resources/car_definition.cpp
@@ -181,6 +200,7 @@ set(SRC src/main.cpp
         src/resources/pattern_loader.cpp
         src/resources/player_color.hpp
         src/resources/player_color.cpp
+		src/resources/player_definition.hpp
         src/resources/player_store.hpp
         src/resources/player_store.cpp
         src/resources/resource_store.hpp
@@ -201,8 +221,10 @@ set(SRC src/main.cpp
         src/resources/tile_library.cpp
         src/resources/track.hpp
         src/resources/track.cpp
+		src/resources/track_definition.hpp
         src/resources/track_handle.hpp
         src/resources/track_handle.cpp
+		src/resources/track_hash.hpp
         src/resources/track_store.hpp
         src/resources/track_store.cpp
         src/resources/wall_definition.hpp
@@ -380,12 +402,14 @@ set(SRC src/main.cpp
 )
 SOURCE_GROUP(main REGULAR_EXPRESSION src/main\\.cpp)
 SOURCE_GROUP(stdinc REGULAR_EXPRESSION src/stdinc\\..p)
+SOURCE_GROUP(action REGULAR_EXPRESSION src/action/[^/]+)
 SOURCE_GROUP(audio REGULAR_EXPRESSION src/audio/[^/]+)
 SOURCE_GROUP(controls REGULAR_EXPRESSION src/controls/[^/]+)
 SOURCE_GROUP(core REGULAR_EXPRESSION src/core/[^/]+)
 SOURCE_GROUP(cup REGULAR_EXPRESSION src/cup/[^/]+)
 SOURCE_GROUP(game REGULAR_EXPRESSION src/game/[^/]+)
 SOURCE_GROUP(graphics REGULAR_EXPRESSION src/graphics/[^/]+)
+SOURCE_GROUP(messages REGULAR_EXPRESSION src/messages/[^/]+)
 SOURCE_GROUP(network REGULAR_EXPRESSION src/network/[^/]+)
 SOURCE_GROUP(resources REGULAR_EXPRESSION src/resources/[^/]+)
 SOURCE_GROUP(resources\\fonts REGULAR_EXPRESSION src/resources/fonts/[^/]+)

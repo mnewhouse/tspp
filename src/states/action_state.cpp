@@ -18,15 +18,20 @@
  */
 
 #include "stdinc.hpp"
-
 #include "action_state.hpp"
+#include "action/stage.hpp"
+
+#include "messages/message_center.hpp"
 
 #include "game/action_scene.hpp"
+
 #include "controls/control_center.hpp"
 #include "controls/control_interface.hpp"
+
 #include "audio/sound_controller.hpp"
-#include "world/world.hpp"
+
 #include "script/interfaces/client_interface.hpp"
+
 #include "resources/settings/input_settings.hpp"
 
 ts::states::Action_state_base::Action_state_base(game::Loaded_scene loaded_scene, state_machine_type* state_machine, 
@@ -37,8 +42,6 @@ ts::states::Action_state_base::Action_state_base(game::Loaded_scene loaded_scene
   control_interface_(std::make_unique<controls::Control_interface>(resource_store->input_settings().key_mapping))
 {
     add_render_scene(&*scene_.action_scene);
-
-    scene_.world->add_world_listener(this);
 }
 
 ts::states::Action_state_base::~Action_state_base()
@@ -47,14 +50,14 @@ ts::states::Action_state_base::~Action_state_base()
 
 void ts::states::Action_state_base::on_activate()
 {
-    scene_.world->launch_game();
+    scene_.stage->launch_game();
 
     scene_.sound_controller->engine_sounds.start();
 }
 
 void ts::states::Action_state_base::handle_event(const sf::Event& event)
 {
-    control_interface_->forward_input(event, *scene_.control_center);
+    control_interface_->forward_input(event, scene_.stage->control_center());
 
     if (event.type == sf::Event::KeyReleased) 
     {
@@ -71,7 +74,7 @@ void ts::states::Action_state_base::update(std::size_t frame_duration)
 
     scene_.action_scene->update_entities(frame_duration);
 
-    scene_.world->update(frame_duration);
+    scene_.stage->update(frame_duration);
     scene_.action_scene->update(frame_duration);
 }
 

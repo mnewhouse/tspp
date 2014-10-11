@@ -27,6 +27,7 @@
 #include <boost/lockfree/spsc_queue.hpp>
 
 #include "message_protocol.hpp"
+#include "messages/message.hpp"
 
 namespace ts
 {
@@ -52,8 +53,8 @@ namespace ts
 
             Connection_status connection_status() const;
 
-            void send_message(Message message, Message_protocol protocol = Message_protocol::Tcp);
-            bool get_message(Message& message);
+            void send_message(messages::Message message, Message_protocol protocol = Message_protocol::Tcp);
+            bool get_message(messages::Message& message);
 
             std::uint64_t generate_key();
 
@@ -67,12 +68,12 @@ namespace ts
 
             struct Outgoing_message
             {
-                Message message;
+                messages::Message message;
                 Message_protocol protocol;
             };
 
             boost::lockfree::spsc_queue<Outgoing_message, boost::lockfree::allocator<std::allocator<Outgoing_message>>> outgoing_messages_;
-            boost::lockfree::spsc_queue<Message, boost::lockfree::allocator<std::allocator<Message>>> incoming_messages_;
+            boost::lockfree::spsc_queue<messages::Message, boost::lockfree::allocator<std::allocator<messages::Message>>> incoming_messages_;
 
             std::future<void> connect_future_;
             std::atomic<Connection_status> connection_status_ = Connection_status::None;

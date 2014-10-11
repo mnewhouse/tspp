@@ -43,7 +43,24 @@ void ts::states::Client_cup_state::update(std::size_t frame_duration)
 {
     Cup_state_base::update(frame_duration);
 
-    client_cup_interface_.update();
+    client_cup_interface_.update(frame_duration);
+}
+
+void ts::states::Client_cup_state::on_state_change(cup::Cup_state old_state, cup::Cup_state new_state)
+{
+    Cup_state_base::on_state_change(old_state, new_state);
+
+    if (new_state == cup::Cup_state::Action)
+    {
+        launch_action(make_action_state());
+    }
+}
+
+void ts::states::Client_cup_state::on_initialize(const cup::Stage_data& stage_data)
+{
+    Cup_state_base::on_initialize(stage_data);
+
+    start_loading(stage_data);
 }
 
 void ts::states::Client_cup_state::async_connect(utf8_string remote_address, std::uint16_t remote_port)
@@ -69,4 +86,16 @@ ts::cup::Registration_status ts::states::Client_cup_state::registration_status()
 const ts::utf8_string& ts::states::Client_cup_state::registration_error() const
 {
     return client_cup_interface_.registration_error();
+}
+
+
+void ts::states::Client_cup_state::start_loading(const cup::Stage_data& stage_data)
+{
+    begin_loading_sequence(stage_data);
+}
+
+std::unique_ptr<ts::states::Client_action_state> ts::states::Client_cup_state::make_action_state()
+{
+    return std::make_unique<Client_action_state>(transfer_loaded_scene(), &client_cup_interface_,
+                                                 state_machine(), context(), resource_store());
 }

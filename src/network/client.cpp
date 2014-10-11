@@ -20,6 +20,14 @@
 #include "stdinc.hpp"
 #include "client.hpp"
 
+namespace ts
+{
+    namespace network
+    {
+        using messages::Message;
+    }
+}
+
 ts::network::Client::Client()
 : incoming_messages_(64, std::allocator<Message>()),
   outgoing_messages_(64, std::allocator<Outgoing_message>())

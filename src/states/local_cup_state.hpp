@@ -31,11 +31,6 @@
 
 namespace ts
 {
-    namespace game
-    {
-        class Local_loading_sequence;
-    }
-
     namespace states
     {
         namespace impl
@@ -65,10 +60,9 @@ namespace ts
             virtual void update(std::size_t frame_duration) override;
 
         private:
-            void begin_loading_sequence();
-            std::unique_ptr<Local_action_state> make_action_state();
+            void start_loading();
 
-            std::unique_ptr<game::Local_loading_sequence> loading_sequence_;
+            std::unique_ptr<Local_action_state> make_action_state();
         };
     }
 }

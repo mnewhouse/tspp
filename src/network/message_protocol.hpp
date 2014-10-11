@@ -22,8 +22,6 @@
 #ifndef NETWORK_MESSAGE_PROTOCOL_HPP
 #define NETWORK_MESSAGE_PROTOCOL_HPP
 
-#include "message.hpp"
-
 namespace ts
 {
     namespace network

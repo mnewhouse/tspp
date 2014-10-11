@@ -24,14 +24,9 @@
 
 namespace ts
 {
-    namespace world
+    namespace action
     {
-        class World;
-    }
-
-    namespace controls
-    {
-        class Control_center;
+        class Stage;
     }
 
     namespace audio
@@ -42,7 +37,6 @@ namespace ts
     namespace game
     {
         class Action_scene;
-        class Car_image_generator;
 
         struct Loaded_scene
         {
@@ -53,12 +47,9 @@ namespace ts
             Loaded_scene& operator=(Loaded_scene&&);
 
             std::unique_ptr<Action_scene> action_scene;
-            std::unique_ptr<Car_image_generator> car_image_generator;
 
-            std::unique_ptr<world::World> world;            
-            std::unique_ptr<audio::Sound_controller> sound_controller;
-            std::unique_ptr<controls::Control_center> control_center;
-            
+            std::unique_ptr<action::Stage> stage;            
+            std::unique_ptr<audio::Sound_controller> sound_controller;            
         };
     }
 }

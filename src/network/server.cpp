@@ -20,7 +20,83 @@
 #include "stdinc.hpp"
 #include "server.hpp"
 
-ts::network::Server::Server()
+#include <SFML/Network.hpp>
+
+#include <boost/lockfree/spsc_queue.hpp>
+
+
+namespace ts
+{
+    namespace network
+    {
+        class Connected_client
+        {
+        public:
+            Connected_client(std::unique_ptr<sf::TcpSocket> socket, std::uint32_t client_key);
+
+            sf::IpAddress remote_address() const;
+            std::uint16_t remote_port() const;
+            std::uint32_t client_key() const;
+
+        private:
+            std::uint32_t client_key_;
+            std::unique_ptr<sf::TcpSocket> socket_;
+
+            friend class impl::Server;
+        };
+    }    
+}
+
+
+class ts::network::impl::Server
+{
+public:
+    Server();
+    ~Server();
+
+    bool listen(std::uint16_t port_number);
+    void stop_listening();
+
+    bool get_message(Client_message& client_message);
+    void send_message(const Client_message& client_message, Message_protocol protocol = Message_protocol::Tcp);
+    void send_message_to_all(const Message& message, Message_protocol = Message_protocol::Tcp);
+
+    void close_client_connection(Client_handle client_handle);
+
+private:
+    void handle_networking();
+    Client_handle create_client_connection(std::unique_ptr<sf::TcpSocket> socket);
+    std::uint32_t generate_client_key() const;
+
+    void read_incoming_messages();
+    void remove_closed_connections();
+    void send_outgoing_messages();
+
+    sf::TcpListener socket_listener_;
+    sf::UdpSocket udp_socket_;
+
+    std::map<std::uint32_t, Connected_client> clients_;
+
+    using Incoming_message = Client_message;
+
+    struct Outgoing_message
+        : Client_message
+    {
+        Message_protocol protocol;
+    };            
+
+    boost::lockfree::spsc_queue<Incoming_message, boost::lockfree::allocator<std::allocator<Incoming_message>>> incoming_queue_;
+    boost::lockfree::spsc_queue<Outgoing_message, boost::lockfree::allocator<std::allocator<Outgoing_message>>> outgoing_queue_;
+
+    boost::lockfree::spsc_queue<Client_handle, boost::lockfree::allocator<std::allocator<Client_handle>>> closed_connections_;
+
+    std::thread networking_thread_;
+    std::atomic<bool> is_listening_;
+    mutable std::mt19937 random_engine_;
+
+};
+
+ts::network::impl::Server::Server()
 : incoming_queue_(64, std::allocator<Incoming_message>()),
   outgoing_queue_(64, std::allocator<Outgoing_message>()),
   closed_connections_(64, std::allocator<Client_handle>())
@@ -28,7 +104,7 @@ ts::network::Server::Server()
     random_engine_.seed(std::random_device{}());
 }
 
-ts::network::Server::~Server()
+ts::network::impl::Server::~Server()
 {
     stop_listening();
 
@@ -38,22 +114,22 @@ ts::network::Server::~Server()
     }
 }
 
-bool ts::network::Server::get_message(Client_message& client_message)
+bool ts::network::impl::Server::get_message(Client_message& client_message)
 {
     return incoming_queue_.pop(client_message);
 }
 
-void ts::network::Server::send_message(Client_message client_message, Message_protocol protocol)
+void ts::network::impl::Server::send_message(const Client_message& client_message, Message_protocol protocol)
 {
     Outgoing_message message;
     message.client = client_message.client;
-    message.message = std::move(client_message.message);
+    message.message = client_message.message;
     message.protocol = protocol;
 
     outgoing_queue_.push(message);
 }
 
-void ts::network::Server::send_message_to_all(const Message& message, Message_protocol protocol)
+void ts::network::impl::Server::send_message_to_all(const Message& message, Message_protocol protocol)
 {
     // Leave client handle "empty", to signify all clients
     Outgoing_message outgoing_message;
@@ -63,7 +139,7 @@ void ts::network::Server::send_message_to_all(const Message& message, Message_pr
     outgoing_queue_.push(outgoing_message);
 }
 
-bool ts::network::Server::listen(std::uint16_t port_number)
+bool ts::network::impl::Server::listen(std::uint16_t port_number)
 {
     auto status = socket_listener_.listen(port_number);
     auto udp_status = udp_socket_.bind(port_number);
@@ -81,12 +157,12 @@ bool ts::network::Server::listen(std::uint16_t port_number)
     return false;
 }
 
-void ts::network::Server::stop_listening()
+void ts::network::impl::Server::stop_listening()
 {
     is_listening_ = false;
 }
 
-std::uint32_t ts::network::Server::generate_client_key() const
+std::uint32_t ts::network::impl::Server::generate_client_key() const
 {
     std::uniform_int_distribution<std::uint32_t> key_dist(0x10000, std::numeric_limits<std::uint32_t>::max());
 
@@ -99,7 +175,7 @@ std::uint32_t ts::network::Server::generate_client_key() const
     return client_key;
 }
 
-ts::network::Client_handle ts::network::Server::create_client_connection(std::unique_ptr<sf::TcpSocket> socket)
+ts::network::Client_handle ts::network::impl::Server::create_client_connection(std::unique_ptr<sf::TcpSocket> socket)
 {
     auto client_key = generate_client_key();    
 
@@ -109,12 +185,12 @@ ts::network::Client_handle ts::network::Server::create_client_connection(std::un
     return Client_handle(&insert_result.first->second);
 }
 
-void ts::network::Server::close_client_connection(Client_handle client_handle)
+void ts::network::impl::Server::close_client_connection(Client_handle client_handle)
 {
     closed_connections_.push(client_handle);
 }
 
-void ts::network::Server::read_incoming_messages()
+void ts::network::impl::Server::read_incoming_messages()
 {
     Client_message client_message;
 
@@ -125,7 +201,7 @@ void ts::network::Server::read_incoming_messages()
         const auto& client = client_info.second;
         while (client.socket_->receive(packet) == sf::Socket::Done)
         {
-            client_message.client.set(&client);
+            client_message.client = Client_handle(&client);
             client_message.message.assign(static_cast<const std::uint8_t*>(packet.getData()), packet.getDataSize());
 
             incoming_queue_.push(client_message);
@@ -133,7 +209,7 @@ void ts::network::Server::read_incoming_messages()
     }
 }
 
-void ts::network::Server::send_outgoing_messages()
+void ts::network::impl::Server::send_outgoing_messages()
 {
     sf::Packet packet;
 
@@ -141,7 +217,7 @@ void ts::network::Server::send_outgoing_messages()
     while (outgoing_queue_.pop(outgoing_message))
     {
         const auto& message = outgoing_message.message;
-        auto client = outgoing_message.client;
+        auto client = outgoing_message.client.client_impl_;
         auto protocol = outgoing_message.protocol;
 
         packet.clear();
@@ -167,7 +243,7 @@ void ts::network::Server::send_outgoing_messages()
         {
             if (client)
             {
-                udp_socket_.send(packet, client->remote_address(),client->remote_port());
+                udp_socket_.send(packet, client->remote_address(), client->remote_port());
             }
 
             else
@@ -181,12 +257,12 @@ void ts::network::Server::send_outgoing_messages()
     }
 }
 
-void ts::network::Server::remove_closed_connections()
+void ts::network::impl::Server::remove_closed_connections()
 {
     Client_handle client;
     while (closed_connections_.pop(client))
     {
-        auto it = clients_.find(client->client_key_);
+        auto it = clients_.find(client.client_id());
         if (it != clients_.end())
         {
             clients_.erase(it);
@@ -194,7 +270,7 @@ void ts::network::Server::remove_closed_connections()
     }
 }
 
-void ts::network::Server::handle_networking()
+void ts::network::impl::Server::handle_networking()
 {
     sf::Packet packet;
 
@@ -222,6 +298,60 @@ void ts::network::Server::handle_networking()
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+}
+
+ts::network::Server::Server()
+: impl_(std::make_unique<impl::Server>())
+{
+}
+
+ts::network::Server::~Server()
+{
+}
+
+bool ts::network::Server::listen(std::uint16_t port_number)
+{
+    return impl_->listen(port_number);
+}
+
+bool ts::network::Server::get_message(Client_message& message) const
+{
+    return impl_->get_message(message);
+}
+
+void ts::network::Server::send_message(const Client_message& message, Message_protocol protocol) const
+{
+    impl_->send_message(message, protocol);
+}
+
+void ts::network::Server::send_message_to_all(const Message& message, Message_protocol protocol) const
+{
+    impl_->send_message_to_all(message, protocol);
+}
+
+void ts::network::Server::close_client_connection(Client_handle client)
+{
+    impl_->close_client_connection(client);
+}
+
+ts::network::Client_handle::Client_handle(const Connected_client* client)
+  : client_impl_(client)
+{
+}
+
+std::uint32_t ts::network::Client_handle::client_id() const
+{
+    return client_impl_->client_key();
+}
+
+std::uint16_t ts::network::Client_handle::remote_port() const
+{
+    return client_impl_->remote_port();
+}
+
+sf::IpAddress ts::network::Client_handle::remote_address() const
+{
+    return client_impl_->remote_address();
 }
 
 ts::network::Connected_client::Connected_client(std::unique_ptr<sf::TcpSocket> socket, std::uint32_t client_key)

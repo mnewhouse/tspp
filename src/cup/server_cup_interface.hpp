@@ -24,7 +24,10 @@
 
 #include "network/server.hpp"
 
+#include "messages/message_listener.hpp"
+
 #include "cup_interface.hpp"
+#include "client_player_mapping.hpp"
 
 namespace ts
 {
@@ -38,24 +41,26 @@ namespace ts
         struct Stage_data;
 
         class Server_cup_interface
-            : public Cup_interface
+            : public Cup_interface, public messages::Message_listener<network::Client_message>
         {
         public:
             Server_cup_interface(Cup* cup, network::Server* server, const resources::Resource_store* resource_store);
-
-            void update(std::size_t frame_duration);
 
             virtual void select_cars(const std::vector<Car_selection>& car_selection) override;
             virtual void signal_ready() override;
             virtual void write_chat_message(const utf8_string& message) override;
 
             void send_initialization_message(const Stage_data& stage_data);
+
+            const Client_player_mapping* client_player_mapping() const;
             
         private:
+            virtual void handle_message(const network::Client_message& message) override;
+
             void handle_registration_request(const network::Client_message& message);
             void handle_bad_registration_request(network::Client_handle client);
 
-            void handle_message(const network::Client_message& message);
+            
             void handle_ready_signal(const network::Client_message& message);
             void handle_car_selection(const network::Client_message& message);
             void handle_chat_message(const network::Client_message& message);
@@ -71,11 +76,10 @@ namespace ts
             virtual void on_state_change(Cup_state old_state, Cup_state new_state) override;
 
             network::Server* server_;
-
             const resources::Resource_store* resource_store_;
-            network::Client_message message_buffer_;
 
-            std::unordered_map<std::uint32_t, std::vector<Player_handle>> client_player_mapping_;
+            Client_player_mapping client_player_mapping_;
+            std::unordered_set<network::Client_handle> clients_;
 
             std::unordered_set<std::uint32_t> awaiting_clients_;
             bool awaiting_self_;

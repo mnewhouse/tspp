@@ -23,7 +23,8 @@
 #include "cup_messages.hpp"
 
 #include "network/server.hpp"
-#include "network/message_reader.hpp"
+
+#include "messages/message_reader.hpp"
 
 #include "resources/resource_store.hpp"
 
@@ -57,10 +58,8 @@ void ts::cup::Server_cup_interface::handle_registration_request(const network::C
     {
         auto remote_players = cup()->player_list();
 
-        auto& player_list = client_player_mapping_[client->client_key()];
-        
         // Send acknowledgement message back
-        out_message.message = make_registration_acknowledgement_message(registration_request.registration_key, client->client_key());
+        out_message.message = make_registration_acknowledgement_message(registration_request.registration_key, client.client_id());
         server_->send_message(out_message);
 
         
@@ -73,7 +72,7 @@ void ts::cup::Server_cup_interface::handle_registration_request(const network::C
             player.control_slot = controls::invalid_slot;
 
             auto player_handle = add_player(player);
-            player_list.push_back(player_handle);
+            client_player_mapping_.add_player(player_handle, client.client_id());
 
             // Assign the unique handle we created to the player
             player.handle = player_handle->handle;
@@ -104,26 +103,20 @@ void ts::cup::Server_cup_interface::handle_bad_registration_request(network::Cli
 {
     network::Client_message outgoing_message;
     outgoing_message.client = client;
-    outgoing_message.message = make_bad_request_message(client->client_key());
+    outgoing_message.message = make_bad_request_message(client.client_id());
 
     server_->send_message(outgoing_message);
-    server_->close_client_connection(client);
+    disconnect_client(client);
 }
 
 void ts::cup::Server_cup_interface::disconnect_client(network::Client_handle client)
 {
-    awaiting_clients_.erase(client->client_key());
-    client_player_mapping_.erase(client->client_key());
+    awaiting_clients_.erase(client.client_id());
+    client_player_mapping_.remove_players_by_client(client.client_id());
+    clients_.erase(client);
 
     server_->close_client_connection(client);
-}
-
-void ts::cup::Server_cup_interface::update(std::size_t frame_duration)
-{
-    while (server_->get_message(message_buffer_))
-    {
-        handle_message(message_buffer_);
-    }
+    
 }
 
 void ts::cup::Server_cup_interface::select_cars(const std::vector<Car_selection>& car_selection)
@@ -167,9 +160,9 @@ void ts::cup::Server_cup_interface::wait_for_everyone()
     awaiting_clients_.clear();
 
     // Add all clients to the waiting room.
-    for (auto& client_player : client_player_mapping_)
+    for (const auto& client : clients_)
     {
-        awaiting_clients_.insert(client_player.first);
+        awaiting_clients_.insert(client.client_id());
     }
 
     // And ourselves, too.
@@ -197,12 +190,12 @@ void ts::cup::Server_cup_interface::handle_message(const network::Client_message
     const auto& client = client_message.client;
     const auto& message = client_message.message;
 
-    network::Message_reader message_reader(message);
+    messages::Message_reader message_reader(message);
 
     std::uint32_t type = 0;
     message_reader >> type;
 
-    if (client_player_mapping_.count(client->client_key()) == 0)
+    if (clients_.find(client) == clients_.end())
     {
         // The first message a client sends has to be a join request.
 
@@ -240,17 +233,13 @@ void ts::cup::Server_cup_interface::handle_message(const network::Client_message
 
 ts::utf8_string ts::cup::Server_cup_interface::client_name(network::Client_handle client) const
 {
-    auto mapping_it = client_player_mapping_.find(client->client_key());
-    if (mapping_it != client_player_mapping_.end())
+    auto players = client_player_mapping_.get_players_by_client(client.client_id());
+    if (players.first != players.second)
     {
-        const auto& player_list = mapping_it->second;
-        if (!player_list.empty())
-        {
-            return player_list.front()->nickname;
-        }
+        return (*players.first)->nickname;
     }
 
-    return client->remote_address().toString();
+    return client.remote_address().toString();
 }
 
 ts::utf8_string ts::cup::Server_cup_interface::my_name() const
@@ -281,7 +270,7 @@ void ts::cup::Server_cup_interface::handle_chat_message(const network::Client_me
 void ts::cup::Server_cup_interface::handle_ready_signal(const network::Client_message& message)
 {
     // We're not waiting for this particular client anymore
-    awaiting_clients_.erase(message.client->client_key());
+    awaiting_clients_.erase(message.client.client_id());
 
     // So we can advance if everybody else if ready.
     advance_if_ready();
@@ -293,25 +282,23 @@ void ts::cup::Server_cup_interface::handle_car_selection(const network::Client_m
     auto car_selection_message = parse_car_selection_message(message.message);
 
     const auto& possible_cars = cup()->car_list();
-    auto client_it = client_player_mapping_.find(client->client_key());
+    auto client_players = client_player_mapping_.get_players_by_client(client.client_id());
 
     // We have to be in the car selection state for this message to be accepted.
-    if (cup()->cup_state() != Cup_state::Car_selection && client_it != client_player_mapping_.end())
+    if (cup()->cup_state() != Cup_state::Car_selection)
     {
-        const auto& player_list = client_it->second;
-
         for (const auto& entry : car_selection_message.car_selection)
         {
             auto handle = entry.player_handle;
 
             // Find the corresponding player in the players associated with the client
-            auto search_result = std::find_if(player_list.begin(), player_list.end(),
+            auto search_result = std::find_if(client_players.first, client_players.second,
                                               [handle](const Player_handle& player_handle)
             {
                 return player_handle->handle == handle;
             });
 
-            if (search_result != player_list.end() && entry.car_id < possible_cars.size())
+            if (search_result != client_players.second && entry.car_id < possible_cars.size())
             {
                 // Set the player's car to the car corresponding to the ID they sent us.
                 set_player_car(*search_result, possible_cars[entry.car_id]);
@@ -324,4 +311,9 @@ void ts::cup::Server_cup_interface::send_initialization_message(const Stage_data
 {
     auto message = make_action_initialization_message(stage_data);
     server_->send_message_to_all(message);
+}
+
+const ts::cup::Client_player_mapping* ts::cup::Server_cup_interface::client_player_mapping() const
+{
+    return &client_player_mapping_;
 }

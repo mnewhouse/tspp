@@ -312,10 +312,6 @@ ts::resources::Player_color ts::resources::Player_store::generate_player_color()
     return result;
 }
 
-ts::resources::Player_handle::Player_handle(const Player* player)
-    : player_(player)
-{}
-
 ts::resources::Player_store::iterator ts::resources::Player_store::begin() const
 {
     return iterator(player_map_.begin());
@@ -324,52 +320,6 @@ ts::resources::Player_store::iterator ts::resources::Player_store::begin() const
 ts::resources::Player_store::iterator ts::resources::Player_store::end() const
 {
     return iterator(player_map_.end());
-}
-
-const ts::resources::Player& ts::resources::Player_handle::operator*() const
-{
-    return *player_;
-}
-
-const ts::resources::Player* ts::resources::Player_handle::operator->() const
-{
-    return player_;
-}
-
-ts::resources::Player_handle::operator bool() const
-{
-    return player_ != nullptr;
-}
-
-bool ts::resources::Player_handle::operator==(Player_handle other) const
-{
-    return player_ == other.player_;
-}
-
-bool ts::resources::Player_handle::operator!=(Player_handle other) const
-{
-    return player_ != other.player_;
-}
-
-bool ts::resources::Player_handle::operator<(Player_handle other) const
-{
-    return player_ < other.player_;
-}
-
-bool ts::resources::Player_handle::operator>(Player_handle other) const
-{
-    return player_ > other.player_;
-}
-
-
-bool ts::resources::Player_handle::operator<=(Player_handle other) const
-{
-    return player_ <= other.player_;
-}
-
-bool ts::resources::Player_handle::operator>=(Player_handle other) const
-{
-    return player_ >= other.player_;
 }
 
 ts::resources::Player_store::iterator::iterator(base_type it)

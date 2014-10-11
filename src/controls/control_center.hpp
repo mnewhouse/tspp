@@ -48,7 +48,7 @@ namespace ts
             bool is_controlled(const Controllable* controllable) const;
 
         private:
-            std::multimap<int, Controllable*> control_mapping_;
+            std::multimap<Slot, Controllable*> control_mapping_;
             std::uint32_t globally_disabled_controls_ = 0;
         };
     }

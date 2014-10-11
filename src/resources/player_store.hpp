@@ -22,41 +22,21 @@
 #ifndef RESOURCES_PLAYER_STORE_HPP
 #define RESOURCES_PLAYER_STORE_HPP
 
-#include "player_color.hpp"
+#include "player_definition.hpp"
 
 namespace ts
 {
     namespace resources
     {
         struct Player
+            : public Player_definition
         {
-            std::uint64_t id;
             std::uint64_t internal_id;
-            utf8_string name;
-            Player_color color;
         };
 
         static const std::size_t max_player_name_length = 20;
 
-        class Player_handle
-        {
-        public:
-            explicit Player_handle(const Player* player = nullptr);
-
-            const Player& operator*() const;
-            const Player* operator->() const;
-            explicit operator bool() const;
-
-            bool operator==(Player_handle other) const;
-            bool operator!=(Player_handle other) const;
-            bool operator<(Player_handle other) const;
-            bool operator>(Player_handle other) const;
-            bool operator<=(Player_handle other) const;
-            bool operator>=(Player_handle other) const;
-
-        private:
-            const Player* player_;
-        };
+        using Player_handle = Pointer_handle<const Player>;
 
         class Player_store
         {

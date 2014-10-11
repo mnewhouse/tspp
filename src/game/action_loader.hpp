@@ -37,9 +37,9 @@ namespace ts
         class World;
     }
     
-    namespace cup
+    namespace action
     {
-        struct Stage_data;
+        class Stage;
     }
 
     namespace game
@@ -59,14 +59,13 @@ namespace ts
             : public Generic_loader<Action_loader_state, std::unique_ptr<Action_scene>>
         {
         public:
-            void async_load(const cup::Stage_data& stage_data, const world::World* world, const resources::Video_settings& video_settings);
+            void async_load(const action::Stage* stage, const resources::Video_settings& video_settings);
                             
 
             using State = Action_loader_state;
 
         private:
-            std::unique_ptr<Action_scene> load_scene(const cup::Stage_data& stage_data, const world::World* world, 
-                                                     const resources::Video_settings& video_settings);
+            std::unique_ptr<Action_scene> load_scene(const action::Stage* stage, const resources::Video_settings& video_settings);
                                                      
         };
 

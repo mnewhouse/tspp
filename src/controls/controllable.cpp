@@ -20,15 +20,10 @@
 #include "stdinc.hpp"
 #include "controllable.hpp"
 
-ts::controls::Controllable::Controllable()
-    : control_state_(0)
-{
-}
-
 void ts::controls::Controllable::set_control_state(Control control, bool state)
 {
     if (state) {
-        auto new_state = control_state_ | static_cast<unsigned>(control);
+        auto new_state = control_state_ | static_cast<std::uint32_t>(control);
         if (new_state != control_state_) {
             control_state_ = new_state;
 
@@ -37,7 +32,7 @@ void ts::controls::Controllable::set_control_state(Control control, bool state)
     }
 
     else {
-        auto new_state = control_state_ & ~static_cast<unsigned>(control);
+        auto new_state = control_state_ & ~static_cast<std::uint32_t>(control);
         if (new_state != control_state_) {
             control_state_ = new_state;
 
@@ -48,15 +43,15 @@ void ts::controls::Controllable::set_control_state(Control control, bool state)
 
 bool ts::controls::Controllable::control_state(Control control) const
 {
-    return (control_state_ & static_cast<unsigned>(control)) != 0;
+    return (control_state_ & static_cast<std::uint32_t>(control)) != 0;
 }
 
-void ts::controls::Controllable::update_control_state(unsigned new_state)
+void ts::controls::Controllable::update_control_state(std::uint32_t new_state)
 {
     control_state_ = new_state;
 }
 
-unsigned ts::controls::Controllable::control_state() const
+std::uint32_t ts::controls::Controllable::control_state() const
 {
     return control_state_;
 }

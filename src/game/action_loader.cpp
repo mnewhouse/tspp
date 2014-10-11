@@ -22,33 +22,33 @@
 #include "action_loader.hpp"
 #include "action_scene.hpp"
 
+#include "action/stage.hpp"
+#include "resources/settings/video_settings.hpp"
+
+#include "world/world.hpp"
+
 #include "track_builder.hpp"
 #include "car_image_generator.hpp"
 
 #include "graphics/texture.hpp"
 
-#include "resources/settings/video_settings.hpp"
 
-#include "cup/stage_data.hpp"
 
-#include "world/world.hpp"
 
-void ts::game::Action_loader::async_load(const cup::Stage_data& stage_data, const world::World* world,
-                                         const resources::Video_settings& video_settings)
+void ts::game::Action_loader::async_load(const action::Stage* stage, const resources::Video_settings& video_settings)
 {
     set_state(State::None);
 
     auto callable = [=]()
     {
-        return load_scene(stage_data, world, video_settings);
+        return load_scene(stage, video_settings);
     };
 
     Generic_loader::async_load(callable);
 }
 
 
-std::unique_ptr<ts::game::Action_scene> ts::game::Action_loader::load_scene(const cup::Stage_data& stage_data, const world::World* world,
-                                                                            const resources::Video_settings& video_settings)
+std::unique_ptr<ts::game::Action_scene> ts::game::Action_loader::load_scene(const action::Stage* stage, const resources::Video_settings& video_settings)
 {
     double progress_step = 0.0;
     auto increment_progress = [this, &progress_step]()
@@ -63,16 +63,15 @@ std::unique_ptr<ts::game::Action_scene> ts::game::Action_loader::load_scene(cons
     std::set<utf8_string> needed_textures;
     std::set<utf8_string> needed_pattern_files;
 
-    const auto& track = world->track();
+    const auto& world = stage->world();
+    const auto& track = world.track();
+    const auto& car_list = stage->car_data();
 
     std::set<utf8_string> needed_engine_sounds;
 
-    for (auto& player_data : stage_data.cars)
+    for (const auto& car_data : car_list)
     {
-        if (auto car = player_data.car)
-        {
-            needed_engine_sounds.insert(car->engine_sample);
-        }
+        needed_engine_sounds.insert(car_data.car_def->engine_sample);
     }
 
     game::Track_builder track_builder(track);
@@ -99,21 +98,18 @@ std::unique_ptr<ts::game::Action_scene> ts::game::Action_loader::load_scene(cons
 
     Car_image_generator car_image_generator;
 
-    for (const auto& car_info : stage_data.cars)
+    for (const auto& car_data : car_list)
     {
-        if (auto car = world->get_car_by_id(car_info.car_id))
-        {
-            const auto& car_def = *car_info.car;
-            auto image = car_image_generator(car_def, car_info.color);
+        const auto car_def = car_data.car_def;
+        auto image = car_image_generator(*car_def, car_data.player.color);
 
-            Drawable_entity_definition entity_def(std::make_shared<graphics::Texture>(image));
-            entity_def.image_type = car_def.image_type;
-            entity_def.texture_rect = car_def.image_rect;
-            entity_def.scale.x = car_def.image_scale;
-            entity_def.scale.y = car_def.image_scale;
+        Drawable_entity_definition entity_def(std::make_shared<graphics::Texture>(image));
+        entity_def.image_type = car_def->image_type;
+        entity_def.texture_rect = car_def->image_rect;
+        entity_def.scale.x = car_def->image_scale;
+        entity_def.scale.y = car_def->image_scale;
 
-            action_scene->add_car(car, entity_def);
-        }
+        action_scene->add_car(car_data.car, entity_def);
     }
 
     set_progress(1.0);

@@ -23,7 +23,7 @@
 
 #include "car_image_generator.hpp"
 
-#include "world/world.hpp"
+#include "action/stage.hpp"
 #include "controls/control_center.hpp"
 #include "audio/sound_controller.hpp"
 
@@ -36,21 +36,17 @@ ts::game::Loaded_scene::~Loaded_scene()
 }
 
 ts::game::Loaded_scene::Loaded_scene(Loaded_scene&& other)
-: world(std::move(other.world)),
+: stage(std::move(other.stage)),
   action_scene(std::move(other.action_scene)),
-  sound_controller(std::move(other.sound_controller)),
-  control_center(std::move(other.control_center)),
-  car_image_generator(std::move(other.car_image_generator))
+  sound_controller(std::move(other.sound_controller))
 {
 }
 
 ts::game::Loaded_scene& ts::game::Loaded_scene::operator=(Loaded_scene&& rhs)
 {
-    world = std::move(rhs.world);
+    stage = std::move(rhs.stage);
     action_scene = std::move(rhs.action_scene);
     sound_controller = std::move(rhs.sound_controller);
-    control_center = std::move(rhs.control_center);
-    car_image_generator = std::move(rhs.car_image_generator);
 
     return *this;
 }

@@ -29,13 +29,10 @@
 
 #include "network/server.hpp"
 
+#include "messages/message_center.hpp"
+
 namespace ts
 {
-    namespace game
-    {
-        class Local_loading_sequence;
-    }
-
     namespace states
     {
         namespace impl
@@ -47,7 +44,9 @@ namespace ts
                 cup::Cup cup_;
                 cup::Cup_config cup_config_;
                 network::Server server_;
-                cup::Server_cup_interface server_cup_interface_;
+                messages::Message_center<network::Client_message, messages::Message> message_center_;
+
+                cup::Server_cup_interface server_cup_interface_;                
             };
         }
 
@@ -66,14 +65,9 @@ namespace ts
             virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
 
         private:
-            void begin_loading_sequence();
-            void signal_if_ready();
-            void load_scene();
+            void start_loading();
 
-            std::unique_ptr<Server_action_state> make_action_state();            
-
-            std::unique_ptr<game::Local_loading_sequence> loading_sequence_;
-            
+            std::unique_ptr<Server_action_state> make_action_state();           
         };
     }
 }

@@ -32,7 +32,7 @@ namespace ts
     namespace cup
     {
         class Cup;
-        struct Stage_data;
+        struct Stage_data;        
 
         struct Car_selection
         {

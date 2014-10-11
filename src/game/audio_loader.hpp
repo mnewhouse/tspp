@@ -29,14 +29,9 @@
 
 namespace ts
 {
-    namespace world
+    namespace action
     {
-        class World;
-    }
-
-    namespace cup
-    {
-        struct Stage_data;
+        class Stage;
     }
 
     namespace game
@@ -51,11 +46,10 @@ namespace ts
             : public Generic_loader<Audio_loader_state, std::unique_ptr<audio::Sound_controller>>
         {
         public:
-            void async_load(const cup::Stage_data& stage_data, const world::World* world, const resources::Audio_settings& audio_settings);
+            void async_load(const action::Stage* stage, const resources::Audio_settings& audio_settings);
 
         private:
-            std::unique_ptr<audio::Sound_controller> load_audio(const cup::Stage_data& stage_data, const world::World* world, 
-                                                                const resources::Audio_settings& audio_setting);
+            std::unique_ptr<audio::Sound_controller> load_audio(const action::Stage* stage, const resources::Audio_settings& audio_setting);
         };
     }
 }

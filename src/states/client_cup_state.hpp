@@ -31,6 +31,11 @@
 
 namespace ts
 {
+    namespace game
+    {
+        class Loading_sequence;
+    }
+
     namespace states
     {
         namespace impl
@@ -44,6 +49,8 @@ namespace ts
                 cup::Client_cup_interface client_cup_interface_;
             };
         }
+
+        class Client_action_state;
 
         class Client_cup_state
             : private impl::Client_cup_state_members, public Cup_state_base
@@ -63,8 +70,12 @@ namespace ts
             void send_registration_request();
 
             virtual void update(std::size_t frame_duration) override;
+            virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
+            virtual void on_initialize(const cup::Stage_data& stage_data) override;
 
         private:
+            void start_loading(const cup::Stage_data& stage_data);
+            std::unique_ptr<Client_action_state> make_action_state();
         };
     }
 }

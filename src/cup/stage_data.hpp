@@ -19,16 +19,14 @@
 
 #pragma once
 
-#ifndef STAGE_DATA_HPP
-#define STAGE_DATA_HPP
+#ifndef ACTION_STAGE_DATA_HPP
+#define ACTION_STAGE_DATA_HPP
 
 #include "cup_metadata.hpp"
 
 #include "resources/car_handle.hpp"
 #include "resources/track_handle.hpp"
-#include "resources/player_color.hpp"
-
-#include "controls/control.hpp"
+#include "resources/player_definition.hpp"
 
 namespace ts
 {
@@ -37,9 +35,9 @@ namespace ts
         struct Car_data
         {
             std::uint16_t car_id;
-            Player_handle player;
-            resources::Player_color color;
-            resources::Car_handle car;
+            Player_handle controller;
+            resources::Player_definition player;
+            resources::Car_handle car_def;
             std::uint32_t start_pos;
         };
 
@@ -48,6 +46,7 @@ namespace ts
             resources::Track_handle track;
             std::vector<Car_data> cars;
         };
+
     }
 }
 

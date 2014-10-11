@@ -20,13 +20,19 @@
 #include "stdinc.hpp"
 #include "server_action_state.hpp"
 
-ts::states::Server_action_state::Server_action_state(game::Loaded_scene loaded_scene, network::Server* server, state_machine_type* state_machine,
+#include "action/server_action_interface.hpp"
+
+ts::states::Server_action_state::Server_action_state(game::Loaded_scene loaded_scene, std::unique_ptr<action::Server_action_interface> action_interface, state_machine_type* state_machine,
                                                      gui::Context* context, resources::Resource_store* resource_store)
     : Action_state_base(std::move(loaded_scene), state_machine, context, resource_store),
-      server_(server) 
+      action_interface_(std::move(action_interface))
 {
 }
 
 ts::states::Server_action_state::~Server_action_state()
+{
+}
+
+void ts::states::Server_action_state::update(std::size_t frame_duration)
 {
 }

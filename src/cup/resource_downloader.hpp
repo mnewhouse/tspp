@@ -22,13 +22,47 @@
 #ifndef RESOURCE_DOWNLOADER_HPP
 #define RESOURCE_DOWNLOADER_HPP
 
+#include "resources/track_definition.hpp"
+
 namespace ts
 {
+    namespace network
+    {
+        class Client;
+        class Message;
+    }
+
     namespace cup
     {
+        enum class Resource_type
+        {
+            Track,
+            Car,
+            Module,
+        };
+
         class Resource_downloader
         {
+        public:
+            Resource_downloader(network::Client* client);
 
+            void request_track(const resources::Track_definition& track_definition);
+
+            void handle_download_message(const network::Message& message);
+
+            bool is_downloading() const;
+
+        private:
+            std::uint32_t generate_key() const;
+
+            struct Download_information
+            {
+                std::vector<char> file_buffer_;
+            };
+
+            std::map<std::uint32_t, Download_information> download_map_;
+
+            network::Client* client_;
         };
     }
 }

@@ -31,6 +31,8 @@
 #include "cup/cup.hpp"
 #include "cup/cup_interface.hpp"
 
+#include "game/loading_sequence.hpp"
+
 namespace ts
 {
     namespace states
@@ -45,7 +47,8 @@ ts::states::Cup_state_base::Cup_state_base(cup::Cup_interface* cup_interface, st
   : Chatbox_listener(cup_interface->chatbox()),
     gui::State(state_machine, context, resource_store),
     cup_interface_(cup_interface),
-    cup_gui_(cup_interface, context, resource_store)
+    cup_gui_(cup_interface, context, resource_store),
+    loading_sequence_(std::make_unique<game::Loading_sequence>(resource_store))
 {
 }
 
@@ -85,6 +88,32 @@ void ts::states::Cup_state_base::on_chat_message(const cup::Composite_message& m
 void ts::states::Cup_state_base::update(std::size_t frame_duration)
 {
     cup_gui_.update(frame_duration);
+
+    loading_sequence_->poll();
+
+    cup_gui_.set_loading_progress(loading_sequence_->progress());
+}
+
+ts::game::Loaded_scene ts::states::Cup_state_base::transfer_loaded_scene()
+{
+    return loading_sequence_->transfer_result();
+}
+
+void ts::states::Cup_state_base::begin_loading_sequence(const cup::Stage_data& stage_data)
+{
+    loading_sequence_->set_completion_handler([this]()
+    {
+        cup_interface_->signal_ready();
+        cup_gui_.hide_progress_dialog();
+    });
+
+    loading_sequence_->set_state_change_handler([this](const utf8_string& new_state)
+    {
+        cup_gui_.set_loading_progress_text(new_state);
+    });
+
+    cup_gui_.show_progress_dialog();
+    loading_sequence_->async_load(stage_data);
 }
 
 void ts::states::Cup_state_base::return_to_main_menu()
@@ -97,26 +126,6 @@ void ts::states::Cup_state_base::launch_action(std::unique_ptr<Action_state_base
     context()->hide_all();
 
     state_machine()->change_state(std::move(action_state));
-}
-
-void ts::states::Cup_state_base::begin_loading()
-{
-    cup_gui_.show_progress_dialog();
-}
-
-void ts::states::Cup_state_base::finish_loading()
-{
-    cup_gui_.hide_progress_dialog();
-}
-
-void ts::states::Cup_state_base::set_loading_progress(double progress)
-{
-    cup_gui_.set_loading_progress(progress);
-}
-
-void ts::states::Cup_state_base::set_loading_progress_text(const utf8_string& text)
-{
-    cup_gui_.set_loading_progress_text(text);
 }
 
 ts::utf8_string ts::states::to_string(cup::Cup_state cup_state)

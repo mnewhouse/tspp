@@ -77,11 +77,10 @@ namespace ts
 
             void start_game_timer();
             std::size_t game_time() const;
+            std::size_t world_time() const;
 
             bool is_entity(Entity* entity) const;
             const std::vector<Entity*>& entity_list() const;
-
-            Car* get_car_by_id(std::uint16_t id) const;
 
         private:
             void register_entity(Entity* entity);
@@ -97,8 +96,9 @@ namespace ts
 
             void load_track_objects();
 
+            std::size_t world_time_ = 0;
+
             std::vector<std::unique_ptr<Car>> car_list_;
-            std::unordered_map<std::uint16_t, Car*> car_id_map_;
 
             std::vector<Entity*> entity_list_;
             std::unordered_set<Entity*> entity_set_;            
@@ -126,7 +126,6 @@ namespace ts
 
             Collision_bitmap_store dynamic_bitmap_store_;
             Game_timer game_timer_;
-            bool started_ = false;
         };
 
     }

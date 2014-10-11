@@ -24,11 +24,13 @@
 
 #include "cup_interface.hpp"
 
-#include "network/message.hpp"
+#include "messages/message.hpp"
 
 #include "resources/settings/player_settings.hpp"
 #include "resources/settings/track_settings.hpp"
 #include "resources/settings/car_settings.hpp"
+
+#include "resources/track_definition.hpp"
 
 namespace ts
 {
@@ -43,7 +45,7 @@ namespace ts
 
     namespace cup
     {
-        using network::Message;
+        using messages::Message;
 
         struct Message_type
         {
@@ -52,6 +54,13 @@ namespace ts
             static const std::uint32_t car_selection = 1471;
             static const std::uint32_t ready_signal = 1481;
             static const std::uint32_t chat_message = 1691;
+
+            // Download requests
+            static const std::uint32_t track_download_request = 3401;
+            static const std::uint32_t car_download_request = 3411;
+            static const std::uint32_t resource_download_request = 3421;
+
+
 
             // Server -> client messages
             static const std::uint32_t registration_acknowledgement = 2211;
@@ -69,7 +78,7 @@ namespace ts
             static const std::uint32_t resource_information = 2411;
             static const std::uint32_t car_information = 2421;
 
-            static const std::uint32_t chatbox_output = 2831;
+            static const std::uint32_t chatbox_output = 2831;            
         };
 
         struct Stage_data;
@@ -170,6 +179,7 @@ namespace ts
                 utf8_string car_name;
             };
 
+            utf8_string track_name;
             std::vector<Car> car_list;
         };
 

@@ -28,6 +28,8 @@
 
 #include "user_interface/gui_state.hpp"
 
+#include "game/loaded_scene.hpp"
+
 
 
 namespace ts
@@ -35,6 +37,11 @@ namespace ts
     namespace cup
     {
         class Cup_interface;
+    }
+
+    namespace game
+    {
+        class Loading_sequence;
     }
 
     namespace states
@@ -58,10 +65,7 @@ namespace ts
 
             void show_gui();
 
-            void begin_loading();
-            void set_loading_progress_text(const utf8_string& text);
-            void set_loading_progress(double progress);
-            void finish_loading();
+            void begin_loading_sequence(const cup::Stage_data& stage_data);
 
             virtual void update(std::size_t frame_duration) override;
             virtual void on_activate() override;
@@ -70,10 +74,9 @@ namespace ts
 
         protected:
             void launch_action(std::unique_ptr<Action_state_base> action_state);
-            
+            game::Loaded_scene transfer_loaded_scene();           
 
         private:
-            
             void return_to_main_menu();
 
             cup::Cup_interface* cup_interface_;
@@ -81,6 +84,8 @@ namespace ts
             std::chrono::high_resolution_clock::time_point completion_time_;
 
             Cup_GUI cup_gui_;
+
+            std::unique_ptr<game::Loading_sequence> loading_sequence_;
         };
     }
 }

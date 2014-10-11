@@ -309,7 +309,7 @@ void ts::cup::Cup::advance()
         break;
 
     case Cup_state::Initializing:
-        //launch_action();
+        launch_action();
         break;
 
     case Cup_state::Action:

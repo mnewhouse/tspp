@@ -20,30 +20,28 @@
 #include "stdinc.hpp"
 #include "audio_loader.hpp"
 
-#include "cup/stage_data.hpp"
+#include "action/stage.hpp"
 
 #include "world/world.hpp"
 
-void ts::game::Audio_loader::async_load(const cup::Stage_data& stage_data, const world::World* world,
-                                        const resources::Audio_settings& audio_settings)
+void ts::game::Audio_loader::async_load(const action::Stage* stage, const resources::Audio_settings& audio_settings)
 {
     auto callable = [=]()
     {
-        return load_audio(stage_data, world, audio_settings);
+        return load_audio(stage, audio_settings);
     };
 
     Generic_loader::async_load(callable);
 }
 
-std::unique_ptr<ts::audio::Sound_controller> ts::game::Audio_loader::load_audio(const cup::Stage_data& stage_data, const world::World* world,
-                                                                                const resources::Audio_settings& audio_settings)
+std::unique_ptr<ts::audio::Sound_controller> ts::game::Audio_loader::load_audio(const action::Stage* stage, const resources::Audio_settings& audio_settings)
 {
     audio::Loaded_sound_effects sound_effects;
 
     std::set<utf8_string> needed_engine_sounds;
-    for (const auto& car_info : stage_data.cars)
+    for (const auto& car_info : stage->car_data())
     {
-        needed_engine_sounds.insert(car_info.car->engine_sample);
+        needed_engine_sounds.insert(car_info.car_def->engine_sample);
     }
 
     for (const auto& engine_sample : needed_engine_sounds)
@@ -58,16 +56,12 @@ std::unique_ptr<ts::audio::Sound_controller> ts::game::Audio_loader::load_audio(
 
     auto sound_controller = std::make_unique<audio::Sound_controller>(audio_settings, sound_effects);
 
-    for (const auto& car_info : stage_data.cars)
+    for (const auto& car_info : stage->car_data())
     {
-        if (auto car = world->get_car_by_id(car_info.car_id))
-        {
-            sound_controller->engine_sounds.register_car(car);
-            sound_controller->skid_sounds.register_car(car);
-        }
+        const auto car = car_info.car;
+        sound_controller->engine_sounds.register_car(car);
+        sound_controller->skid_sounds.register_car(car);
     }
-
-
     
     return sound_controller;
 }

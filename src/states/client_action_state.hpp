@@ -26,11 +26,10 @@
 
 namespace ts
 {
-    namespace network
+    namespace cup
     {
-        class Client;
+        class Client_cup_interface;
     }
-
 
     namespace states
     {
@@ -38,13 +37,17 @@ namespace ts
             : public Action_state_base
         {
         public:
-            Client_action_state(game::Loaded_scene loaded_scene, network::Client* client, state_machine_type* state_machine,
+            Client_action_state(game::Loaded_scene loaded_scene, cup::Client_cup_interface* cup_interface, state_machine_type* state_machine,
                                 gui::Context* context, resources::Resource_store* resource_store);
 
             virtual ~Client_action_state();
 
+            virtual void update(std::size_t frame_duration);
+
         private:
-            network::Client* client_;
+            cup::Client_cup_interface* cup_interface_;
+
+            std::unique_ptr<messages::Message> message_buffer_;
         };
     }
 }

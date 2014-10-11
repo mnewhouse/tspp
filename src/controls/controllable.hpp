@@ -35,16 +35,16 @@ namespace ts
         class Controllable
         {
         public:
-            Controllable();
+            Controllable() = default;
 
             void set_control_state(Control control, bool state);
             bool control_state(Control control) const;
             
             unsigned control_state() const;
-            void update_control_state(unsigned new_state);            
+            void update_control_state(std::uint32_t new_state);
 
         private:
-            unsigned control_state_;
+            std::uint32_t control_state_ = 0;
         };
 
     }

@@ -28,13 +28,13 @@
 #include "resources/settings/track_settings.hpp"
 #include "resources/settings/player_settings.hpp"
 
-#include "network/message_reader.hpp"
+#include "messages/message_reader.hpp"
 
 namespace ts
 {
     namespace cup
     {
-        using network::Message_reader;
+        using messages::Message_reader;
 
         Message_reader& operator>>(Message_reader&, sf::Color& color);
         Message_reader& operator>>(Message_reader&, resources::Color_base& color_base);
@@ -506,7 +506,7 @@ ts::cup::Message ts::cup::make_action_initialization_message(const Stage_data& s
     std::vector<utf8_string> car_names;
     for (const auto& car_info : stage_data.cars)
     {
-        const auto& car_name = car_info.car->car_name;
+        const auto& car_name = car_info.car_def->car_name;
 
         if (std::find(car_names.begin(), car_names.end(), car_name) == car_names.end())
         {
@@ -514,6 +514,7 @@ ts::cup::Message ts::cup::make_action_initialization_message(const Stage_data& s
         }       
     }
 
+    message << stage_data.track.name();
     message << static_cast<std::uint32_t>(car_names.size());
     for (const auto& car_name : car_names)
     {
@@ -523,14 +524,14 @@ ts::cup::Message ts::cup::make_action_initialization_message(const Stage_data& s
     message << static_cast<std::uint32_t>(stage_data.cars.size());
     for (const auto& car_info : stage_data.cars)
     {
-        const auto& car_name = car_info.car->car_name;
+        const auto& car_name = car_info.car_def->car_name;
         std::uint16_t car_index = std::find(car_names.begin(), car_names.end(), car_name) - car_names.begin();
 
         message << car_index;
         message << static_cast<std::uint16_t>(car_info.start_pos);
         message << static_cast<std::uint16_t>(car_info.car_id);        
-        message << static_cast<std::uint16_t>(car_info.player->handle);
-        message << car_info.color;        
+        message << static_cast<std::uint16_t>(car_info.controller->handle);
+        message << car_info.player.color;
     }
 
     return message;
@@ -543,7 +544,7 @@ ts::cup::Action_initialization_message ts::cup::parse_action_initialization_mess
 
     std::vector<utf8_string> car_names;
     std::uint32_t distinct_car_count = 0;
-    if (message_reader >> distinct_car_count)
+    if (message_reader >> result.message_type >> result.track_name >> distinct_car_count)
     {
         utf8_string car_name;
         for (std::uint32_t n = 0; n != distinct_car_count && message_reader >> car_name; ++n)

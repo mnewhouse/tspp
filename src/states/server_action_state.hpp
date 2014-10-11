@@ -26,9 +26,9 @@
 
 namespace ts
 {
-    namespace network
+    namespace action
     {
-        class Server;
+        class Server_action_interface;
     }
 
     namespace states
@@ -37,13 +37,15 @@ namespace ts
             : public Action_state_base
         {
         public:
-            Server_action_state(game::Loaded_scene loaded_scene, network::Server* server, state_machine_type* state_machine,
-                                gui::Context* context, resources::Resource_store* resource_store);
+            Server_action_state(game::Loaded_scene loaded_scene, std::unique_ptr<action::Server_action_interface> action_interface, 
+                                state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store);
 
             virtual ~Server_action_state();
 
+            virtual void update(std::size_t frame_duration) override;
+
         private:
-            network::Server* server_;
+            std::unique_ptr<action::Server_action_interface> action_interface_;
         };
     }
 }
