@@ -29,8 +29,6 @@ set(SRC src/main.cpp
 
 		src/action/action_messages.hpp
 		src/action/action_messages.cpp
-		src/action/server_action_interface.hpp
-		src/action/server_action_interface.cpp
 		src/action/stage.hpp
 		src/action/stage.cpp
 
@@ -47,13 +45,33 @@ set(SRC src/main.cpp
         src/audio/sound_controller.cpp
         src/audio/sound_effect_controller.hpp
         src/audio/sound_effect_controller.cpp
+
+		
+		src/client/client.hpp
+		src/client/client.cpp
+		src/client/client_control_interface.hpp
+		src/client/client_control_interface.cpp
+		src/client/client_interactions.hpp
+		src/client/client_interactions.cpp
+		src/client/client_interface.hpp
+		src/client/client_interface.cpp
+		src/client/client_messages.hpp
+		src/client/client_stage_interface.hpp
+		src/client/client_stage_interface.cpp
+		src/client/local_client.hpp
+		src/client/local_client.cpp
+		src/client/local_players.hpp
+		src/client/local_players.cpp
+		src/client/registration.hpp
         
         src/controls/control.hpp
         src/controls/control.cpp
         src/controls/control_center.hpp
         src/controls/control_center.cpp
+		src/controls/control_event.hpp
+		src/controls/control_event_translator.hpp
+		src/controls/control_event_translator.cpp
         src/controls/control_interface.hpp
-        src/controls/control_interface.cpp
         src/controls/controllable.hpp
         src/controls/controllable.cpp
         src/controls/key_mapping.hpp
@@ -79,40 +97,23 @@ set(SRC src/main.cpp
         src/core/utility.hpp
         src/core/vector2.hpp              
 		
-		src/cup/chatbox.hpp
-		src/cup/chatbox.cpp
-		src/cup/client_cup_interface.hpp
-		src/cup/client_cup_interface.cpp
-		src/cup/client_player_mapping.hpp
-		src/cup/client_player_mapping.cpp
+		src/cup/chat_message.hpp
+		src/cup/chat_message.cpp
 		src/cup/cup.hpp
 		src/cup/cup.cpp
 		src/cup/cup_config.hpp
 		src/cup/cup_config.cpp
-		src/cup/cup_interface.hpp
-		src/cup/cup_interface.cpp
 		src/cup/cup_listener.hpp
 		src/cup/cup_messages.hpp
 		src/cup/cup_messages.cpp
 		src/cup/cup_metadata.hpp
 		src/cup/download_messages.hpp
 		src/cup/download_messages.cpp
-		src/cup/local_cup_interface.hpp
-		src/cup/local_cup_interface.cpp
-		src/cup/local_players.hpp
-		src/cup/local_players.cpp
 		src/cup/player.hpp
-		src/cup/registration.hpp
-		src/cup/resource_downloader.hpp
-		src/cup/resource_downloader.cpp
-		src/cup/server_cup_interface.hpp
-		src/cup/server_cup_interface.cpp
 		src/cup/stage_assembler.hpp
 		src/cup/stage_assembler.cpp
 		src/cup/stage_data.hpp
 
-        src/game/action_loader.hpp
-        src/game/action_loader.cpp
         src/game/action_scene.hpp
         src/game/action_scene.cpp
 		src/game/audio_loader.hpp
@@ -134,12 +135,16 @@ set(SRC src/main.cpp
 		src/game/loading_sequence.cpp
         src/game/particle_generator.hpp
         src/game/particle_generator.cpp
-        src/game/track_builder.hpp
+		src/game/scene_loader.hpp
+        src/game/scene_loader.cpp
+		src/game/stage_interface.hpp
+		src/game/stage_interface.cpp
+		src/game/stage_loader.hpp
+		src/game/stage_loader.cpp
+		src/game/track_builder.hpp
         src/game/track_builder.cpp
 		src/game/view_context.hpp
 		src/game/view_context.cpp
-		src/game/stage_loader.hpp
-		src/game/stage_loader.cpp
 
 		src/graphics/colored_text.hpp
 		src/graphics/colored_text.cpp
@@ -169,14 +174,12 @@ set(SRC src/main.cpp
 		src/messages/message_reader.hpp
 		src/messages/message_reader.cpp		
 
-		src/network/client.hpp
-		src/network/client.cpp
+		src/network/client_connection.hpp
+		src/network/client_connection.cpp
 		src/network/client_handle.hpp
 		src/network/message_protocol.hpp
-		src/network/server.hpp
-		src/network/server.cpp
-		src/network/server_message_source.hpp
-		src/network/server_message_source.cpp
+		src/network/server_connection.hpp
+		src/network/server_connection.cpp
 
         src/resources/car_definition.hpp
         src/resources/car_definition.cpp
@@ -249,6 +252,20 @@ set(SRC src/main.cpp
         src/resources/fonts/monospace.cpp
         src/resources/fonts/sans.hpp
         src/resources/fonts/sans.cpp
+
+		src/server/client_map.hpp
+		src/server/client_map.cpp
+		src/server/generic_client.hpp
+		src/server/generic_client.cpp
+		src/server/server.hpp
+		src/server/server.cpp
+		src/server/server_interaction_listener.hpp
+		src/server/server_interaction_listener.cpp
+		src/server/server_interactions.hpp
+		src/server/server_interactions.cpp
+		src/server/server_messages.hpp
+		src/server/server_stage_interface.hpp
+		src/server/server_stage_interface.cpp
         
         src/script/argument_stream.hpp
         src/script/argument_stream.cpp
@@ -301,17 +318,15 @@ set(SRC src/main.cpp
         src/script/api_definitions/world_api.hpp
         src/script/api_definitions/world_api.cpp
         
-        src/script/interfaces/client_interface.hpp
-        src/script/interfaces/client_interface.cpp
+        src/script/interfaces/client_script_interface.hpp
+        src/script/interfaces/client_script_interface.cpp
 		src/script/interfaces/screen_interface.hpp
 		src/script/interfaces/screen_interface.cpp
         src/script/interfaces/world_interface.hpp
         src/script/interfaces/world_interface.cpp
 
-        src/states/action_state.hpp
-        src/states/action_state.cpp
-		src/states/client_action_state.hpp
-		src/states/client_action_state.cpp
+        src/states/action_state_base.hpp
+        src/states/action_state_base.cpp
 		src/states/client_cup_state.hpp
 		src/states/client_cup_state.cpp
 		src/states/cup_gui.hpp
@@ -320,22 +335,18 @@ set(SRC src/main.cpp
         src/states/cup_setup.cpp
         src/states/cup_state_base.hpp
         src/states/cup_state_base.cpp
-		src/states/local_action_state.hpp
-		src/states/local_action_state.cpp
-		src/states/local_cup_state.hpp
-		src/states/local_cup_state.cpp
         src/states/main_menu.hpp
         src/states/main_menu.cpp
 		src/states/network_menu.hpp
 		src/states/network_menu.cpp
         src/states/player_setup.hpp
         src/states/player_setup.cpp
+        src/states/settings_menu.hpp
+        src/states/settings_menu.cpp
 		src/states/server_action_state.hpp
 		src/states/server_action_state.cpp
 		src/states/server_cup_state.hpp
 		src/states/server_cup_state.cpp
-        src/states/settings_menu.hpp
-        src/states/settings_menu.cpp
         
         src/states/gui_definitions/background_document.hpp
         src/states/gui_definitions/background_document.cpp
@@ -400,10 +411,12 @@ set(SRC src/main.cpp
         src/world/world.cpp
         src/world/world_listener.hpp
 )
+
 SOURCE_GROUP(main REGULAR_EXPRESSION src/main\\.cpp)
 SOURCE_GROUP(stdinc REGULAR_EXPRESSION src/stdinc\\..p)
 SOURCE_GROUP(action REGULAR_EXPRESSION src/action/[^/]+)
 SOURCE_GROUP(audio REGULAR_EXPRESSION src/audio/[^/]+)
+SOURCE_GROUP(client REGULAR_EXPRESSION src/client/[^/]+)
 SOURCE_GROUP(controls REGULAR_EXPRESSION src/controls/[^/]+)
 SOURCE_GROUP(core REGULAR_EXPRESSION src/core/[^/]+)
 SOURCE_GROUP(cup REGULAR_EXPRESSION src/cup/[^/]+)
@@ -414,6 +427,7 @@ SOURCE_GROUP(network REGULAR_EXPRESSION src/network/[^/]+)
 SOURCE_GROUP(resources REGULAR_EXPRESSION src/resources/[^/]+)
 SOURCE_GROUP(resources\\fonts REGULAR_EXPRESSION src/resources/fonts/[^/]+)
 SOURCE_GROUP(resources\\settings REGULAR_EXPRESSION src/resources/settings/[^/]+)
+SOURCE_GROUP(server REGULAR_EXPRESSION src/server/[^/]+)
 SOURCE_GROUP(states REGULAR_EXPRESSION src/states/[^/]+)
 SOURCE_GROUP(states\\gui_definitions REGULAR_EXPRESSION src/states/gui_definitions/[^/]+)
 SOURCE_GROUP(script REGULAR_EXPRESSION src/script/[^/]+)

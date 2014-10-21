@@ -34,11 +34,16 @@ namespace ts
 
         namespace impl
         {
-            class Server;
+            class Server_connection;
         }
 
-        using messages::Message;
         class Connected_client;
+
+        struct Remote_address
+        {
+            sf::IpAddress address;
+            std::uint16_t port;
+        };
 
         struct Client_handle
         {
@@ -50,48 +55,84 @@ namespace ts
             std::uint16_t remote_port() const;
             sf::IpAddress remote_address() const;
 
+            bool operator==(Client_handle rhs) const;
+            bool operator!=(Client_handle rhs) const;
+            bool operator<(Client_handle rhs) const;
+            bool operator>(Client_handle rhs) const;
+            bool operator<=(Client_handle rhs) const;
+            bool operator>=(Client_handle rhs) const;
+
         private:
-            friend class impl::Server;
+            friend class impl::Server_connection;
             explicit Client_handle(const Connected_client* connected_client);
 
-            const Connected_client* client_impl_;
+            const Connected_client* client_impl_ = nullptr;
         };
 
-        inline bool operator==(Client_handle lhs, Client_handle rhs)
+        inline bool Client_handle::operator==(Client_handle rhs) const
         {
-            return lhs.client_id() == rhs.client_id();
+            return client_impl_ == rhs.client_impl_;
         }
-          
-        inline bool operator!=(Client_handle lhs, Client_handle rhs)
+        
+        inline bool Client_handle::operator!=(Client_handle rhs) const
+        {
+            return client_impl_ != rhs.client_impl_;
+        }
+
+        inline bool Client_handle::operator<(Client_handle rhs) const
+        {
+            return client_impl_ < rhs.client_impl_;
+        }
+
+        inline bool Client_handle::operator>(Client_handle rhs) const
+        {
+            return client_impl_ > rhs.client_impl_;
+        }
+
+        inline bool Client_handle::operator<=(Client_handle rhs) const
+        {
+            return client_impl_ <= rhs.client_impl_;
+        }
+
+        inline bool Client_handle::operator>=(Client_handle rhs) const
+        {
+            return client_impl_ >= rhs.client_impl_;
+        }
+
+        inline bool operator==(const Remote_address& lhs, const Remote_address& rhs)
+        {
+            return lhs.address == rhs.address && lhs.port == rhs.port;
+        }
+               
+        inline bool operator!=(const Remote_address& lhs, const Remote_address& rhs)
         {
             return !(lhs == rhs);
         }
 
-        inline bool operator<(Client_handle lhs, Client_handle rhs)
+        inline bool operator<(const Remote_address& lhs, const Remote_address& rhs)
         {
-            return lhs.client_id() < rhs.client_id();
+            if (lhs.address == rhs.address)
+            {
+                return lhs.port == rhs.port;
+            }
+
+            return lhs.address < rhs.address;
         }
 
-        inline bool operator>(Client_handle lhs, Client_handle rhs)
+        inline bool operator>(const Remote_address& lhs, const Remote_address& rhs)
         {
-            return lhs.client_id() > rhs.client_id();
+            return rhs < lhs;
         }
 
-        inline bool operator<=(Client_handle lhs, Client_handle rhs)
+        inline bool operator<=(const Remote_address& lhs, const Remote_address& rhs)
         {
-            return lhs.client_id() <= rhs.client_id();
+            return !(lhs > rhs);
         }
 
-        inline bool operator>=(Client_handle lhs, Client_handle rhs)
+        inline bool operator>=(const Remote_address& lhs, const Remote_address& rhs)
         {
-            return lhs.client_id() >= rhs.client_id();
+            return !(lhs < rhs);
         }
-
-        struct Client_message
-        {
-            Client_handle client;
-            Message message;
-        };
     }
 }
 
@@ -102,7 +143,16 @@ namespace std
     {
         std::size_t operator()(const ts::network::Client_handle& client) const
         {
-            return client.client_id();
+            return client ? client.client_id() : 0;
+        }
+    };
+
+    template <>
+    struct hash<ts::network::Remote_address>
+    {
+        std::size_t operator()(const ts::network::Remote_address& remote_address) const
+        {
+            return remote_address.address.toInteger() ^ remote_address.port;
         }
     };
 }

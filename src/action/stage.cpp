@@ -37,7 +37,16 @@ ts::action::Stage::~Stage()
 
 void ts::action::Stage::update(std::size_t frame_duration)
 {
-    world_->update(frame_duration);
+    if (is_started_)
+    {
+        world_->update(frame_duration);
+        stage_time_ += frame_duration;
+    }    
+}
+
+std::uint32_t ts::action::Stage::stage_time() const
+{
+    return stage_time_;
 }
 
 void ts::action::Stage::create_stage_entities(const Stage_data& stage_data)
@@ -62,12 +71,13 @@ void ts::action::Stage::create_stage_entities(const Stage_data& stage_data)
             Car_data& internal = car_data_.back();
             internal = car_data;
 
-            car_lookup_[car_data.car_id] = car;
-
-            if (car_data.controller->control_slot != controls::invalid_slot)
+            if (car_data.controller && car_data.controller->control_slot != controls::invalid_slot)
             {
                 control_center_->assume_control(car_data.controller->control_slot, car);
             }
+
+            car_lookup_[car_data.car_id] = car;
+            car->set_controllable_id(car_data.car_id);
         }
     }
 }
@@ -87,7 +97,14 @@ const ts::controls::Control_center& ts::action::Stage::control_center() const
     return *control_center_;
 }
 
+void ts::action::Stage::handle_control_event(const controls::Control_event& event) const
+{
+    control_center_->handle_control_event(event);
+}
+
 void ts::action::Stage::launch_game()
 {
     world_->launch_game();
+
+    is_started_ = true;
 }

@@ -30,39 +30,21 @@ ts::game::Loading_sequence::Loading_sequence(const resources::Resource_store* re
 
 void ts::game::Loading_sequence::poll()
 {
-    stage_loader_.poll();
-    action_loader_.poll();
+    scene_loader_.poll();
     audio_loader_.poll();
 }
 
-void ts::game::Loading_sequence::async_load(const action::Stage_data& stage_data)
+void ts::game::Loading_sequence::async_load(const action::Stage* stage)
 {
     loaded_scene_ = Loaded_scene();
-    stage_data_ = stage_data;
 
-    stage_loader_.set_completion_handler([this]()
+    scene_loader_.set_completion_handler([this]()
     {
-        loaded_scene_.stage = stage_loader_.transfer_result();
-        load_scene();
-    });
-
-    stage_loader_.set_state_change_handler([this](Stage_loader_state new_state)
-    {
-        state_change(to_string(new_state));
-    });
-
-    stage_loader_.async_load(stage_data);
-}
-
-void ts::game::Loading_sequence::load_scene()
-{
-    action_loader_.set_completion_handler([this]()
-    {
-        loaded_scene_.action_scene = action_loader_.transfer_result();
+        loaded_scene_.action_scene = scene_loader_.transfer_result();
         test_readiness();
     });
 
-    action_loader_.set_state_change_handler([this](Action_loader_state new_state)
+    scene_loader_.set_state_change_handler([this](Scene_loader_state new_state)
     {
         state_change(to_string(new_state));
     });
@@ -73,14 +55,23 @@ void ts::game::Loading_sequence::load_scene()
         test_readiness();
     });
 
-    const auto* stage = loaded_scene_.stage.get();
-    action_loader_.async_load(stage, resource_store_->video_settings());
+    scene_loader_.async_load(stage, resource_store_->video_settings());
     audio_loader_.async_load(stage, resource_store_->audio_settings());
+}
+
+bool ts::game::Loading_sequence::is_complete() const
+{
+    return loaded_scene_.action_scene && loaded_scene_.sound_controller;
+}
+
+bool ts::game::Loading_sequence::is_loading() const
+{
+    return is_complete() || scene_loader_.is_loading() || audio_loader_.is_loading();
 }
 
 void ts::game::Loading_sequence::test_readiness()
 {
-    if (loaded_scene_.sound_controller && loaded_scene_.stage && loaded_scene_.action_scene)
+    if (is_complete())
     {
         if (completion_handler_)
         {
@@ -104,20 +95,10 @@ ts::game::Loaded_scene ts::game::Loading_sequence::transfer_result()
 
 double ts::game::Loading_sequence::progress() const
 {
-    if (stage_loader_.is_loading())
-    {
-        return stage_loader_.progress();
-    }
-
-    return action_loader_.progress();
+    return scene_loader_.progress();
 }
 
 ts::utf8_string ts::game::Loading_sequence::progress_string() const
 {
-    if (stage_loader_.is_loading())
-    {
-        return to_string(stage_loader_.state());
-    }
-
-    return to_string(action_loader_.state());
+    return to_string(scene_loader_.state());
 }

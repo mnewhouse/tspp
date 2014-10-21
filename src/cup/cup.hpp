@@ -42,10 +42,16 @@ namespace ts
         struct Cup_listener;
         struct Stage_data;
 
+        enum class Locality
+        {
+            Local,
+            Remote
+        };
+
         class Cup
         {
         public:
-            Cup(Cup_type cup_type);
+            Cup(Locality locality);
             ~Cup();
 
             void add_track(resources::Track_handle track_handle);
@@ -63,7 +69,7 @@ namespace ts
             void add_cup_listener(Cup_listener* cup_listener);
             void remove_cup_listener(Cup_listener* cup_listener);
 
-            Cup_type cup_type() const;
+            bool is_local() const;
             Cup_state cup_state() const;
             std::size_t cup_progress() const;
 
@@ -87,14 +93,16 @@ namespace ts
             Player_handle add_player(const Player& player, Player_id player_id);
             Player_handle add_player(const Player& player);
             void remove_player(Player_handle player_handle);
+            void clear_players();
 
-            const std::vector<Player_handle>& local_players() const;
             const std::vector<Player_handle>& player_list() const;
             const std::vector<Player_handle>& action_players() const;
+            const std::vector<Player_handle>& local_players() const;
 
             std::size_t player_count() const;
             std::size_t max_players() const;
             Player_handle get_player_by_id(Player_id player_id) const;
+            
 
             void set_player_car(Player_handle player, resources::Car_handle car_handle);            
 
@@ -107,8 +115,8 @@ namespace ts
 
             Player_id allocate_player_id() const;
 
-            Cup_type cup_type_;
             Cup_state state_;
+            Locality locality_;
 
             std::uint32_t max_players_;
 
@@ -120,8 +128,8 @@ namespace ts
             std::size_t cup_progress_;
             std::map<Player_id, Cup_player_data> player_map_;
             std::vector<Player_handle> player_list_;
-            std::vector<Player_handle> local_players_;
             std::vector<Player_handle> action_players_;
+            std::vector<Player_handle> local_players_;
 
             std::vector<Cup_listener*> cup_listeners_;
         };

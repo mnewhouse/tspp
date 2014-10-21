@@ -20,6 +20,11 @@
 #include "stdinc.hpp"
 #include "controllable.hpp"
 
+void ts::controls::Controllable::set_controllable_id(std::uint16_t controllable_id)
+{
+    controllable_id_ = controllable_id;
+}
+
 void ts::controls::Controllable::set_control_state(Control control, bool state)
 {
     if (state) {
@@ -46,12 +51,12 @@ bool ts::controls::Controllable::control_state(Control control) const
     return (control_state_ & static_cast<std::uint32_t>(control)) != 0;
 }
 
-void ts::controls::Controllable::update_control_state(std::uint32_t new_state)
-{
-    control_state_ = new_state;
-}
-
 std::uint32_t ts::controls::Controllable::control_state() const
 {
     return control_state_;
+}
+
+std::uint16_t ts::controls::Controllable::controllable_id() const
+{
+    return controllable_id_;
 }

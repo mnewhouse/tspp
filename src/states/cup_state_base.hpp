@@ -22,70 +22,69 @@
 #ifndef STATES_CUP_STATE_BASE_HPP
 #define STATES_CUP_STATE_BASE_HPP
 
-#include "cup_gui.hpp"
+#include "user_interface/gui_state.hpp"
 
 #include "cup/cup_listener.hpp"
 
-#include "user_interface/gui_state.hpp"
-
-#include "game/loaded_scene.hpp"
-
-
-
 namespace ts
 {
-    namespace cup
+    namespace client
     {
-        class Cup_interface;
+        class Client_interface;
     }
 
     namespace game
     {
+        struct Loaded_scene;
         class Loading_sequence;
+        class Stage_loader;
+    }
+
+    namespace action
+    {
+        class Stage;
     }
 
     namespace states
     {
         class Action_state_base;
+        class Cup_GUI;
 
         class Cup_state_base
-                : public cup::Cup_listener, public cup::Chatbox_listener,
-                  public gui::State
+            : public gui::State, protected cup::Cup_listener
         {
         public:
-            Cup_state_base(cup::Cup_interface* cup_interface, state_machine_type* state_machine, gui::Context* context,
+            Cup_state_base(const client::Client_interface* client_interface, state_machine_type* state_machine, gui::Context* context,
                            resources::Resource_store* resource_store);
 
             virtual ~Cup_state_base();
 
-            // Cup listener overrides
-            virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
-            virtual void on_restart() override;
-            virtual void on_end() override;
-
-            void show_gui();
-
-            void begin_loading_sequence(const cup::Stage_data& stage_data);
+            void show_gui();            
 
             virtual void update(std::size_t frame_duration) override;
             virtual void on_activate() override;
 
-            virtual void on_chat_message(const cup::Composite_message& message) override;
-
+            virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
+            
         protected:
+            void show_stage_loading(const game::Stage_loader* stage_loader);
+            void load_scene(const action::Stage* stage);
             void launch_action(std::unique_ptr<Action_state_base> action_state);
-            game::Loaded_scene transfer_loaded_scene();           
+            virtual std::unique_ptr<Action_state_base> make_action_state(game::Loaded_scene loaded_scene) = 0;
 
         private:
+            
+
+            
+
             void return_to_main_menu();
 
-            cup::Cup_interface* cup_interface_;
+            const client::Client_interface* client_interface_;
 
-            std::chrono::high_resolution_clock::time_point completion_time_;
-
-            Cup_GUI cup_gui_;
-
+            std::unique_ptr<Cup_GUI> cup_gui_;
             std::unique_ptr<game::Loading_sequence> loading_sequence_;
+
+            const game::Stage_loader* stage_loader_ = nullptr;
         };
     }
 }

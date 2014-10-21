@@ -27,39 +27,12 @@ namespace ts
 {
     namespace messages
     {
-        template <typename InMessageType, typename OutMessageType>
+        template <typename MessageType>
         class Message_center
-            : public Listener_set<InMessageType>, public Dispatcher_set<OutMessageType>
+            : public Listener_set<MessageType>, public Dispatcher_set<MessageType>
         {
-        public:
-            template <typename MessageSource>
-            Message_center(MessageSource message_source);
-
-            void handle_messages() const;
-
-        private:
-            std::function<bool(InMessageType&)> message_source_;
-
-            mutable InMessageType message_buffer_;
         };
     }
 }
-
-template <typename InMessageType, typename OutMessageType>
-template <typename MessageSource>
-ts::messages::Message_center<InMessageType, OutMessageType>::Message_center(MessageSource message_source)
-: message_source_(std::move(message_source))
-{
-}
-
-template <typename InMessageType, typename OutMessageType>
-void ts::messages::Message_center<InMessageType, OutMessageType>::handle_messages() const
-{
-    while (message_source_(message_buffer_))
-    {
-        handle_message(message_buffer_);
-    }
-}
-
 
 #endif

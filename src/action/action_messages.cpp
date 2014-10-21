@@ -26,3 +26,18 @@ ts::action::Message ts::action::make_game_state_message(const world::World* worl
 {
     return Message();
 }
+
+ts::action::Message ts::action::make_control_event_message(const controls::Controllable* controllable, const std::uint32_t stage_time)
+{
+    Message result;
+    result << static_cast<std::uint8_t>(0x80);
+    result << static_cast<std::uint16_t>(controllable->controllable_id());
+    result << static_cast<std::uint8_t>(controllable->control_state());
+    result << stage_time;
+    return result;
+}
+
+bool ts::action::is_control_event_message(const Message& message)
+{
+    return !message.empty() && (*message.data() & 0x80);
+}

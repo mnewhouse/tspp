@@ -20,7 +20,7 @@
 #ifndef LOCAL_LOADING_SEQUENCE_HPP
 #define LOCAL_LOADING_SEQUENCE_HPP
 
-#include "action_loader.hpp"
+#include "scene_loader.hpp"
 #include "audio_loader.hpp"
 #include "stage_loader.hpp"
 #include "loaded_scene.hpp"
@@ -43,7 +43,7 @@ namespace ts
             Loading_sequence(const resources::Resource_store* resource_store);
             ~Loading_sequence() = default;
 
-            void async_load(const action::Stage_data& stage_data);
+            void async_load(const action::Stage* stage);
             void poll();
 
             template <typename F>
@@ -57,17 +57,18 @@ namespace ts
 
             Loaded_scene transfer_result();
 
+            bool is_complete() const;
+            bool is_loading() const;
+
         private:
             void test_readiness();
             void load_scene();
             void state_change(const utf8_string& new_state);
 
-            Action_loader action_loader_;
+            Scene_loader scene_loader_;
             Audio_loader audio_loader_;
-            Stage_loader stage_loader_;
 
             Loaded_scene loaded_scene_;
-            action::Stage_data stage_data_;
 
             const resources::Resource_store* resource_store_;
 

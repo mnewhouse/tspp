@@ -19,31 +19,25 @@
 
 #include "stdinc.hpp"
 #include "control_center.hpp"
+#include "control_event.hpp"
 #include "controllable.hpp"
 
-void ts::controls::Control_center::update_control_state(Slot slot, std::uint32_t new_state) const
+
+void ts::controls::Control_center::handle_control_event(const Control_event& event) const
 {
-    auto range = control_mapping_.equal_range(slot);
-    for (auto it = range.first; it != range.second; ++it)
+    if ((static_cast<std::uint32_t>(event.control) & globally_disabled_controls_) == 0)
     {
-        Controllable* controllable = it->second;
-        controllable->update_control_state(new_state & ~globally_disabled_controls_);
+        // If control is disabled, ignore event
+        auto range = control_mapping_.equal_range(event.slot);
+        for (auto it = range.first; it != range.second; ++it)
+        {
+            Controllable* controllable = it->second;
+            controllable->set_control_state(event.control, event.state);
+        }
     }
 }
 
-void ts::controls::Control_center::set_control_state(Slot slot, Control control, bool state) const
-{
-    if ((globally_disabled_controls_ & std::uint32_t(control)) != 0) return;
-
-    auto range = control_mapping_.equal_range(slot);
-    for (auto it = range.first; it != range.second; ++it)
-    {
-        Controllable* controllable = it->second;
-        controllable->set_control_state(control, state);
-    }
-}
-
-ts::controls::Slot ts::controls::Control_center::get_control_slot(const Controllable* controllable) const
+ts::controls::Slot ts::controls::Control_center::get_controllable_slot(const Controllable* controllable) const
 {
     for (auto& mapping : control_mapping_)
     {
@@ -56,9 +50,22 @@ ts::controls::Slot ts::controls::Control_center::get_control_slot(const Controll
     return invalid_slot;
 }
 
+const std::vector<const ts::controls::Controllable*>& ts::controls::Control_center::get_controllables_by_slot(Slot slot) const
+{
+    controllable_list_.clear();
+
+    auto range = control_mapping_.equal_range(slot);
+    for (; range.first != range.second; ++range.first)
+    {
+        controllable_list_.push_back(range.first->second);
+    }
+
+    return controllable_list_;
+}
+
 bool ts::controls::Control_center::is_controlled(const Controllable* controllable) const
 {
-    return get_control_slot(controllable) != invalid_slot;
+    return get_controllable_slot(controllable) != invalid_slot;
 }
 
 void ts::controls::Control_center::assume_control(Slot slot, Controllable* controllable)

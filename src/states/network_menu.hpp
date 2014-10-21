@@ -25,7 +25,7 @@
 #include "user_interface/document_handle.hpp"
 #include "user_interface/elements/elements.hpp"
 
-#include "cup/registration.hpp"
+#include "client/registration.hpp"
 
 namespace ts
 {
@@ -68,7 +68,7 @@ namespace ts
             std::unique_ptr<Client_cup_state> client_cup_state_;
             std::unique_ptr<Connection_dialog> connection_dialog_;
 
-            cup::Registration_status registration_status_ = cup::Registration_status::None;
+            client::Registration_status registration_status_ = client::Registration_status::None;
 
             gui::Document_handle network_menu_;
         };

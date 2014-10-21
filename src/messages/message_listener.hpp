@@ -30,6 +30,7 @@ namespace ts
         class Message_listener
         {
         public:
+            using message_type = MessageType;
             using listener_set_type = Listener_set<MessageType>;
 
             Message_listener(listener_set_type* listener_set = nullptr);

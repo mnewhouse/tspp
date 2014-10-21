@@ -57,7 +57,7 @@ namespace ts
             Map_type::const_iterator begin() const;
             Map_type::const_iterator end() const;
 
-            std::pair<Map_type::const_iterator, Map_type::const_iterator> get_all_binds_by_key(Key key) const;
+            Range<Map_type::const_iterator> get_all_binds_by_key(Key key) const;
 
         private:
             std::map<Key_bind, Control> key_mapping_;

@@ -22,7 +22,7 @@
 #ifndef SERVER_ACTION_STATE_HPP
 #define SERVER_ACTION_STATE_HPP
 
-#include "action_state.hpp"
+#include "action_state_base.hpp"
 
 namespace ts
 {
@@ -31,21 +31,27 @@ namespace ts
         class Server_action_interface;
     }
 
+    namespace server
+    {
+        class Server;
+    }
+
     namespace states
     {
         class Server_action_state
             : public Action_state_base
         {
         public:
-            Server_action_state(game::Loaded_scene loaded_scene, std::unique_ptr<action::Server_action_interface> action_interface, 
+            Server_action_state(game::Loaded_scene loaded_scene, server::Server* server, controls::Control_interface* control_interface,
                                 state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store);
 
             virtual ~Server_action_state();
 
             virtual void update(std::size_t frame_duration) override;
+            virtual void end_action() override;
 
         private:
-            std::unique_ptr<action::Server_action_interface> action_interface_;
+            server::Server* server_;
         };
     }
 }

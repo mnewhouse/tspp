@@ -19,26 +19,19 @@
 
 #pragma once
 
-#ifndef CONTROLS_CONTROL_INTERFACE_HPP
-#define CONTROLS_CONTROL_INTERFACE_HPP
-
-#include "key_mapping.hpp"
+#ifndef CONTROL_INTERFACE_HPP
+#define CONTROL_INTERFACE_HPP
 
 namespace ts
 {
     namespace controls
     {
-        class Control_center;
+        struct Control_event;
 
         class Control_interface
         {
         public:
-            Control_interface(const Key_mapping& key_mapping);
-
-            void forward_input(const sf::Event& event, const Control_center& control_center) const;
-
-        private:
-            Key_mapping key_mapping_;
+            virtual void handle_event(const Control_event& event) = 0;
         };
     }
 }

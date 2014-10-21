@@ -22,13 +22,13 @@
 #ifndef CLIENT_ACTION_STATE_HPP
 #define CLIENT_ACTION_STATE_HPP
 
-#include "action_state.hpp"
+#include "action_state_base.hpp"
 
 namespace ts
 {
-    namespace cup
+    namespace client
     {
-        class Client_cup_interface;
+        class Client;
     }
 
     namespace states
@@ -37,17 +37,17 @@ namespace ts
             : public Action_state_base
         {
         public:
-            Client_action_state(game::Loaded_scene loaded_scene, cup::Client_cup_interface* cup_interface, state_machine_type* state_machine,
-                                gui::Context* context, resources::Resource_store* resource_store);
+            Client_action_state(game::Loaded_scene loaded_scene, client::Client* client, 
+                                state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store);
 
             virtual ~Client_action_state();
 
-            virtual void update(std::size_t frame_duration);
+            virtual void update(std::size_t frame_duration) override;
 
         private:
-            cup::Client_cup_interface* cup_interface_;
-
-            std::unique_ptr<messages::Message> message_buffer_;
+            virtual void end_action() override;
+            
+            client::Client* client_;
         };
     }
 }

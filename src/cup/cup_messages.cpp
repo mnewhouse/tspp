@@ -45,6 +45,8 @@ namespace ts
         Message& operator<<(Message&, const resources::Color_base& color_base);
         Message& operator<<(Message&, const resources::Color_extra& color_extra);
         Message& operator<<(Message&, const resources::Player_color& player_color);
+
+        static const std::uint64_t registration_key_mask = 0x6CCE0AA034E678A7;
     }
 }
 
@@ -171,14 +173,12 @@ ts::cup::Registration_request ts::cup::parse_registration_request_message(const 
     return result;
 }
 
-ts::cup::Message ts::cup::make_registration_acknowledgement_message(std::uint64_t registration_key, std::uint32_t client_key)
+ts::cup::Message ts::cup::make_registration_acknowledgement_message(std::uint64_t registration_key)
 {
-    registration_key ^= client_key;
-    registration_key ^= static_cast<std::uint64_t>(client_key * client_key) << 32;
+    registration_key ^= registration_key_mask;
 
     Message result(Message_type::registration_acknowledgement);
     result << registration_key;
-    result << client_key;
     return result;
 }
 
@@ -187,24 +187,17 @@ ts::cup::Registration_acknowledgement ts::cup::parse_registration_acknowledgemen
     Message_reader message_reader(message);
     Registration_acknowledgement result;
 
-    if (message_reader >> result.message_type >> result.registration_key >> result.client_key)
+    if (message_reader >> result.message_type >> result.registration_key)
     {
-        result.registration_key ^= result.client_key;
-        result.registration_key ^= static_cast<std::uint64_t>(result.client_key * result.client_key) << 32;
+        result.registration_key ^= registration_key_mask;
     }
 
     return result;
 }
 
-ts::cup::Message ts::cup::make_bad_request_message(std::uint64_t registration_key)
+ts::cup::Message ts::cup::make_bad_request_message()
 {
-    Message message(Message_type::bad_request);
-
-    registration_key ^= Message_type::bad_request;
-    registration_key ^= static_cast<std::uint64_t>(~Message_type::bad_request) << 32;
-
-    message << registration_key;
-    return message;
+    return Message(Message_type::bad_request);
 }
 
 ts::cup::Message ts::cup::make_too_many_players_message(std::uint64_t registration_key)
@@ -447,6 +440,16 @@ ts::cup::Message ts::cup::make_ready_signal_message()
     return Message(Message_type::ready_signal);
 }
 
+ts::cup::Message ts::cup::make_advance_request_message()
+{
+    return Message(Message_type::advance_request);
+}
+
+ts::cup::Message ts::cup::make_client_quit_message()
+{
+    return Message(Message_type::client_quit);
+}
+
 ts::cup::Message ts::cup::make_chat_message(const utf8_string& message)
 {
     Message result(Message_type::chat_message);
@@ -569,4 +572,9 @@ ts::cup::Action_initialization_message ts::cup::parse_action_initialization_mess
     }
 
     return result;
+}
+
+ts::cup::Message ts::cup::make_server_quit_message()
+{
+    return Message(Message_type::server_quit);
 }

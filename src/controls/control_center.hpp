@@ -29,6 +29,7 @@ namespace ts
     namespace controls
     {
         class Controllable;
+        struct Control_event;
 
         // class Control_center
         // Maps input slots to Controllable objects. This is used for identifying which controllable
@@ -39,17 +40,20 @@ namespace ts
             // Harbinger-style function naming.
             void assume_control(Slot slot, Controllable* controllable);
 
-            void update_control_state(Slot slot, std::uint32_t new_state) const;
-            void set_control_state(Slot slot, Control control, bool state) const;
+            void handle_control_event(const Control_event& event) const;
 
             void toggle_global_control(Control control, bool enable);
 
-            Slot get_control_slot(const Controllable* controllable) const;
+            Slot get_controllable_slot(const Controllable* controllable) const;
             bool is_controlled(const Controllable* controllable) const;
+
+            const std::vector<const Controllable*>& get_controllables_by_slot(Slot slot) const;
 
         private:
             std::multimap<Slot, Controllable*> control_mapping_;
             std::uint32_t globally_disabled_controls_ = 0;
+
+            mutable std::vector<const Controllable*> controllable_list_;
         };
     }
 }

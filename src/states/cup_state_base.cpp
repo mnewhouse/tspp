@@ -19,17 +19,10 @@
 
 #include "stdinc.hpp"
 #include "cup_state_base.hpp"
-#include "action_state.hpp"
+#include "action_state_base.hpp"
 #include "cup_gui.hpp"
 
-#include "gui_definitions/window_template.hpp"
-#include "gui_definitions/background_document.hpp"
-
-#include "user_interface/document.hpp"
-#include "user_interface/elements/elements.hpp"
-
 #include "cup/cup.hpp"
-#include "cup/cup_interface.hpp"
 
 #include "game/loading_sequence.hpp"
 
@@ -42,14 +35,14 @@ namespace ts
 }
 
 
-ts::states::Cup_state_base::Cup_state_base(cup::Cup_interface* cup_interface, state_machine_type* state_machine, gui::Context* context,
+ts::states::Cup_state_base::Cup_state_base(const client::Client_interface* client_interface, state_machine_type* state_machine, gui::Context* context,
                                  resources::Resource_store* resource_store)
-  : Chatbox_listener(cup_interface->chatbox()),
-    gui::State(state_machine, context, resource_store),
-    cup_interface_(cup_interface),
-    cup_gui_(cup_interface, context, resource_store),
-    loading_sequence_(std::make_unique<game::Loading_sequence>(resource_store))
+  : gui::State(state_machine, context, resource_store),
+    client_interface_(client_interface),
+    cup_gui_(std::make_unique<Cup_GUI>(client_interface, context, resource_store)),
+    loading_sequence_(std::make_unique<game::Loading_sequence>(resource_store))    
 {
+    cup_gui_->set_cup_state_text(to_string(client_interface->cup()->cup_state()));
 }
 
 ts::states::Cup_state_base::~Cup_state_base()
@@ -58,7 +51,7 @@ ts::states::Cup_state_base::~Cup_state_base()
 
 void ts::states::Cup_state_base::show_gui()
 {
-    cup_gui_.show();
+    cup_gui_->show();
 }
 
 void ts::states::Cup_state_base::on_activate()
@@ -66,54 +59,67 @@ void ts::states::Cup_state_base::on_activate()
     show_gui();
 }
 
-void ts::states::Cup_state_base::on_state_change(cup::Cup_state old_state, cup::Cup_state new_state)
-{
-    cup_gui_.set_cup_state_text(to_string(new_state));
-}
-
-void ts::states::Cup_state_base::on_restart()
-{
-}
-
-void ts::states::Cup_state_base::on_end()
-{
-    return_to_main_menu();
-}
-
-void ts::states::Cup_state_base::on_chat_message(const cup::Composite_message& message)
-{
-    cup_gui_.output_chat_message(message);
-}
-
 void ts::states::Cup_state_base::update(std::size_t frame_duration)
 {
-    cup_gui_.update(frame_duration);
+    cup_gui_->update(frame_duration);
 
-    loading_sequence_->poll();
+    if (stage_loader_)
+    {
+        cup_gui_->set_loading_progress(stage_loader_->progress());
+        cup_gui_->set_loading_progress_text(to_string(stage_loader_->state()));
+    }
 
-    cup_gui_.set_loading_progress(loading_sequence_->progress());
+    else
+    {
+        loading_sequence_->poll();
+        cup_gui_->set_loading_progress(loading_sequence_->progress());
+        cup_gui_->set_loading_progress_text(loading_sequence_->progress_string());
+    }
+
+    if (client_interface_->cup()->cup_state() == cup::Cup_state::Action)
+    {
+        if (loading_sequence_->is_complete())
+        {
+            launch_action(make_action_state(loading_sequence_->transfer_result()));
+        }
+    }
+
+    if (cup_gui_->quit_event_pending())
+    {
+        state_machine()->change_state();
+    }
 }
 
-ts::game::Loaded_scene ts::states::Cup_state_base::transfer_loaded_scene()
+void ts::states::Cup_state_base::on_state_change(cup::Cup_state old_state, cup::Cup_state new_state)
 {
-    return loading_sequence_->transfer_result();
+    cup_gui_->set_cup_state_text(to_string(new_state));
 }
 
-void ts::states::Cup_state_base::begin_loading_sequence(const cup::Stage_data& stage_data)
+void ts::states::Cup_state_base::show_stage_loading(const game::Stage_loader* stage_loader)
 {
+    stage_loader_ = stage_loader;
+
+    cup_gui_->show_progress_dialog();
+    cup_gui_->set_loading_progress(stage_loader->progress());
+    cup_gui_->set_loading_progress_text(to_string(stage_loader->state()));
+}
+
+void ts::states::Cup_state_base::load_scene(const action::Stage* stage)
+{
+    stage_loader_ = nullptr;
+
     loading_sequence_->set_completion_handler([this]()
     {
-        cup_interface_->signal_ready();
-        cup_gui_.hide_progress_dialog();
+        cup_gui_->hide_progress_dialog();
+        client_interface_->signal_ready();
     });
 
-    loading_sequence_->set_state_change_handler([this](const utf8_string& new_state)
+    loading_sequence_->set_state_change_handler([this](const utf8_string& state)
     {
-        cup_gui_.set_loading_progress_text(new_state);
+        cup_gui_->set_loading_progress_text(state);
     });
 
-    cup_gui_.show_progress_dialog();
-    loading_sequence_->async_load(stage_data);
+    loading_sequence_->async_load(stage);
 }
 
 void ts::states::Cup_state_base::return_to_main_menu()
@@ -127,6 +133,7 @@ void ts::states::Cup_state_base::launch_action(std::unique_ptr<Action_state_base
 
     state_machine()->change_state(std::move(action_state));
 }
+
 
 ts::utf8_string ts::states::to_string(cup::Cup_state cup_state)
 {

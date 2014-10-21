@@ -20,7 +20,6 @@
 #include "stdinc.hpp"
 #include "cup_setup.hpp"
 
-#include "local_cup_state.hpp"
 #include "server_cup_state.hpp"
 #include "network_menu.hpp"
 
@@ -31,6 +30,7 @@
 
 #include "resources/settings/track_settings.hpp"
 #include "resources/settings/car_settings.hpp"
+#include "resources/settings/network_settings.hpp"
 
 ts::states::Cup_setup_menu::Cup_setup_menu(Main_menu* main_menu)
 : main_menu_(main_menu),
@@ -49,17 +49,13 @@ void ts::states::Cup_setup_menu::start_cup()
     // Need to create cup state
     auto state_machine = main_menu_->state_machine();
 
+    auto cup_state = std::make_unique<Server_cup_state>(state_machine, context(), resource_store());
     if (network_menu_)
-    {        
-        auto cup_state = std::make_unique<Server_cup_state>(state_machine, context(), resource_store());
-        state_machine->change_state(std::move(cup_state));
+    {
+        cup_state->listen(resource_store()->network_settings().server_port);
     }
 
-    else
-    {
-        auto cup_state = std::make_unique<Local_cup_state>(state_machine, context(), resource_store());
-        state_machine->change_state(std::move(cup_state));
-    }
+    state_machine->change_state(std::move(cup_state));
 
 
     navigation_document_->set_visible(false);

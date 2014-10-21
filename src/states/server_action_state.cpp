@@ -20,19 +20,35 @@
 #include "stdinc.hpp"
 #include "server_action_state.hpp"
 
-#include "action/server_action_interface.hpp"
+#include "server/server.hpp"
 
-ts::states::Server_action_state::Server_action_state(game::Loaded_scene loaded_scene, std::unique_ptr<action::Server_action_interface> action_interface, state_machine_type* state_machine,
-                                                     gui::Context* context, resources::Resource_store* resource_store)
-    : Action_state_base(std::move(loaded_scene), state_machine, context, resource_store),
-      action_interface_(std::move(action_interface))
+ts::states::Server_action_state::Server_action_state(game::Loaded_scene loaded_scene, server::Server* server, controls::Control_interface* control_interface,
+                                                     state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
+    : Action_state_base(std::move(loaded_scene), control_interface, state_machine, context, resource_store),
+      server_(server)
 {
+    server_->add_cup_listener(this);
 }
 
 ts::states::Server_action_state::~Server_action_state()
 {
+    server_->remove_cup_listener(this);
+    server_->clean_stage();
 }
 
 void ts::states::Server_action_state::update(std::size_t frame_duration)
 {
+    if (server_)
+    {
+        Action_state_base::update(frame_duration);
+
+        server_->poll();
+        server_->update_stage(frame_duration);
+    }
+}
+
+void ts::states::Server_action_state::end_action()
+{
+    server_->end_action();
+    
 }

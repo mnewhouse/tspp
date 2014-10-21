@@ -46,9 +46,7 @@ namespace ts
             Loaded_scene(Loaded_scene&&);
             Loaded_scene& operator=(Loaded_scene&&);
 
-            std::unique_ptr<Action_scene> action_scene;
-
-            std::unique_ptr<action::Stage> stage;            
+            std::unique_ptr<Action_scene> action_scene;      
             std::unique_ptr<audio::Sound_controller> sound_controller;            
         };
     }

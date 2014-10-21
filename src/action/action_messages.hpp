@@ -63,7 +63,9 @@ namespace ts
 
         Message make_game_state_message(const world::World* world);
 
-        Message make_control_event_message(const controls::Controllable* controllable);
+        Message make_control_event_message(const controls::Controllable* controllable, std::uint32_t stage_time);
+        bool is_control_event_message(const Message& message);
+
     }
 }
 

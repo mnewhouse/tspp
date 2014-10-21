@@ -20,9 +20,11 @@
 #include "stdinc.hpp"
 #include "cup_gui.hpp"
 
+#include "client/client_interface.hpp"
 #include "cup/cup.hpp"
 
 #include "resources/track.hpp"
+
 #include "game/car_image_generator.hpp"
 
 #include "user_interface/document.hpp"
@@ -31,61 +33,194 @@
 #include "gui_definitions/window_template.hpp"
 #include "gui_definitions/background_document.hpp"
 
+namespace ts
+{
+    namespace states
+    {
+        class Loading_progress_dialog
+        {
+        public:
+            Loading_progress_dialog(gui::Context* context);
 
-ts::states::Cup_GUI::Cup_GUI(cup::Cup_interface* cup_interface, gui::Context* context, const resources::Resource_store* resource_store)
-    : cup_interface_(cup_interface),
-      cup_(cup_interface->cup()),
-      context_(context),    
-      car_selection_ready_(false)
+            void show();
+            void hide();
+
+            bool visible() const;
+
+            void set_loading_state(utf8_string state);
+            void set_progress(double progress);
+            void set_max_progress(double max_progress);
+
+        private:
+            void create_progress_document(gui::Context* context);
+            
+            gui::Text_element* progress_info_text_ = nullptr;
+            gui::Progress_bar* progress_bar_ = nullptr;
+
+            gui::Document_handle progress_document_;
+        };
+        
+        class Car_selection_dialog
+        {
+        public:
+            Car_selection_dialog(gui::Context* context, impl::Cup_GUI* cup_gui);
+
+            void load(std::vector<cup::Player_handle> selected_players, std::vector<resources::Car_handle> possible_cars, resources::Track_handle track_handle);
+
+            void show();
+            void hide();
+
+            const std::vector<client::Car_selection>& car_selection() const;
+
+        private:
+            void load_dialog();
+            void load_car_textures();
+            void confirm();
+
+            void create_car_selection_dialog(gui::Context* context);
+
+            impl::Cup_GUI* cup_gui_;
+            gui::Context* context_;
+
+            std::vector<cup::Player_handle> selected_players_;
+            std::vector<resources::Car_handle> possible_cars_;
+            resources::Track_handle track_handle_;
+
+            std::vector<std::shared_ptr<graphics::Texture>> player_car_textures_;
+            std::vector<Int_rect> texture_mapping_;
+
+            std::vector<client::Car_selection> car_selection_;
+
+            std::future<void> loading_future_;
+
+            gui::Vertical_list<gui::Element>* selection_list_;
+
+            gui::Document_handle car_selection_document_;
+        };
+    }
+}
+
+class ts::states::impl::Cup_GUI
+{
+public:
+    Cup_GUI(const client::Client_interface* client_interface, gui::Context* context, const resources::Resource_store* resource_store);
+
+    void confirm_car_selection();
+    void set_car_selection_dialog_ready();
+
+    void show();
+    void hide();
+
+    bool quit_event_pending() const;
+
+    void update(std::size_t frame_duration);
+    void set_cup_state_text(utf8_string text);
+
+    void show_car_selection_dialog();
+
+    void show_progress_dialog();
+    void hide_progress_dialog();
+
+    void set_loading_progress(double progress);
+    void set_loading_progress_text(utf8_string text);
+
+    void output_chat_message(const cup::Composite_message& message);        
+
+private:
+    void show_menu_background();
+
+    void create_cup_document(gui::Context* context);
+
+    void apply_car_selection();
+    void return_to_main_menu();
+            
+    const client::Client_interface* client_interface_;
+    const cup::Cup* cup_;
+    gui::Context* context_;
+
+    gui::Text_element* header_text_;
+    using chatbox_type = gui::Vertical_list<gui::Text_element>;
+    gui::Text_style chatbox_text_style_;
+    chatbox_type* chatbox_;
+
+    std::atomic<bool> car_selection_ready_;
+    bool quit_event_pending_ = false;
+
+    gui::Document_handle cup_document_;
+
+    std::unique_ptr<Car_selection_dialog> car_selection_dialog_;
+    std::unique_ptr<Loading_progress_dialog> progress_dialog_; 
+};
+
+
+ts::states::impl::Cup_GUI::Cup_GUI(const client::Client_interface* client_interface, gui::Context* context, const resources::Resource_store* resource_store)
+: client_interface_(client_interface),
+  cup_(client_interface->cup()),
+  context_(context)
 {
     create_cup_document(context);
 
-    progress_dialog_ = std::make_unique<Loading_progress_dialog>(context);
     car_selection_dialog_ = std::make_unique<Car_selection_dialog>(context, this);
+    progress_dialog_ = std::make_unique<Loading_progress_dialog>(context);
+
 }
 
-void ts::states::Cup_GUI::show()
+ts::states::Cup_GUI::Cup_GUI(const client::Client_interface* client_interface, gui::Context* context, const resources::Resource_store* resource_store)
+: impl_(std::make_unique<impl::Cup_GUI>(client_interface, context, resource_store))
+{
+}
+
+ts::states::Cup_GUI::~Cup_GUI()
+{
+}
+
+void ts::states::impl::Cup_GUI::show()
 {
     cup_document_->set_visible(true);
 
     gui_definitions::show_background_document(context_);
 }
 
-void ts::states::Cup_GUI::hide()
+void ts::states::impl::Cup_GUI::hide()
 {
     cup_document_->set_visible(false);
 }
 
-void ts::states::Cup_GUI::show_progress_dialog()
+bool ts::states::impl::Cup_GUI::quit_event_pending() const
+{
+    return quit_event_pending_;
+}
+
+void ts::states::impl::Cup_GUI::show_progress_dialog()
 {
     cup_document_->set_active(false);
 
     progress_dialog_->show();
 }
 
-void ts::states::Cup_GUI::hide_progress_dialog()
+void ts::states::impl::Cup_GUI::hide_progress_dialog()
 {
     cup_document_->set_active(true);
 
     progress_dialog_->hide();
 }
 
-void ts::states::Cup_GUI::set_loading_progress(double progress)
+void ts::states::impl::Cup_GUI::set_loading_progress(double progress)
 {
     progress_dialog_->set_progress(progress);
 }
 
-void ts::states::Cup_GUI::set_loading_progress_text(utf8_string text)
+void ts::states::impl::Cup_GUI::set_loading_progress_text(utf8_string text)
 {
     progress_dialog_->set_loading_state(std::move(text));
 }
 
-void ts::states::Cup_GUI::set_cup_state_text(utf8_string state_text)
+void ts::states::impl::Cup_GUI::set_cup_state_text(utf8_string state_text)
 {
     header_text_->set_text(std::move(state_text));
 }
 
-void ts::states::Cup_GUI::update(std::size_t frame_duration)
+void ts::states::impl::Cup_GUI::update(std::size_t frame_duration)
 {
     if (car_selection_ready_)
     {
@@ -94,17 +229,17 @@ void ts::states::Cup_GUI::update(std::size_t frame_duration)
     }
 }
 
-void ts::states::Cup_GUI::return_to_main_menu()
+void ts::states::impl::Cup_GUI::return_to_main_menu()
 {
-    cup_interface_->end_cup();
+    quit_event_pending_ = true;
 }
 
-void ts::states::Cup_GUI::apply_car_selection()
+void ts::states::impl::Cup_GUI::apply_car_selection()
 {
-    cup_interface_->select_cars(car_selection_dialog_->car_selection());
+    client_interface_->select_cars(car_selection_dialog_->car_selection());
 }
 
-void ts::states::Cup_GUI::show_car_selection_dialog()
+void ts::states::impl::Cup_GUI::show_car_selection_dialog()
 {
     std::vector<cup::Player_handle> selected_players = cup_->local_players();
     selected_players.erase(std::remove(selected_players.begin(), selected_players.end(), cup::Player_handle()), 
@@ -114,12 +249,43 @@ void ts::states::Cup_GUI::show_car_selection_dialog()
     car_selection_dialog_->load(selected_players, cup_->car_list(), cup_->current_track());
 }
 
-void ts::states::Cup_GUI::car_selection_dialog_ready()
+void ts::states::Cup_GUI::set_cup_state_text(utf8_string text)
+{
+    impl_->set_cup_state_text(std::move(text));
+}
+
+void ts::states::Cup_GUI::show_progress_dialog()
+{
+    impl_->show_progress_dialog();
+}
+
+void ts::states::Cup_GUI::hide_progress_dialog()
+{
+    impl_->hide_progress_dialog();
+}
+
+void ts::states::Cup_GUI::set_loading_progress(double progress)
+{
+    impl_->set_loading_progress(progress);
+}
+
+void ts::states::Cup_GUI::set_loading_progress_text(utf8_string text)
+{
+    impl_->set_loading_progress_text(std::move(text));
+}
+
+bool ts::states::Cup_GUI::quit_event_pending() const
+{
+    return impl_->quit_event_pending();
+}
+
+
+void ts::states::impl::Cup_GUI::set_car_selection_dialog_ready()
 {
     car_selection_ready_ = true;
 }
 
-void ts::states::Cup_GUI::confirm_car_selection()
+void ts::states::impl::Cup_GUI::confirm_car_selection()
 {
     car_selection_dialog_->hide();
     cup_document_->set_visible(true);
@@ -127,12 +293,12 @@ void ts::states::Cup_GUI::confirm_car_selection()
     apply_car_selection();
 }
 
-void ts::states::Cup_GUI::output_chat_message(const cup::Composite_message& message)
+void ts::states::impl::Cup_GUI::output_chat_message(const cup::Composite_message& message)
 {
     chatbox_->create_row(message, chatbox_text_style_);
 }
 
-void ts::states::Cup_GUI::create_cup_document(gui::Context* context)
+void ts::states::impl::Cup_GUI::create_cup_document(gui::Context* context)
 {
     cup_document_ = context->create_document("cup-document");
     cup_document_->set_visible(false);
@@ -144,9 +310,7 @@ void ts::states::Cup_GUI::create_cup_document(gui::Context* context)
     auto monospace = font_library.font_by_name(gui::fonts::Monospace);
     auto sans = font_library.font_by_name(gui::fonts::Sans);
 
-    Vector2<double> window_size(screen_size.x - 80.0, screen_size.y - 60.0);
-
-    
+    Vector2<double> window_size(screen_size.x - 80.0, screen_size.y - 60.0);    
 
     auto window = gui_definitions::create_styled_window(context, cup_document_.get(), window_size);
 
@@ -202,7 +366,7 @@ void ts::states::Cup_GUI::create_cup_document(gui::Context* context)
     Vector2<double> control_size(200.0, 30.0);
     Vector2<double> control_offset(10.0, 0.0);
 
-    if (cup_->cup_type() != cup::Cup_type::Remote)
+    if (cup_->is_local())
     {
         auto start_game = window->create_child<gui::Text_element>("Start game!", control_style);
         start_game->set_position({ 60.0, window_size.y - 150.0 });
@@ -213,7 +377,7 @@ void ts::states::Cup_GUI::create_cup_document(gui::Context* context)
         start_game->add_event_handler(gui::events::on_click,
             [this](const gui::Element& element)
         {
-            cup_interface_->advance();
+            client_interface_->request_advance();
         });
     }
 
@@ -234,10 +398,20 @@ void ts::states::Cup_GUI::create_cup_document(gui::Context* context)
     {
         if (chat_editbox->active() && key == sf::Keyboard::Return)
         {
-            cup_interface_->write_chat_message(chat_editbox->text());
+            client_interface_->write_message(chat_editbox->text());
             chat_editbox->reset();
         }
     });
+}
+
+void ts::states::Cup_GUI::show()
+{
+    impl_->show();
+}
+
+void ts::states::Cup_GUI::update(std::size_t frame_duration)
+{
+    impl_->update(frame_duration);
 }
 
 ts::states::Loading_progress_dialog::Loading_progress_dialog(gui::Context* context)
@@ -304,7 +478,7 @@ void ts::states::Loading_progress_dialog::create_progress_document(gui::Context*
     progress_bar_->set_position({ 40.0, 60 });
 }
 
-ts::states::Car_selection_dialog::Car_selection_dialog(gui::Context* context, Cup_GUI* cup_gui)
+ts::states::Car_selection_dialog::Car_selection_dialog(gui::Context* context, impl::Cup_GUI* cup_gui)
 : cup_gui_(cup_gui)
 {
     create_car_selection_dialog(context);
@@ -454,7 +628,7 @@ void ts::states::Car_selection_dialog::confirm()
     cup_gui_->confirm_car_selection();
 }
 
-const std::vector<ts::cup::Car_selection>& ts::states::Car_selection_dialog::car_selection() const
+const std::vector<ts::client::Car_selection>& ts::states::Car_selection_dialog::car_selection() const
 {
     return car_selection_;
 }
@@ -532,7 +706,7 @@ void ts::states::Car_selection_dialog::load_dialog()
             auto car = possible_cars_[new_car_index];
 
             car_selection_[player_index].player_handle = player_handle;
-            car_selection_[player_index].car_handle = car;
+            car_selection_[player_index].car_index = new_car_index;
 
             const auto& sub_rect = texture_mapping_[new_car_index];
             textured_background->set_sub_rect(sub_rect);
@@ -543,14 +717,14 @@ void ts::states::Car_selection_dialog::load_dialog()
 
         car_option_set->set_value(car_index);
 
-        cup::Car_selection car_selection;
+        client::Car_selection car_selection;
         car_selection.player_handle = player_handle;
-        car_selection.car_handle = car;
+        car_selection.car_index = car_index;
 
         car_selection_.push_back(car_selection);
 
         ++player_index;
     }
 
-    cup_gui_->car_selection_dialog_ready();
+    cup_gui_->set_car_selection_dialog_ready();
 }

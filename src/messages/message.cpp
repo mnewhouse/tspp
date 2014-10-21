@@ -40,6 +40,11 @@ std::size_t ts::messages::Message::size() const
     return data_.size();
 }
 
+bool ts::messages::Message::empty() const
+{
+    return data_.empty();
+}
+
 void ts::messages::Message::clear()
 {
     data_.clear();

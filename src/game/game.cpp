@@ -99,8 +99,6 @@ void ts::game::Game::main()
 
     state_machine.update();
 
-    resource_store.script_settings().enable_script("test");
-
     auto current_time = std::chrono::high_resolution_clock::now();
 
     std::int64_t accumulator = 0;

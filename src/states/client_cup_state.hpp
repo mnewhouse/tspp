@@ -24,10 +24,7 @@
 
 #include "cup_state_base.hpp"
 
-#include "network/client.hpp"
-
-#include "cup/cup.hpp"
-#include "cup/client_cup_interface.hpp"
+#include "client/client.hpp"
 
 namespace ts
 {
@@ -38,19 +35,17 @@ namespace ts
 
     namespace states
     {
+        class Client_action_state;
+
         namespace impl
         {
             struct Client_cup_state_members
             {
                 Client_cup_state_members(resources::Resource_store* resource_store);
 
-                cup::Cup cup_;
-                network::Client client_;
-                cup::Client_cup_interface client_cup_interface_;
+                client::Client client_;
             };
         }
-
-        class Client_action_state;
 
         class Client_cup_state
             : private impl::Client_cup_state_members, public Cup_state_base
@@ -62,20 +57,18 @@ namespace ts
             virtual ~Client_cup_state();
 
             void async_connect(utf8_string remote_address, std::uint16_t remote_port);
-            network::Connection_status connection_status() const;
 
-            cup::Registration_status registration_status() const;
+            client::Connection_status connection_status() const;
+            client::Registration_status registration_status() const;
             const utf8_string& registration_error() const;
 
             void send_registration_request();
 
             virtual void update(std::size_t frame_duration) override;
-            virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
             virtual void on_initialize(const cup::Stage_data& stage_data) override;
 
         private:
-            void start_loading(const cup::Stage_data& stage_data);
-            std::unique_ptr<Client_action_state> make_action_state();
+            std::unique_ptr<Action_state_base> make_action_state(game::Loaded_scene loaded_scene) override;
         };
     }
 }

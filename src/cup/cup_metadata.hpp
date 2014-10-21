@@ -49,15 +49,26 @@ namespace ts
 
         using Player_id = std::uint16_t;
 
-        struct Cup_player_data
+        struct Player_definition
             : public Player
         {
-            Player_id handle;
+            Player_id handle; 
+        };
+
+        struct Cup_player_data
+            : public Player_definition
+        {
             std::uint32_t start_pos;
             resources::Car_handle car;
         };
 
         using Player_handle = Pointer_handle<const Cup_player_data>;
+
+        struct Car_selection
+        {
+            Player_handle player_handle;
+            std::uint32_t car_index;
+        };
     }
 }
 

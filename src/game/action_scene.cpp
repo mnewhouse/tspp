@@ -225,13 +225,13 @@ void ts::game::Action_scene::render_view_border(const View& view, sf::RenderTarg
 
 void ts::game::Action_scene::render(sf::RenderTarget& render_target, double frame_time)
 {
+    update_cameras(frame_time);
+
     if (dirty_component_cache_)
     {
         update_component_cache();
         dirty_component_cache_ = false;
     }
-
-    update_cameras(frame_time);
 
     for (std::size_t view_index = 0; view_index != view_context_.view_count(); ++view_index)
     {

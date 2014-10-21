@@ -100,8 +100,7 @@ ts::controls::Control ts::controls::Key_mapping::get_control_bound_to_key(Key ke
     return it->second;
 }
 
-std::pair<ts::controls::Key_mapping::Map_type::const_iterator,      
-    ts::controls::Key_mapping::Map_type::const_iterator> ts::controls::Key_mapping::get_all_binds_by_key(Key key) const
+ts::Range<ts::controls::Key_mapping::Map_type::const_iterator> ts::controls::Key_mapping::get_all_binds_by_key(Key key) const
 {
     Key_bind dummy_bind;
     dummy_bind.key = key;
@@ -112,7 +111,7 @@ std::pair<ts::controls::Key_mapping::Map_type::const_iterator,
     dummy_bind.slot = std::numeric_limits<Slot>::max();
     auto end = key_mapping_.upper_bound(dummy_bind);
 
-    return std::make_pair(begin, end);
+    return make_range(begin, end);
 }
 
 ts::controls::Key_mapping::Map_type::const_iterator ts::controls::Key_mapping::begin() const

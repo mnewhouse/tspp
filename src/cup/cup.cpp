@@ -24,9 +24,9 @@
 
 #include "resources/resource_store.hpp"
 
-ts::cup::Cup::Cup(Cup_type cup_type)
-: cup_type_(cup_type),
-  cup_progress_(0),
+ts::cup::Cup::Cup(Locality locality)
+: cup_progress_(0),
+  locality_(locality),
   state_(Cup_state::Registering)
 {
 }
@@ -35,9 +35,9 @@ ts::cup::Cup::~Cup()
 {
 }
 
-ts::cup::Cup_type ts::cup::Cup::cup_type() const
+bool ts::cup::Cup::is_local() const
 {
-    return cup_type_;
+    return locality_ == Locality::Local;
 }
 
 ts::cup::Cup_state ts::cup::Cup::cup_state() const
@@ -73,11 +73,11 @@ const std::vector<ts::resources::Car_handle>& ts::cup::Cup::car_list() const
 ts::cup::Player_handle ts::cup::Cup::add_player(const Player& player, Player_id unique_id)
 {
     Cup_player_data cup_player_data;
-    cup_player_data.control_slot = player.control_slot;
     cup_player_data.handle = unique_id;
     cup_player_data.nickname = player.nickname;
     cup_player_data.color = player.color;
     cup_player_data.id = player.id;
+    cup_player_data.control_slot = player.control_slot;
     cup_player_data.car = (car_list().empty() ? resources::Car_handle() : car_list().front());
     cup_player_data.start_pos = player_list_.size();
 
@@ -117,6 +117,15 @@ void ts::cup::Cup::remove_player(Player_handle player_handle)
     player_map_.erase(player_handle->handle);
 }
 
+void ts::cup::Cup::clear_players()
+{
+    local_players_.clear();
+    player_list_.clear();
+    action_players_.clear();
+
+    player_map_.clear();
+}
+
 ts::cup::Player_id ts::cup::Cup::allocate_player_id() const
 {
     Player_id last = 0;
@@ -130,11 +139,6 @@ ts::cup::Player_id ts::cup::Cup::allocate_player_id() const
     return last + 1;
 }
 
-const std::vector<ts::cup::Player_handle>& ts::cup::Cup::local_players() const
-{
-    return local_players_;
-}
-
 const std::vector<ts::cup::Player_handle>& ts::cup::Cup::player_list() const
 {
     return player_list_;
@@ -143,6 +147,11 @@ const std::vector<ts::cup::Player_handle>& ts::cup::Cup::player_list() const
 const std::vector<ts::cup::Player_handle>& ts::cup::Cup::action_players() const
 {
     return action_players_;
+}
+
+const std::vector<ts::cup::Player_handle>& ts::cup::Cup::local_players() const
+{
+    return local_players_;
 }
 
 std::size_t ts::cup::Cup::player_count() const
@@ -225,12 +234,16 @@ void ts::cup::Cup::restart()
 
 void ts::cup::Cup::set_cup_state(Cup_state new_state)
 {
-    for (auto listener : cup_listeners_)
+    if (new_state != state_)
     {
-        listener->on_state_change(state_, new_state);
-    }
+        auto old_state = state_;
+        state_ = new_state;
 
-    state_ = new_state;
+        for (auto listener : cup_listeners_)
+        {
+            listener->on_state_change(old_state, state_);
+        }        
+    }
 }
 
 void ts::cup::Cup::set_cup_progress(std::size_t progress)
@@ -257,40 +270,6 @@ ts::cup::Player_handle ts::cup::Cup::get_player_by_id(Player_id player_id) const
 
     return Player_handle(&it->second);
 }
-
-/*
-ts::cup::Stage_data ts::cup::Cup::make_stage_data() const
-{
-    Stage_data stage_data;
-    stage_data.track_handle = current_track();
-
-    for (const auto& player_data : player_map_)
-    {
-        Car_data car_data;
-        car_data.car = player_data.second.car;
-        car_data.color = player_data.second.color;
-        car_data.start_pos = player_data.second.start_pos;
-        car_data.control_slot = player_data.second.control_slot;
-
-        if (car_data.car)
-        {
-            stage_data.cars.push_back(car_data);
-        }        
-    }
-
-    if (car_mode() == resources::Car_mode::Fixed && !car_list().empty())
-    {
-        for (auto& player_data : stage_data.cars)
-        {
-            player_data.car = car_list().front();
-        }
-    }
-
-    stage_data.loaded_scripts = loaded_scripts_;
-    return stage_data;
-}
-*/
-
 
 void ts::cup::Cup::advance()
 {
@@ -337,7 +316,10 @@ void ts::cup::Cup::start_cup()
 
 void ts::cup::Cup::initialize_action(const Stage_data& stage_data)
 {
-    set_cup_state(Cup_state::Initializing);
+    if (state_ != Cup_state::Initializing)
+    {
+        set_cup_state(Cup_state::Initializing);
+    }
 
     for (auto cup_listener : cup_listeners_)
     {

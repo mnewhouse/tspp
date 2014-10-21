@@ -21,10 +21,6 @@
 #include "loaded_scene.hpp"
 #include "action_scene.hpp"
 
-#include "car_image_generator.hpp"
-
-#include "action/stage.hpp"
-#include "controls/control_center.hpp"
 #include "audio/sound_controller.hpp"
 
 ts::game::Loaded_scene::Loaded_scene()
@@ -36,15 +32,13 @@ ts::game::Loaded_scene::~Loaded_scene()
 }
 
 ts::game::Loaded_scene::Loaded_scene(Loaded_scene&& other)
-: stage(std::move(other.stage)),
-  action_scene(std::move(other.action_scene)),
+: action_scene(std::move(other.action_scene)),
   sound_controller(std::move(other.sound_controller))
 {
 }
 
 ts::game::Loaded_scene& ts::game::Loaded_scene::operator=(Loaded_scene&& rhs)
 {
-    stage = std::move(rhs.stage);
     action_scene = std::move(rhs.action_scene);
     sound_controller = std::move(rhs.sound_controller);
 

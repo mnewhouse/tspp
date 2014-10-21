@@ -69,8 +69,8 @@ void ts::states::Network_menu::update(std::size_t frame_duration)
     if (client_cup_state_)
     {
         // We are currently connecting
-        using network::Connection_status;
-        using cup::Registration_status;
+        using client::Connection_status;
+        using client::Registration_status;
 
         client_cup_state_->update(frame_duration);
 

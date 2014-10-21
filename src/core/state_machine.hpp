@@ -39,6 +39,11 @@ namespace ts
                 : popped_item_count_(0)
             {}
 
+            ~State_machine()
+            {
+                clear_now();
+            }
+
             template <typename ConcreteType>
             void change_state(std::unique_ptr<ConcreteType> state);
 
@@ -107,7 +112,13 @@ namespace ts
         template <typename StateType>
         void State_machine<StateType>::clear_now()
         {
-            state_stack_.clear();
+            while (!state_stack_.empty())
+            {
+                const auto& entry = state_stack_.back();
+                state_map_.erase(entry.type_id);
+                state_stack_.pop_back();
+            }
+
             state_map_.clear();
         }
 

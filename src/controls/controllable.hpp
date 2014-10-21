@@ -40,11 +40,15 @@ namespace ts
             void set_control_state(Control control, bool state);
             bool control_state(Control control) const;
             
-            unsigned control_state() const;
-            void update_control_state(std::uint32_t new_state);
+            std::uint32_t control_state() const;
+
+            void set_controllable_id(std::uint16_t controllable_id);
+            std::uint16_t controllable_id() const;
+
 
         private:
             std::uint32_t control_state_ = 0;
+            std::uint16_t controllable_id_ = 0;
         };
 
     }

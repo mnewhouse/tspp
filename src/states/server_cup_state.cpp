@@ -21,76 +21,70 @@
 #include "server_cup_state.hpp"
 #include "server_action_state.hpp"
 
-#include "cup/local_players.hpp"
 #include "cup/stage_assembler.hpp"
 
 #include "resources/settings/network_settings.hpp"
+#include "resources/settings/player_settings.hpp"
+#include "resources/player_store.hpp"
 
-#include "action/server_action_interface.hpp"
-#include "network/server_message_source.hpp"
+#include "network/server_messages.hpp"
+
+namespace ts
+{
+    namespace action
+    {
+        class Stage;
+    }
+
+    namespace states
+    {
+        std::vector<cup::Player_definition> create_local_player_definitions(const resources::Player_settings& player_settings, const resources::Player_store& player_store);
+    }
+}
 
 ts::states::impl::Server_cup_state_members::Server_cup_state_members(resources::Resource_store* resource_store)
-: cup_(cup::Cup_type::Server),
-  cup_config_(&cup_, resource_store),
-  server_(),
-  message_center_(network::Server_message_source(&server_)),
-  server_cup_interface_(&cup_, &server_, resource_store)  
+: server_(resource_store),
+  local_client_(&server_, resource_store)
 {
-    cup::add_selected_local_players(&server_cup_interface_, resource_store->player_settings(), resource_store->player_store());
 }
 
 ts::states::Server_cup_state::Server_cup_state(state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
-: Server_cup_state_members(resource_store),
-  Cup_state_base(&server_cup_interface_, state_machine, context, resource_store)
+  : Server_cup_state_members(resource_store),
+    Cup_state_base(local_client_.client_interface(), state_machine, context, resource_store)
 {
-    auto& network_settings = resource_store->network_settings();
-    server_.listen(network_settings.server_port);
-
-    cup_.add_cup_listener(this);
-    cup_.set_cup_state(cup::Cup_state::Registering);
+    server_.add_cup_listener(this);
 }
 
 ts::states::Server_cup_state::~Server_cup_state()
-{    
+{
+    server_.remove_cup_listener(this);
 }
 
 void ts::states::Server_cup_state::update(std::size_t frame_duration)
 {
     Cup_state_base::update(frame_duration);
+
+    server_.poll();
 }
 
-void ts::states::Server_cup_state::on_state_change(cup::Cup_state old_state, cup::Cup_state new_state)
+void ts::states::Server_cup_state::listen(std::uint16_t port)
 {
-    Cup_state_base::on_state_change(old_state, new_state);
+    server_.listen(port);
+}
 
-    if (new_state == cup::Cup_state::Initializing)
+void ts::states::Server_cup_state::on_initialize(const cup::Stage_data& stage_data)
+{
+    auto stage_loader = server_.async_load_stage(stage_data, [this](const action::Stage* stage)
     {
-        start_loading();
-    }
+        load_scene(stage);
+    });
 
-    if (new_state == cup::Cup_state::Action)
-    {
-        launch_action(make_action_state());
-    }
+    show_stage_loading(stage_loader);
 }
 
-void ts::states::Server_cup_state::start_loading()
+std::unique_ptr<ts::states::Action_state_base> ts::states::Server_cup_state::make_action_state(game::Loaded_scene loaded_scene)
 {
-    auto stage_data = cup::assemble_stage(cup_);
-
-    server_cup_interface_.send_initialization_message(stage_data);
-
-    begin_loading_sequence(stage_data);
-}
-
-
-std::unique_ptr<ts::states::Server_action_state> ts::states::Server_cup_state::make_action_state()
-{
-    auto loaded_scene = transfer_loaded_scene();
-
-    auto action_interface = std::make_unique<action::Server_action_interface>(loaded_scene.stage.get(), server_cup_interface_.client_player_mapping(),
-                                                                              &message_center_);
-
-    return std::make_unique<Server_action_state>(std::move(loaded_scene), std::move(action_interface),
+    return std::make_unique<Server_action_state>(std::move(loaded_scene), &server_, local_client_.make_control_interface(server_.stage()),
                                                  state_machine(), context(), resource_store());
 }
+

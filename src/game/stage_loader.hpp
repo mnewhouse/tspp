@@ -19,8 +19,8 @@
 
 #pragma once
 
-#ifndef WORLD_LOADER_HPP
-#define WORLD_LOADER_HPP
+#ifndef STAGE_LOADER_HPP
+#define STAGE_LOADER_HPP
 
 #include "generic_loader.hpp"
 

@@ -55,6 +55,7 @@ namespace ts
             std::size_t size() const;
 
             void clear();
+            bool empty() const;
 
             std::uint32_t type() const;
 

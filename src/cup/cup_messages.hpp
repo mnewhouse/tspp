@@ -22,7 +22,8 @@
 #ifndef MESSAGE_DEFINITIONS_HPP
 #define MESSAGE_DEFINITIONS_HPP
 
-#include "cup_interface.hpp"
+#include "cup/cup_metadata.hpp"
+#include "cup/chat_message.hpp"
 
 #include "messages/message.hpp"
 
@@ -55,11 +56,13 @@ namespace ts
             static const std::uint32_t ready_signal = 1481;
             static const std::uint32_t chat_message = 1691;
 
+            static const std::uint32_t client_quit = 1771;
+            static const std::uint32_t advance_request = 1779;
+
             // Download requests
             static const std::uint32_t track_download_request = 3401;
             static const std::uint32_t car_download_request = 3411;
             static const std::uint32_t resource_download_request = 3421;
-
 
 
             // Server -> client messages
@@ -78,16 +81,11 @@ namespace ts
             static const std::uint32_t resource_information = 2411;
             static const std::uint32_t car_information = 2421;
 
-            static const std::uint32_t chatbox_output = 2831;            
+            static const std::uint32_t chatbox_output = 2831;
+            static const std::uint32_t server_quit = 2571;
         };
 
         struct Stage_data;
-
-        struct Player_definition
-            : public Player
-        {
-            Player_id handle = 0;
-        };
 
         struct Registration_request
         {
@@ -100,7 +98,6 @@ namespace ts
         {
             std::uint32_t message_type = 0;
             std::uint64_t registration_key = 0;
-            std::uint32_t client_key = 0;
         };
 
         struct Registration_refusal
@@ -188,6 +185,8 @@ namespace ts
         Registration_request parse_registration_request_message(const Message& message);
 
         Message make_ready_signal_message();
+        Message make_advance_request_message();
+        Message make_client_quit_message();
 
         Message make_chat_message(const utf8_string& message);
         Chat_message_definition parse_chat_message(const Message& message);
@@ -195,13 +194,16 @@ namespace ts
         Message make_car_selection_message(const std::vector<Car_selection>& car_selection);
         Car_selection_message parse_car_selection_message(const Message& message);
 
+        
+
         // Server -> client messages
-        Message make_registration_acknowledgement_message(std::uint64_t registration_key, std::uint32_t client_key);
+        Message make_registration_acknowledgement_message(std::uint64_t registration_key);
         Registration_acknowledgement parse_registration_acknowledgement_message(const Message& message);
 
         Message make_too_many_players_message(std::uint64_t registration_key);
-        Message make_bad_request_message(std::uint64_t registration_key);
         Message make_version_mismatch_message(std::uint64_t registration_key);
+
+        Message make_bad_request_message();
         Registration_refusal parse_registration_refusal_message(const Message& message);
         
         Message make_cup_state_message(cup::Cup_state cup_state);
@@ -224,6 +226,8 @@ namespace ts
 
         Message make_action_initialization_message(const Stage_data& stage_data);
         Action_initialization_message parse_action_initialization_message(const Message& message);
+
+        Message make_server_quit_message();
 
     }
 }

@@ -35,6 +35,7 @@ namespace ts
     namespace controls
     {
         class Control_center;
+        struct Control_event;
     }
 
     namespace action
@@ -42,9 +43,6 @@ namespace ts
         using Stage_data = cup::Stage_data;
         using Car_data = cup::Car_data;
 
-        // The Stage class keeps information about cars, their controllers, and various other things.
-        // It adopts the World object, because this class should be the public interface to all
-        // stage-related things.
         class Stage
         {
         public:
@@ -55,6 +53,7 @@ namespace ts
 
             const world::World& world() const;
             const controls::Control_center& control_center() const;
+            void handle_control_event(const controls::Control_event& event) const;
 
             struct Internal_car_data
                 : public Car_data
@@ -67,6 +66,8 @@ namespace ts
             void update(std::size_t frame_duration);
             void launch_game();
 
+            std::uint32_t stage_time() const;
+
 
         private:
             void create_stage_entities(const Stage_data& stage_data);
@@ -76,10 +77,11 @@ namespace ts
 
             resources::Track_handle track_handle_;
 
-            std::unique_ptr<world::World> world_;
+            std::unique_ptr<world::World> world_;     
             std::unique_ptr<controls::Control_center> control_center_;
 
-            
+            bool is_started_ = false;
+            std::uint32_t stage_time_ = 0;
         };
     }
 }

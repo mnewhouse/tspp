@@ -20,37 +20,27 @@
 #ifndef STATES_SERVER_CUP_STATE_HPP
 #define STATES_SERVER_CUP_STATE_HPP
 
-
 #include "cup_state_base.hpp"
 
-#include "cup/cup.hpp"
-#include "cup/cup_config.hpp"
-#include "cup/server_cup_interface.hpp"
-
-#include "network/server.hpp"
-
-#include "messages/message_center.hpp"
+#include "server/server.hpp"
+#include "client/local_client.hpp"
 
 namespace ts
 {
     namespace states
     {
+        class Server_action_state;
+
         namespace impl
         {
             struct Server_cup_state_members
             {
                 Server_cup_state_members(resources::Resource_store* resource_store);
 
-                cup::Cup cup_;
-                cup::Cup_config cup_config_;
-                network::Server server_;
-                messages::Message_center<network::Client_message, messages::Message> message_center_;
-
-                cup::Server_cup_interface server_cup_interface_;                
+                server::Server server_;
+                client::Local_client local_client_;
             };
         }
-
-        class Server_action_state;
 
         class Server_cup_state
             : private impl::Server_cup_state_members, public Cup_state_base
@@ -62,9 +52,14 @@ namespace ts
             virtual ~Server_cup_state();
 
             virtual void update(std::size_t frame_duration) override;
-            virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
+
+            void listen(std::uint16_t port);
 
         private:
+            virtual void on_initialize(const cup::Stage_data& stage_data) override;
+
+            virtual std::unique_ptr<Action_state_base> make_action_state(game::Loaded_scene loaded_scene) override;
+
             void start_loading();
 
             std::unique_ptr<Server_action_state> make_action_state();           
