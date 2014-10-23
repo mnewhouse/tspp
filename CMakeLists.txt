@@ -104,7 +104,6 @@ set(SRC src/main.cpp
 		src/cup/chat_message.hpp
 		src/cup/chat_message.cpp
 		src/cup/chatbox_listener.hpp
-		src/cup/chatbox_listener.cpp
 		src/cup/chatbox.hpp
 		src/cup/chatbox.cpp
 		src/cup/cup.hpp
