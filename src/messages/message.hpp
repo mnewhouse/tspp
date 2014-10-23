@@ -26,6 +26,20 @@ namespace ts
 {
     namespace messages
     {
+        struct uint24_t
+        {
+            uint24_t(std::uint32_t value = 0);
+
+            std::uint32_t value;
+        };
+
+        struct int24_t
+        {
+            int24_t(std::int32_t value = 0);
+
+            std::int32_t value;
+        };
+
         class Message
         {
         public:
@@ -48,6 +62,9 @@ namespace ts
 
             Message& operator<<(std::uint8_t value);
             Message& operator<<(std::int8_t value);
+
+            Message& operator<<(uint24_t value);
+            Message& operator<<(int24_t value);
 
             Message& operator<<(const utf8_string& string);            
 

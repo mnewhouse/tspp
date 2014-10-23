@@ -29,6 +29,9 @@ namespace ts
     namespace cup
     {
         class Cup;
+
+        class Chatbox;
+        struct Chatbox_listener;
     }
 
     namespace resources
@@ -49,6 +52,10 @@ namespace ts
 
             void add_interaction_listener(Interaction_listener* listener);
             void remove_interaction_listener(Interaction_listener* listener);
+
+            const cup::Chatbox* chatbox() const;
+            void add_chatbox_listener(cup::Chatbox_listener* listener);
+            void remove_chatbox_listener(cup::Chatbox_listener* listener);
 
         private:
             class Impl;

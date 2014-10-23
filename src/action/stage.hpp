@@ -34,6 +34,7 @@ namespace ts
 
     namespace controls
     {
+        class Controllable;
         class Control_center;
         struct Control_event;
     }
@@ -53,7 +54,11 @@ namespace ts
 
             const world::World& world() const;
             const controls::Control_center& control_center() const;
-            void handle_control_event(const controls::Control_event& event) const;
+
+            Vector2u world_size() const;
+            double max_entity_speed() const;
+
+            void handle_control_event(std::uint16_t controllable_id, std::uint16_t controls_mask);            
 
             struct Internal_car_data
                 : public Car_data
@@ -67,7 +72,9 @@ namespace ts
             void launch_game();
 
             std::uint32_t stage_time() const;
+            void set_stage_time(std::uint32_t);
 
+            world::Car* get_car_by_id(std::uint16_t car_id) const;
 
         private:
             void create_stage_entities(const Stage_data& stage_data);
@@ -80,7 +87,6 @@ namespace ts
             std::unique_ptr<world::World> world_;     
             std::unique_ptr<controls::Control_center> control_center_;
 
-            bool is_started_ = false;
             std::uint32_t stage_time_ = 0;
         };
     }

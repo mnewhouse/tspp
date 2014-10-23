@@ -26,11 +26,9 @@
 #include "collision_bitmap.hpp"
 #include "collisions.hpp"
 #include "control_point_manager.hpp"
-#include "car.hpp"
 #include "game_timer.hpp"
 
 #include "resources/track_handle.hpp"
-#include "resources/track.hpp"
 #include "resources/pattern.hpp"
 
 namespace ts
@@ -45,14 +43,13 @@ namespace ts
     {
         struct Entity_listener;
         struct Entity_state;
-
-        static const double max_entity_speed = 10000.0;
-    
+        class Car;    
 
         class World
         {
         public:
             explicit World(std::unique_ptr<resources::Track> track, resources::Pattern track_pattern);
+            ~World();
 
             Car* create_car(const resources::Car_definition& car_def, std::uint16_t car_id);
             Car* create_car(const resources::Car_definition& car_def);
@@ -61,6 +58,7 @@ namespace ts
             void remove_world_listener(World_listener* world_listener);
 
             void update(std::size_t frame_duration);
+            static double max_entity_speed();
 
             const resources::Terrain_definition& terrain_at(Vector2i point) const;
             const resources::Terrain_definition& terrain_at(Vector2i point, std::size_t level) const;

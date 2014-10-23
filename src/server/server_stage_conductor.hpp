@@ -19,40 +19,37 @@
 
 #pragma once
 
-#ifndef STAGE_INTERFACE_HPP
-#define STAGE_INTERFACE_HPP
+#ifndef SERVER_STAGE_CONDUCTOR_HPP
+#define SERVER_STAGE_CONDUCTOR_HPP
 
-#include "stage_loader.hpp"
+#include "server_messages.hpp"
 
 namespace ts
 {
     namespace action
     {
         class Stage;
+        class Stage_conductor;
     }
 
-    namespace cup
+    namespace server
     {
-        struct Stage_data;
-    }
-
-    namespace game
-    {
-        class Stage_interface
+        class Stage_conductor
+            : public Message_listener
         {
         public:
-            using Completion_callback = void(const action::Stage*);
-            const Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<Completion_callback> completion_callback);
-            void poll();
+            Stage_conductor(Message_center* message_center, action::Stage* stage);
 
-            void clean_stage();
-
-            action::Stage* stage();
-            const action::Stage* stage() const;
+            void update(std::size_t frame_duration);
 
         private:
-            Stage_loader stage_loader_;
-            std::unique_ptr<action::Stage> stage_;
+            virtual void handle_message(const Client_message& message) override;
+            void handle_control_event_message(const Message& message);
+
+            std::unique_ptr<action::Stage_conductor> stage_conductor_;
+            std::size_t update_count_ = 0;
+            Message_center* message_center_;
+            Client_message message_buffer_;
         };
     }
 }

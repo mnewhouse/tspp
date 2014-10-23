@@ -19,40 +19,27 @@
 
 #pragma once
 
-#ifndef STAGE_INTERFACE_HPP
-#define STAGE_INTERFACE_HPP
+#ifndef CUP_CHATBOX_HPP
+#define CUP_CHATBOX_HPP
 
-#include "stage_loader.hpp"
+#include "chat_message.hpp"
 
 namespace ts
 {
-    namespace action
-    {
-        class Stage;
-    }
-
     namespace cup
     {
-        struct Stage_data;
-    }
+        struct Chatbox_listener;
 
-    namespace game
-    {
-        class Stage_interface
+        class Chatbox
         {
         public:
-            using Completion_callback = void(const action::Stage*);
-            const Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<Completion_callback> completion_callback);
-            void poll();
+            void dispatch_message(const Composite_message& message);
 
-            void clean_stage();
-
-            action::Stage* stage();
-            const action::Stage* stage() const;
+            void add_chatbox_listener(Chatbox_listener* listener);
+            void remove_chatbox_listener(Chatbox_listener* listener);
 
         private:
-            Stage_loader stage_loader_;
-            std::unique_ptr<action::Stage> stage_;
+            std::vector<Chatbox_listener*> listeners_;
         };
     }
 }

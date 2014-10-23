@@ -39,7 +39,6 @@ namespace ts
         public:
             // Harbinger-style function naming.
             void assume_control(Slot slot, Controllable* controllable);
-
             void handle_control_event(const Control_event& event) const;
 
             void toggle_global_control(Control control, bool enable);

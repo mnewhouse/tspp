@@ -27,6 +27,8 @@ namespace ts
     namespace messages
     {
         class Message;
+        struct uint24_t;
+        struct int24_t;
 
         class Message_reader
         {
@@ -45,6 +47,9 @@ namespace ts
             Message_reader& operator>>(std::int32_t& value);
             Message_reader& operator>>(std::int16_t& value);
             Message_reader& operator>>(std::int8_t& value);
+
+            Message_reader& operator>>(uint24_t& value);
+            Message_reader& operator>>(int24_t& value);
 
             Message_reader& operator>>(utf8_string& value);
 

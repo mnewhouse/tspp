@@ -21,6 +21,9 @@
 #include "stage.hpp"
 
 #include "world/world.hpp"
+#include "world/car.hpp"
+
+#include "resources/track.hpp"
 #include "controls/control_center.hpp"
 
 ts::action::Stage::Stage(std::unique_ptr<world::World> world, const Stage_data& stage_data)
@@ -37,16 +40,18 @@ ts::action::Stage::~Stage()
 
 void ts::action::Stage::update(std::size_t frame_duration)
 {
-    if (is_started_)
-    {
-        world_->update(frame_duration);
-        stage_time_ += frame_duration;
-    }    
+    world_->update(frame_duration);
+    stage_time_ += frame_duration; 
 }
 
 std::uint32_t ts::action::Stage::stage_time() const
 {
     return stage_time_;
+}
+
+void ts::action::Stage::set_stage_time(std::uint32_t stage_time)
+{
+    stage_time_ = stage_time;
 }
 
 void ts::action::Stage::create_stage_entities(const Stage_data& stage_data)
@@ -92,19 +97,43 @@ const ts::world::World& ts::action::Stage::world() const
     return *world_;
 }
 
+ts::Vector2u ts::action::Stage::world_size() const
+{
+    return world_->track().size();
+}
+
 const ts::controls::Control_center& ts::action::Stage::control_center() const
 {
     return *control_center_;
 }
 
-void ts::action::Stage::handle_control_event(const controls::Control_event& event) const
+void ts::action::Stage::handle_control_event(std::uint16_t controllable_id, std::uint16_t controls_mask)
 {
-    control_center_->handle_control_event(event);
+    auto controllable_it = car_lookup_.find(controllable_id);
+    if (controllable_it != car_lookup_.end())
+    {
+        auto controllable = controllable_it->second;
+        // Only update those which we do not control.
+
+        if (!control_center_->is_controlled(controllable) || 1)
+        {
+            controllable->set_control_state_mask(controls_mask);
+        }
+    }
+}
+
+ts::world::Car* ts::action::Stage::get_car_by_id(std::uint16_t car_id) const
+{
+    auto it = car_lookup_.find(car_id);
+    if (it == car_lookup_.end())
+    {
+        return nullptr;
+    }
+
+    return it->second;
 }
 
 void ts::action::Stage::launch_game()
 {
     world_->launch_game();
-
-    is_started_ = true;
 }

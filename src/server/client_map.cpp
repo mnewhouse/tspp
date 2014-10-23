@@ -29,23 +29,25 @@ ts::server::Client_map::Client_map(cup::Cup* cup, network::Server_connection* se
 {
 }
 
-void ts::server::Client_map::register_client(const Generic_client& client, const std::vector<cup::Player_definition>& players)
+void ts::server::Client_map::register_client(const Generic_client& client)
+{
+    player_mapping_[client];
+
+    client_list_.push_back(client);
+}
+
+ts::cup::Player_handle ts::server::Client_map::register_player(const Generic_client& client, cup::Player_definition player_definition)
 {
     auto& player_list = player_mapping_[client];
 
-    for (auto player : players)
+    if (client.type() != Generic_client::Local)
     {
-        if (client.type() != Generic_client::Local)
-        {
-            // The cup only needs to know the control slot if the player is local
-            player.control_slot = controls::invalid_slot;
-        }
-
-        auto player_handle = cup_->add_player(player);
-        player_list.push_back(player_handle);
+        player_definition.control_slot = controls::invalid_slot;
     }
 
-    client_list_.push_back(client);
+    auto player_handle = cup_->add_player(player_definition);
+    player_list.push_back(player_handle);
+    return player_handle;
 }
 
 void ts::server::Client_map::disconnect_client(const Generic_client& client)

@@ -194,6 +194,46 @@ ts::messages::Message_reader& ts::messages::Message_reader::operator>>(std::int8
     return *this;
 }
 
+
+ts::messages::Message_reader& ts::messages::Message_reader::operator>>(uint24_t& value)
+{
+    if (!*this || end_ - ptr_ < 3)
+    {
+        failbit_ = true;
+        return *this;
+    }
+    
+    auto& v = value.value;
+    v = 0;
+    v |= static_cast<std::uint32_t>(*ptr_++) << 16;
+    v |= static_cast<std::uint32_t>(*ptr_++) <<  8;
+    v |= static_cast<std::uint32_t>(*ptr_++);
+
+    return *this;
+}
+
+
+ts::messages::Message_reader& ts::messages::Message_reader::operator>>(int24_t& value)
+{
+    uint24_t uvalue;
+    if (*this >> uvalue)
+    {
+        if ((uvalue.value >> 23) & 1)
+        {
+            // Sign bit is set
+            value = -static_cast<std::int32_t>(((~uvalue.value) & 0xFFFFFF) + 1);
+        }
+
+        else
+        {
+            value = uvalue.value;
+        }
+    }
+
+    return *this;
+}
+
+
 ts::messages::Message_reader& ts::messages::Message_reader::operator>>(utf8_string& value)
 {
     std::int32_t length;

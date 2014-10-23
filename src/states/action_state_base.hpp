@@ -45,7 +45,7 @@ namespace ts
     namespace states
     {
         class Action_state_base
-            : public gui::State, public world::World_listener, public cup::Cup_listener
+            : public gui::State, public cup::Cup_listener
         {
         public:
             Action_state_base(game::Loaded_scene loaded_scene, controls::Control_interface* control_interface,
@@ -56,13 +56,8 @@ namespace ts
             virtual void handle_event(const sf::Event& event) override;
             virtual void update(std::size_t frame_duration) override;
 
-            virtual void on_car_create(world::Car* car) override;
-            virtual void on_car_destroy(world::Car* car) override;
-
-            virtual void on_collision(const world::Collision_result& collision) override;
-
-        private:
             virtual void on_activate() override;
+        private:            
             virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state);
 
             virtual void end_action() = 0;

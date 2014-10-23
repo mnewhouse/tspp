@@ -25,6 +25,7 @@
 #include "user_interface/gui_state.hpp"
 
 #include "cup/cup_listener.hpp"
+#include "cup/chatbox_listener.hpp"
 
 namespace ts
 {
@@ -51,7 +52,7 @@ namespace ts
         class Cup_GUI;
 
         class Cup_state_base
-            : public gui::State, protected cup::Cup_listener
+            : public gui::State, protected cup::Cup_listener, protected cup::Chatbox_listener
         {
         public:
             Cup_state_base(const client::Client_interface* client_interface, state_machine_type* state_machine, gui::Context* context,
@@ -65,6 +66,7 @@ namespace ts
             virtual void on_activate() override;
 
             virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
+            virtual void on_chat_message(const cup::Composite_message& message) override;
             
         protected:
             void show_stage_loading(const game::Stage_loader* stage_loader);
@@ -73,10 +75,6 @@ namespace ts
             virtual std::unique_ptr<Action_state_base> make_action_state(game::Loaded_scene loaded_scene) = 0;
 
         private:
-            
-
-            
-
             void return_to_main_menu();
 
             const client::Client_interface* client_interface_;

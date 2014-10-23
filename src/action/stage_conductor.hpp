@@ -19,40 +19,40 @@
 
 #pragma once
 
-#ifndef STAGE_INTERFACE_HPP
-#define STAGE_INTERFACE_HPP
+#ifndef ACTION_STAGE_CONDUCTOR_HPP
+#define ACTION_STAGE_CONDUCTOR_HPP
 
-#include "stage_loader.hpp"
+#include "action_messages.hpp"
 
 namespace ts
 {
     namespace action
     {
         class Stage;
-    }
 
-    namespace cup
-    {
-        struct Stage_data;
-    }
-
-    namespace game
-    {
-        class Stage_interface
+        class Stage_conductor
         {
         public:
-            using Completion_callback = void(const action::Stage*);
-            const Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<Completion_callback> completion_callback);
-            void poll();
+            Stage_conductor(Stage* stage);
+            ~Stage_conductor();
 
-            void clean_stage();
+            void process_control_event_message(const Control_event_message& message);
+            void process_game_state_message(const Game_state_message& message);
 
-            action::Stage* stage();
-            const action::Stage* stage() const;
+            void update(std::size_t frame_duration);
+
+            const Stage* stage() const;            
+            std::uint32_t stage_time() const;
+            void purge_old_events(std::uint32_t stage_time_threshold);
 
         private:
-            Stage_loader stage_loader_;
-            std::unique_ptr<action::Stage> stage_;
+            void handle_control_event_message(const Control_event_message& message);
+            void enqueue_control_event_message(const Control_event_message& message);            
+
+            void poll();
+
+            std::deque<Control_event_message> control_event_queue_;
+            Stage* stage_;
         };
     }
 }

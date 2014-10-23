@@ -19,6 +19,8 @@
 
 #include "stdinc.hpp"
 #include "server_stage_interface.hpp"
+#include "server_stage_conductor.hpp"
+#include "server_messages.hpp"
 
 #include "game/stage_interface.hpp"
 
@@ -41,17 +43,22 @@ class ts::server::Stage_interface::Impl
     : public game::Stage_interface, public cup::Cup_listener
 {
 public:
-    Impl(cup::Cup* cup);
+    Impl(Message_center* message_center, cup::Cup* cup);
     ~Impl();
 
-private:
+    void launch_action();
+    void update(std::size_t frame_duration);
     virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
 
     cup::Cup* cup_;
+    Message_center* message_center_;
+
+    std::unique_ptr<Stage_conductor> stage_conductor_;
 };
 
-ts::server::Stage_interface::Impl::Impl(cup::Cup* cup)
-: cup_(cup)
+ts::server::Stage_interface::Impl::Impl(Message_center* message_center, cup::Cup* cup)
+: cup_(cup),
+  message_center_(message_center)
 {
     cup->add_cup_listener(this);
 }
@@ -59,6 +66,23 @@ ts::server::Stage_interface::Impl::Impl(cup::Cup* cup)
 ts::server::Stage_interface::Impl::~Impl()
 {
     cup_->remove_cup_listener(this);
+}
+
+void ts::server::Stage_interface::Impl::update(std::size_t frame_duration)
+{
+    poll();
+
+    if (stage_conductor_)
+    {
+        stage_conductor_->update(frame_duration);
+    }
+}
+
+void ts::server::Stage_interface::Impl::launch_action()
+{
+    stage_conductor_ = std::make_unique<Stage_conductor>(message_center_, stage());
+
+    stage()->launch_game();
 }
 
 void ts::server::Stage_interface::Impl::on_state_change(cup::Cup_state old_state, cup::Cup_state new_state)
@@ -71,8 +95,8 @@ void ts::server::Stage_interface::Impl::on_state_change(cup::Cup_state old_state
     }
 }
 
-ts::server::Stage_interface::Stage_interface(cup::Cup* cup)
-   : impl_(std::make_unique<Impl>(cup))
+ts::server::Stage_interface::Stage_interface(Message_center* message_center, cup::Cup* cup)
+   : impl_(std::make_unique<Impl>(message_center, cup))
 {
 }
 
@@ -85,14 +109,15 @@ const ts::game::Stage_loader* ts::server::Stage_interface::async_load_stage(cons
     return impl_->async_load_stage(stage_data, completion_callback);
 }
 
-void ts::server::Stage_interface::poll()
+void ts::server::Stage_interface::launch_action()
 {
-    impl_->poll();
+    impl_->launch_action();
 }
 
 void ts::server::Stage_interface::clean_stage()
 {
     impl_->clean_stage();
+    impl_->stage_conductor_ = nullptr;
 }
 
 void ts::server::Stage_interface::update(std::size_t frame_duration)

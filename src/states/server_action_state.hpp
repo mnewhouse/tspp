@@ -47,6 +47,7 @@ namespace ts
 
             virtual ~Server_action_state();
 
+            virtual void on_activate() override;
             virtual void update(std::size_t frame_duration) override;
             virtual void end_action() override;
 

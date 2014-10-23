@@ -23,6 +23,7 @@
 #include "cup/cup_messages.hpp"
 #include "cup/stage_data.hpp"
 #include "cup/cup.hpp"
+#include "cup/chatbox.hpp"
 
 #include "resources/resource_store.hpp"
 #include "resources/track_store.hpp"
@@ -42,6 +43,11 @@ public:
     const utf8_string& registration_error() const;
     Registration_status registration_status() const;
 
+    const cup::Chatbox* chatbox() const;
+
+    void add_chatbox_listener(cup::Chatbox_listener* listener);
+    void remove_chatbox_listener(cup::Chatbox_listener* listener);
+
 private:
     virtual void handle_message(const Server_message& message) override;
 
@@ -52,6 +58,7 @@ private:
     void handle_cup_state_message(const Message& message);
     void handle_cup_progress_message(const Message& message);
     void handle_action_initialization_message(const Message& message);
+    void handle_chat_message(const Message& message);
 
     void registration_error(utf8_string error_string);
 
@@ -62,6 +69,8 @@ private:
     Registration_status registration_status_ = Registration_status::None;
     std::uint64_t registration_key_;
     utf8_string registration_error_;
+
+    cup::Chatbox chatbox_;
 };
 
 ts::client::Interaction_interface::Impl::Impl(Message_center* message_center, cup::Cup* cup, resources::Resource_store* resource_store)
@@ -125,6 +134,9 @@ void ts::client::Interaction_interface::Impl::handle_message(const Server_messag
         case Msg::action_initialization:
             handle_action_initialization_message(message);
             break;
+
+        case Msg::chat_message:
+            handle_chat_message(message);
         }
     }
 }
@@ -148,6 +160,7 @@ void ts::client::Interaction_interface::Impl::handle_player_information_message(
     auto player_information = cup::parse_player_information_message(message);
 
     cup_->clear_players();
+
     for (const auto& player : player_information.players)
     {
         cup_->add_player(player, player.handle);
@@ -186,6 +199,12 @@ void ts::client::Interaction_interface::Impl::handle_car_information_message(con
     cup_->load_car_settings(car_settings);
 }
 
+void ts::client::Interaction_interface::Impl::handle_chat_message(const Message& message)
+{
+    auto chat_output = cup::parse_chatbox_output_message(message);
+    chatbox_.dispatch_message(chat_output.message);
+}
+
 void ts::client::Interaction_interface::Impl::handle_cup_state_message(const Message& message)
 {
     auto state_info = cup::parse_cup_state_message(message);
@@ -220,11 +239,27 @@ void ts::client::Interaction_interface::Impl::handle_action_initialization_messa
             car_data.start_pos = car_info.start_pos;
             car_data.player.color = car_info.color;
             car_data.controller = cup_->get_player_by_id(car_info.player);
+
             stage_data.cars.push_back(car_data);
         }
     }
     
     cup_->initialize_action(stage_data);
+}
+
+const ts::cup::Chatbox* ts::client::Interaction_interface::Impl::chatbox() const
+{
+    return &chatbox_;
+}
+
+void ts::client::Interaction_interface::Impl::add_chatbox_listener(cup::Chatbox_listener* listener)
+{
+    chatbox_.add_chatbox_listener(listener);
+}
+
+void ts::client::Interaction_interface::Impl::remove_chatbox_listener(cup::Chatbox_listener* listener)
+{
+    chatbox_.remove_chatbox_listener(listener);
 }
 
 void ts::client::Interaction_interface::Impl::registration_error(utf8_string error_string)
@@ -264,4 +299,19 @@ const ts::utf8_string& ts::client::Interaction_interface::registration_error() c
 void ts::client::Interaction_interface::send_registration_request()
 {
     impl_->send_registration_request();
+}
+
+const ts::cup::Chatbox* ts::client::Interaction_interface::chatbox() const
+{
+    return impl_->chatbox();
+}
+
+void ts::client::Interaction_interface::add_chatbox_listener(cup::Chatbox_listener* listener)
+{
+    impl_->add_chatbox_listener(listener);
+}
+
+void ts::client::Interaction_interface::remove_chatbox_listener(cup::Chatbox_listener* listener)
+{
+    impl_->remove_chatbox_listener(listener);
 }

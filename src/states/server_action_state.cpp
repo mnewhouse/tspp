@@ -38,17 +38,19 @@ ts::states::Server_action_state::~Server_action_state()
 
 void ts::states::Server_action_state::update(std::size_t frame_duration)
 {
-    if (server_)
-    {
-        Action_state_base::update(frame_duration);
+    Action_state_base::update(frame_duration);
 
-        server_->poll();
-        server_->update_stage(frame_duration);
-    }
+    server_->update(frame_duration);
+}
+
+void ts::states::Server_action_state::on_activate()
+{
+    Action_state_base::on_activate();
+
+    server_->launch_action();
 }
 
 void ts::states::Server_action_state::end_action()
 {
-    server_->end_action();
-    
+    server_->end_action();    
 }

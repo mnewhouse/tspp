@@ -47,7 +47,8 @@ namespace ts
             Client_map(cup::Cup* cup, network::Server_connection* server_connection);
 
             void disconnect_client(const Generic_client& client_handle);
-            void register_client(const Generic_client& client_handle, const std::vector<cup::Player_definition>& players);
+            void register_client(const Generic_client& client_handle);
+            cup::Player_handle register_player(const Generic_client& client_handle, cup::Player_definition player_definition);
             
             bool is_player_mapped_to_client(cup::Player_handle player, const Generic_client& client) const;
             Range<const cup::Player_handle*> get_players_by_client(const Generic_client& client) const;

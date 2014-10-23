@@ -25,6 +25,7 @@
 
 #include "controls/control_event.hpp"
 #include "controls/control_center.hpp"
+#include "controls/controllable.hpp"
 
 ts::client::Control_interface::Control_interface(const action::Stage* stage, const Message_center* client_message_center)
 : message_center_(client_message_center),
@@ -37,11 +38,29 @@ void ts::client::Control_interface::handle_event(const controls::Control_event& 
     message_buffer_.message_type = Message_type::Fast;
 
     const auto& control_center = stage_->control_center();
-    const auto& controllables = control_center.get_controllables_by_slot(event.slot);
-    for (auto controllable : controllables)
+    control_center.handle_control_event(event);
+
+    if (std::find(updated_slots_.begin(), updated_slots_.end(), event.slot) == updated_slots_.end())
     {
-        message_buffer_.message = action::make_control_event_message(controllable, stage_->stage_time());
-        message_center_->dispatch_message(message_buffer_);
+        updated_slots_.push_back(event.slot);
     }
-    
+}
+
+void ts::client::Control_interface::update(std::size_t frame_duration)
+{
+    const auto& control_center = stage_->control_center();
+
+    for (auto slot : updated_slots_)
+    {
+        const auto& controllables = control_center.get_controllables_by_slot(slot);
+        for (auto controllable : controllables)
+        {
+            message_buffer_.message = action::make_control_event_message(controllable->controllable_id(), controllable->control_state_mask(),
+                                                                     stage_->stage_time());
+            message_center_->dispatch_message(message_buffer_);
+            message_center_->handle_message(message_buffer_);
+        }
+    }
+
+    updated_slots_.clear();
 }

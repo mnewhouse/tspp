@@ -29,6 +29,8 @@ namespace ts
 {
     namespace world
     {
+        static const double max_entity_speed_config = 10000.0;
+
         inline Vector2<double> compute_new_position(const Entity& entity, double frame_duration)
         {
             return entity.position() + entity.velocity() * frame_duration;
@@ -52,6 +54,10 @@ ts::world::World::World(std::unique_ptr<resources::Track> track, resources::Patt
   control_point_manager_(track_->control_points().begin(), track_->control_points().end())
 {
     add_world_listener(&control_point_manager_);
+}
+
+ts::world::World::~World()
+{
 }
 
 
@@ -228,9 +234,9 @@ void ts::world::World::update(std::size_t frame_duration)
 
                 target_state = resolved_state;                  
 
-                if (magnitude(target_state.velocity) > max_entity_speed)
+                if (magnitude(target_state.velocity) > max_entity_speed())
                 {
-                    target_state.velocity = normalize(target_state.velocity) * max_entity_speed;
+                    target_state.velocity = normalize(target_state.velocity) * max_entity_speed();
                 }
 
                 if (!collision.rotate)
@@ -429,6 +435,11 @@ void ts::world::World::displace_entity(Entity* entity, Vector2<double> new_posit
     });
 
     entity->set_position(new_position);
+}
+
+double ts::world::World::max_entity_speed()
+{
+    return world::max_entity_speed_config;
 }
 
 

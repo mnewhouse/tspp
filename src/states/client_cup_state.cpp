@@ -32,18 +32,20 @@ ts::states::Client_cup_state::Client_cup_state(state_machine_type* state_machine
   Cup_state_base(client_.client_interface(), state_machine, context, resource_store)
 {
     client_.add_cup_listener(this);
+    client_.add_chatbox_listener(this);
 }
 
 ts::states::Client_cup_state::~Client_cup_state()
 {
     client_.remove_cup_listener(this);
+    client_.remove_chatbox_listener(this);
 }
 
 void ts::states::Client_cup_state::update(std::size_t frame_duration)
 {
     Cup_state_base::update(frame_duration);
 
-    client_.poll();
+    client_.update(frame_duration);
 }
 
 void ts::states::Client_cup_state::on_initialize(const cup::Stage_data& stage_data)
@@ -83,6 +85,5 @@ ts::client::Connection_status ts::states::Client_cup_state::connection_status() 
 
 std::unique_ptr<ts::states::Action_state_base> ts::states::Client_cup_state::make_action_state(game::Loaded_scene loaded_scene)
 {
-    return std::make_unique<ts::states::Client_action_state>(std::move(loaded_scene), &client_,
-                                                             state_machine(), context(), resource_store());
+    return std::make_unique<ts::states::Client_action_state>(std::move(loaded_scene), &client_,                                                             state_machine(), context(), resource_store());
 }

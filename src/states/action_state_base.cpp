@@ -47,7 +47,7 @@ ts::states::Action_state_base::~Action_state_base()
 
 void ts::states::Action_state_base::on_activate()
 {
-    scene_.sound_controller->engine_sounds.start();
+    scene_.sound_controller->start();
 }
 
 void ts::states::Action_state_base::handle_event(const sf::Event& event)
@@ -73,6 +73,7 @@ void ts::states::Action_state_base::handle_event(const sf::Event& event)
 
 void ts::states::Action_state_base::update(std::size_t frame_duration)
 {
+    control_interface_->update(frame_duration);
     scene_.sound_controller->update(frame_duration);
 
     scene_.action_scene->update_entities(frame_duration);
@@ -86,19 +87,4 @@ void ts::states::Action_state_base::on_state_change(cup::Cup_state old_state, cu
         // Pop this state from the state stack
         state_machine()->change_state();
     }
-}
-
-void ts::states::Action_state_base::on_car_create(world::Car* car)
-{
-    scene_.sound_controller->engine_sounds.register_car(car);
-}
-
-void ts::states::Action_state_base::on_car_destroy(world::Car* car)
-{
-    scene_.sound_controller->engine_sounds.unregister_car(car);
-}
-
-void ts::states::Action_state_base::on_collision(const world::Collision_result& collision)
-{
-    scene_.sound_controller->collision_sounds.play_collision_sound(collision);
 }

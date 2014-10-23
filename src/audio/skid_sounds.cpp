@@ -75,7 +75,7 @@ void ts::audio::Skid_sound_controller::update()
                 Sound_properties properties;
                 properties.volume = 0.70f;
 
-                data.sound_effect = sound_effect_controller_->play_looped_sound(skid_sound_, priority, properties);
+                // data.sound_effect = sound_effect_controller_->play_looped_sound(skid_sound_, priority, properties);
             }
 
             else

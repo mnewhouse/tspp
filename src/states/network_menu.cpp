@@ -78,6 +78,7 @@ void ts::states::Network_menu::update(std::size_t frame_duration)
         {
             client_cup_state_ = {};
             connection_dialog_->set_status_text("Connection failed.");
+            registration_status_ = client::Registration_status::None;
         }
 
         else if (client_cup_state_->connection_status() == Connection_status::Connected)
@@ -122,6 +123,7 @@ void ts::states::Network_menu::handle_registration_error(const utf8_string& erro
     connection_dialog_->set_status_text("Error: " + error_message);
 
     client_cup_state_ = {};
+    registration_status_ = client::Registration_status::None;
 }
 
 void ts::states::Network_menu::return_to_main_menu()
@@ -167,6 +169,8 @@ void ts::states::Network_menu::initiate_client_connection(utf8_string address_st
 
         network_menu_->set_active(false);
         server_address_editbox_->set_active(false);
+
+        registration_status_ = client::Registration_status::None;
     }
 }
 

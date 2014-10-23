@@ -159,9 +159,9 @@ ts::world::Collision_result ts::world::detect_scenery_collision(const Entity_sta
     auto collision_point = test_trajectory(entity->position(), entity_state.position, trajectory_test);
     if (!collision_point.result) return result;
 
-    auto is_wall = [&](Vector2u point)
+    auto safe_is_wall = [&](Vector2u point)
     {
-        return scenery(point, level);
+        return point.x < scenery.size().x && point.y < scenery.size().y && scenery(point, level);
     };
 
     auto heading = normalize(entity->velocity());
@@ -186,7 +186,7 @@ ts::world::Collision_result ts::world::detect_scenery_collision(const Entity_sta
         result.rotate = false;
     }
 
-    result.normal = get_edge_normal(result.global_point, heading, is_wall);
+    result.normal = get_edge_normal(result.global_point, heading, safe_is_wall);
     result.subject_state = resolve_scenery_collision(result);
     result.subject_point = result.global_point - Vector2i(collision_point.point);
     

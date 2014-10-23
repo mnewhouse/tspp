@@ -25,11 +25,16 @@
 #include "client_messages.hpp"
 #include "registration.hpp"
 
+#include "cup/chat_message.hpp"
+
 namespace ts
 {
     namespace cup
     {
         class Cup;
+
+        class Chatbox;
+        struct Chatbox_listener;
     }
 
     namespace resources
@@ -49,6 +54,12 @@ namespace ts
 
             Registration_status registration_status() const;
             const utf8_string& registration_error() const;
+
+            bool poll_chat_message(cup::Composite_message& message);
+            const cup::Chatbox* chatbox() const;
+
+            void add_chatbox_listener(cup::Chatbox_listener* listener);
+            void remove_chatbox_listener(cup::Chatbox_listener* listener);
 
         private:
             class Impl;

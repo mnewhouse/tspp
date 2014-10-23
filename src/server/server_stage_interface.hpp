@@ -19,6 +19,9 @@
 
 #ifndef SERVER_STAGE_INTERFACE_HPP
 #define SERVER_STAGE_INTERFACE_HPP
+
+#include "server_messages.hpp"
+
 namespace ts
 {
     namespace cup
@@ -42,17 +45,16 @@ namespace ts
         class Stage_interface
         {
         public:
-            Stage_interface(cup::Cup* cup);
+            Stage_interface(Message_center* message_center, cup::Cup* cup);
             ~Stage_interface();
 
             const game::Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback);
 
-            void poll();
             void update(std::size_t frame_duration);
             const action::Stage* stage() const;
 
             void clean_stage();
-
+            void launch_action();
 
         private:
             class Impl;

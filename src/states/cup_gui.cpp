@@ -279,6 +279,11 @@ bool ts::states::Cup_GUI::quit_event_pending() const
     return impl_->quit_event_pending();
 }
 
+void ts::states::Cup_GUI::output_chat_message(const cup::Composite_message& message)
+{
+    impl_->output_chat_message(message);
+}
+
 
 void ts::states::impl::Cup_GUI::set_car_selection_dialog_ready()
 {

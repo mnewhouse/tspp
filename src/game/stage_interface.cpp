@@ -49,10 +49,7 @@ const ts::action::Stage* ts::game::Stage_interface::stage() const
     return stage_.get();
 }
 
-void ts::game::Stage_interface::update(std::size_t frame_duration)
+ts::action::Stage* ts::game::Stage_interface::stage()
 {
-    if (stage_)
-    {
-        stage_->update(frame_duration);
-    }
+    return stage_.get();
 }

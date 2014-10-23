@@ -116,6 +116,28 @@ ts::messages::Message& ts::messages::Message::operator<<(std::uint64_t value)
     return *this;
 }
 
+ts::messages::Message& ts::messages::Message::operator<<(uint24_t v)
+{
+    const std::uint8_t bytes[] =
+    {
+        v.value >> 16 & 0xFF, v.value >> 8 & 0xFF, v.value & 0xFF
+    };
+
+    append(bytes, sizeof(bytes));
+    return *this;
+}
+
+ts::messages::Message& ts::messages::Message::operator<<(int24_t v)
+{
+    if (v.value >= 0)
+    {
+        return *this << uint24_t(static_cast<std::uint32_t>(v.value));
+    }
+
+    std::uint32_t uvalue = ~(-v.value - 1);
+    return *this << uint24_t(uvalue);
+}
+
 ts::messages::Message& ts::messages::Message::operator<<(std::int64_t value)
 {
     if (value >= 0)
@@ -176,3 +198,11 @@ ts::messages::Message& ts::messages::Message::operator<<(const utf8_string& u8_s
     append(reinterpret_cast<const std::uint8_t*>(string.data()), string.size());
     return *this;
 }
+
+ts::messages::uint24_t::uint24_t(std::uint32_t value)
+: value(value)
+{}
+
+ts::messages::int24_t::int24_t(std::int32_t value)
+: value(value)
+{}

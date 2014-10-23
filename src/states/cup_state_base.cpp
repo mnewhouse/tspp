@@ -122,6 +122,11 @@ void ts::states::Cup_state_base::load_scene(const action::Stage* stage)
     loading_sequence_->async_load(stage);
 }
 
+void ts::states::Cup_state_base::on_chat_message(const cup::Composite_message& message)
+{
+    cup_gui_->output_chat_message(message);
+}
+
 void ts::states::Cup_state_base::return_to_main_menu()
 {
     state_machine()->change_state();

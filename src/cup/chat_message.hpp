@@ -19,8 +19,8 @@
 
 #pragma once
 
-#ifndef CUP_CHATBOX_HPP
-#define CUP_CHATBOX_HPP
+#ifndef CHAT_MESSAGE_HPP
+#define CHAT_MESSAGE_HPP
 
 #include "graphics/colored_text.hpp"
 

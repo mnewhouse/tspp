@@ -136,8 +136,6 @@ void ts::network::impl::Server_connection::send_tcp_message(const Message& messa
     packet_buffer_.clear();
     packet_buffer_.append(message.data(), message.size());
 
-    std::cout << "Outgoing message " << message.type() << std::endl;
-
     client.client_impl_->socket_->send(packet_buffer_);
 }
 

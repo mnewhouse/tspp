@@ -19,47 +19,44 @@
 
 #pragma once
 
-#ifndef CLIENT_STAGE_INTERFACE_HPP
-#define CLIENT_STAGE_INTERFACE_HPP
+#ifndef CLIENT_STAGE_CONDUCTOR_HPP
+#define CLIENT_STAGE_CONDUCTOR_HPP
 
 #include "client_messages.hpp"
 
 namespace ts
 {
-    namespace cup
-    {
-        struct Stage_data;
-    }
-
     namespace action
     {
         class Stage;
-    }
-
-    namespace game
-    {
-        class Stage_loader;
+        class Stage_conductor;
+        struct Game_state_message;
     }
 
     namespace client
     {
-        class Stage_interface
+        class Stage_conductor
+            : public Message_listener
         {
         public:
-            Stage_interface(Message_center* message_center);
-            ~Stage_interface();
-
-            const game::Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback);
+            Stage_conductor(Message_center* message_center, action::Stage* stage);
+            ~Stage_conductor();
 
             void update(std::size_t frame_duration);
-            void clean_stage();
-            void launch_action();
-
-            const action::Stage* stage() const;
+            void purge_old_events(std::uint32_t time_point);
 
         private:
-            class Impl;
-            std::unique_ptr<Impl> impl_;
+            virtual void handle_message(const Server_message& server_message) override;
+
+            void handle_control_event_message(const Message& message);
+            void handle_game_state_message(const Message& message);
+
+            std::unique_ptr<action::Stage_conductor> stage_conductor_;
+            std::vector<action::Game_state_message> queued_game_state_;
+
+            std::uint32_t min_advance_time_ = 100;
+            std::uint32_t max_advance_time_ = 200;
+            std::uint32_t advance_time_ = 100;
         };
     }
 }

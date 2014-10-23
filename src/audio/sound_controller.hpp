@@ -37,6 +37,7 @@ namespace ts
             Sound_controller(resources::Audio_settings audio_settings, audio::Loaded_sound_effects sound_effects);
 
             void update(std::size_t frame_duration);
+            void start();
 
             Sound_effect_controller sound_effect_controller;
 

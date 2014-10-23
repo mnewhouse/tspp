@@ -46,14 +46,19 @@ void ts::controls::Controllable::set_control_state(Control control, bool state)
     }
 }
 
+std::uint16_t ts::controls::Controllable::control_state_mask() const
+{
+    return control_state_;
+}
+
+void ts::controls::Controllable::set_control_state_mask(std::uint16_t mask)
+{
+    control_state_ = mask;
+}
+
 bool ts::controls::Controllable::control_state(Control control) const
 {
     return (control_state_ & static_cast<std::uint32_t>(control)) != 0;
-}
-
-std::uint32_t ts::controls::Controllable::control_state() const
-{
-    return control_state_;
 }
 
 std::uint16_t ts::controls::Controllable::controllable_id() const

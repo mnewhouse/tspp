@@ -91,7 +91,7 @@ ts::server::impl::Server::Server(resources::Resource_store* resource_store)
   message_dispatcher_(this, &message_center_),
   client_map_(&cup_, &server_connection_),
   interaction_interface_(&message_center_, &client_map_, &cup_, resource_store),
-  stage_interface_(&cup_)
+  stage_interface_(&message_center_, &cup_)
 {
 }
 
@@ -159,8 +159,11 @@ void ts::server::impl::Server::poll()
         message_buffer_.message_type = Message_type::Fast;
         message_center_.handle_message(message_buffer_);
     }
+}
 
-    stage_interface_.poll();
+void ts::server::Server::launch_action()
+{
+    impl_->stage_interface_.launch_action();
 }
 
 void ts::server::impl::Server::end_action()
@@ -180,13 +183,9 @@ ts::server::Server::~Server()
 {
 }
 
-void ts::server::Server::poll()
+void ts::server::Server::update(std::size_t frame_duration)
 {
     impl_->poll();
-}
-
-void ts::server::Server::update_stage(std::size_t frame_duration)
-{
     impl_->stage_interface_.update(frame_duration);
 }
 
@@ -195,7 +194,12 @@ void ts::server::Server::register_local_client(Local_client_link client_link, co
     impl_->local_client_link_ = client_link;
 
     Generic_client client(local_client);
-    impl_->client_map_.register_client(client, local_players);
+    impl_->client_map_.register_client(client);
+    
+    for (auto& player_def : local_players)
+    {
+        impl_->client_map_.register_player(client, player_def);
+    }
 }
 
 const ts::server::Message_center* ts::server::Server::message_center() const
@@ -221,6 +225,21 @@ void ts::server::Server::remove_cup_listener(cup::Cup_listener* listener)
 void ts::server::Server::add_cup_listener(cup::Cup_listener* listener)
 {
     impl_->cup_.add_cup_listener(listener);
+}
+
+const ts::cup::Chatbox* ts::server::Server::chatbox() const
+{
+    return impl_->interaction_interface_.chatbox();
+}
+
+void ts::server::Server::add_chatbox_listener(cup::Chatbox_listener* listener)
+{
+    impl_->interaction_interface_.add_chatbox_listener(listener);
+}
+
+void ts::server::Server::remove_chatbox_listener(cup::Chatbox_listener* listener)
+{
+    impl_->interaction_interface_.add_chatbox_listener(listener);
 }
 
 const ts::game::Stage_loader* ts::server::Server::async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback)

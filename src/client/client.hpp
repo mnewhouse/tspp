@@ -26,12 +26,17 @@
 
 #include "network/client_connection.hpp"
 
+
 namespace ts
 {
     namespace cup
     {
         class Cup;
         struct Cup_listener;
+
+        struct Chatbox_listener;
+        class Chatbox;
+
         struct Stage_data;
     }
 
@@ -83,13 +88,17 @@ namespace ts
             void add_cup_listener(cup::Cup_listener* listener);
             void remove_cup_listener(cup::Cup_listener* listener);
 
+            void add_chatbox_listener(cup::Chatbox_listener* listener);
+            void remove_chatbox_listener(cup::Chatbox_listener* listener);
+
+            const cup::Chatbox* chatbox() const;
+
             void async_connect(utf8_string remote_address, std::uint16_t remote_port);
             void send_registration_request();
 
-            void poll();
-
-            void update_stage(std::size_t frame_duration);
+            void update(std::size_t frame_duration);
             void clean_stage();
+            void launch_action();
             void end_action();
 
             const game::Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback);

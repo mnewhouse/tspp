@@ -24,6 +24,7 @@
 #include "client_messages.hpp"
 
 #include "controls/control_interface.hpp"
+#include "controls/control.hpp"
 
 namespace ts
 {
@@ -41,12 +42,14 @@ namespace ts
             Control_interface(const action::Stage* stage, const Message_center* local_message_center);
 
             virtual void handle_event(const controls::Control_event& event) override;
+            virtual void update(std::size_t frame_duration) override;
 
         private:
             const Message_center* message_center_;
             const action::Stage* stage_;
 
             Server_message message_buffer_;
+            std::vector<controls::Slot> updated_slots_;
         };
     }
 }

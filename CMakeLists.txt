@@ -31,6 +31,8 @@ set(SRC src/main.cpp
 		src/action/action_messages.cpp
 		src/action/stage.hpp
 		src/action/stage.cpp
+		src/action/stage_conductor.hpp
+		src/action/stage_conductor.cpp
 
         src/audio/audio_store.cpp
         src/audio/audio_store.hpp
@@ -55,7 +57,9 @@ set(SRC src/main.cpp
 		src/client/client_interactions.cpp
 		src/client/client_interface.hpp
 		src/client/client_interface.cpp
-		src/client/client_messages.hpp
+		src/client/client_messages.hpp		
+		src/client/client_stage_conductor.hpp
+		src/client/client_stage_conductor.cpp
 		src/client/client_stage_interface.hpp
 		src/client/client_stage_interface.cpp
 		src/client/local_client.hpp
@@ -264,6 +268,8 @@ set(SRC src/main.cpp
 		src/server/server_interactions.hpp
 		src/server/server_interactions.cpp
 		src/server/server_messages.hpp
+		src/server/server_stage_conductor.hpp
+		src/server/server_stage_conductor.cpp
 		src/server/server_stage_interface.hpp
 		src/server/server_stage_interface.cpp
         
@@ -327,6 +333,8 @@ set(SRC src/main.cpp
 
         src/states/action_state_base.hpp
         src/states/action_state_base.cpp
+		src/states/client_action_state.hpp
+		src/states/client_action_state.cpp
 		src/states/client_cup_state.hpp
 		src/states/client_cup_state.cpp
 		src/states/cup_gui.hpp

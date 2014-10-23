@@ -17,44 +17,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
+#include "stdinc.hpp"
+#include "chatbox.hpp"
+#include "chatbox_listener.hpp"
 
-#ifndef STAGE_INTERFACE_HPP
-#define STAGE_INTERFACE_HPP
-
-#include "stage_loader.hpp"
-
-namespace ts
+void ts::cup::Chatbox::add_chatbox_listener(Chatbox_listener* listener)
 {
-    namespace action
-    {
-        class Stage;
-    }
-
-    namespace cup
-    {
-        struct Stage_data;
-    }
-
-    namespace game
-    {
-        class Stage_interface
-        {
-        public:
-            using Completion_callback = void(const action::Stage*);
-            const Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<Completion_callback> completion_callback);
-            void poll();
-
-            void clean_stage();
-
-            action::Stage* stage();
-            const action::Stage* stage() const;
-
-        private:
-            Stage_loader stage_loader_;
-            std::unique_ptr<action::Stage> stage_;
-        };
-    }
+    listeners_.push_back(listener);
 }
 
-#endif
+void ts::cup::Chatbox::remove_chatbox_listener(Chatbox_listener* listener)
+{
+    listeners_.erase(std::remove(listeners_.begin(), listeners_.end(), listener), listeners_.end());
+}
+
+void ts::cup::Chatbox::dispatch_message(const Composite_message& message)
+{
+    for (auto listener : listeners_)
+    {
+        listener->on_chat_message(message);
+    }
+}

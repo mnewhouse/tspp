@@ -41,8 +41,14 @@ void ts::states::Client_action_state::update(std::size_t frame_duration)
 {
     Action_state_base::update(frame_duration);
 
-    client_->poll();
-    client_->update_stage(frame_duration);
+    client_->update(frame_duration);
+}
+
+void ts::states::Client_action_state::on_activate()
+{
+    Action_state_base::on_activate();
+
+    client_->launch_action();
 }
 
 void ts::states::Client_action_state::end_action()

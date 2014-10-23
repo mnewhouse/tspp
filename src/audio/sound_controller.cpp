@@ -37,3 +37,8 @@ void ts::audio::Sound_controller::update(std::size_t frame_duration)
     sound_effect_controller.update();
 }
 
+void ts::audio::Sound_controller::start()
+{
+    engine_sounds.start();
+}
+

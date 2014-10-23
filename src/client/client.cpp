@@ -91,7 +91,8 @@ ts::client::impl::Client::Client(resources::Resource_store* resource_store)
   message_center_(),
   message_dispatcher_(&client_connection_, &message_center_),
   client_interface_(&message_center_, &cup_),
-  interaction_interface_(&message_center_, &cup_, resource_store)
+  interaction_interface_(&message_center_, &cup_, resource_store),
+  stage_interface_(&message_center_)
 {
 }
 
@@ -108,8 +109,6 @@ void ts::client::impl::Client::poll()
         message_buffer_.message_type = Message_type::Fast;
         message_center_.handle_message(message_buffer_);
     }
-
-    stage_interface_.poll();
 }
 
 ts::client::Client::Client(resources::Resource_store* resource_store)
@@ -121,14 +120,14 @@ ts::client::Client::~Client()
 {
 }
 
-void ts::client::Client::poll()
-{
-    impl_->poll();
-}
-
 void ts::client::Client::clean_stage()
 {
     impl_->stage_interface_.clean_stage();
+}
+
+void ts::client::Client::launch_action()
+{
+    impl_->stage_interface_.launch_action();
 }
 
 void ts::client::Client::end_action()
@@ -139,8 +138,10 @@ void ts::client::Client::end_action()
     }
 }
 
-void ts::client::Client::update_stage(std::size_t frame_duration)
+void ts::client::Client::update(std::size_t frame_duration)
 {
+    impl_->poll();
+
     impl_->stage_interface_.update(frame_duration);
 }
 
@@ -182,6 +183,22 @@ void ts::client::Client::remove_cup_listener(cup::Cup_listener* listener)
 {
     impl_->cup_.remove_cup_listener(listener);
 }
+
+const ts::cup::Chatbox* ts::client::Client::chatbox() const
+{
+    return impl_->interaction_interface_.chatbox();
+}
+
+void ts::client::Client::add_chatbox_listener(cup::Chatbox_listener* listener)
+{
+    impl_->interaction_interface_.add_chatbox_listener(listener);
+}
+
+void ts::client::Client::remove_chatbox_listener(cup::Chatbox_listener* listener)
+{
+    impl_->interaction_interface_.remove_chatbox_listener(listener);
+}
+
 
 void ts::client::Client::async_connect(utf8_string remote_address, std::uint16_t remote_port)
 {

@@ -19,16 +19,47 @@
 
 #include "stdinc.hpp"
 #include "client_stage_interface.hpp"
+#include "client_stage_conductor.hpp"
 
 #include "game/stage_interface.hpp"
 
 class ts::client::Stage_interface::Impl
     : public game::Stage_interface
 {
+public:
+    Impl(Message_center* message_center);
+
+    void update(std::size_t frame_duration);
+    void launch_action();
+
+    Message_center* message_center_;
+    std::unique_ptr<Stage_conductor> stage_conductor_;
+
+private:
 };
 
-ts::client::Stage_interface::Stage_interface()
-: impl_(std::make_unique<Impl>())
+ts::client::Stage_interface::Impl::Impl(Message_center* message_center)
+: message_center_(message_center)
+{
+}
+
+void ts::client::Stage_interface::Impl::update(std::size_t frame_duration)
+{
+    poll();
+
+    if (stage_conductor_)
+    {
+        stage_conductor_->update(frame_duration);
+    }
+}
+
+void ts::client::Stage_interface::Impl::launch_action()
+{
+    stage_conductor_ = std::make_unique<Stage_conductor>(message_center_, stage());
+}
+
+ts::client::Stage_interface::Stage_interface(Message_center* message_center)
+: impl_(std::make_unique<Impl>(message_center))
 {
 }
 
@@ -41,9 +72,9 @@ const ts::game::Stage_loader* ts::client::Stage_interface::async_load_stage(cons
     return impl_->async_load_stage(stage_data, completion_callback);
 }
 
-void ts::client::Stage_interface::poll()
+const ts::action::Stage* ts::client::Stage_interface::stage() const
 {
-    impl_->poll();
+    return impl_->stage();
 }
 
 void ts::client::Stage_interface::clean_stage()
@@ -53,10 +84,11 @@ void ts::client::Stage_interface::clean_stage()
 
 void ts::client::Stage_interface::update(std::size_t frame_duration)
 {
+    impl_->poll();
     impl_->update(frame_duration);
 }
 
-const ts::action::Stage* ts::client::Stage_interface::stage() const
+void ts::client::Stage_interface::launch_action()
 {
-    return impl_->stage();
+    impl_->launch_action();
 }

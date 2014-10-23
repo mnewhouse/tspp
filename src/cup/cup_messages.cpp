@@ -279,9 +279,10 @@ ts::cup::Message ts::cup::make_player_information_message(const std::vector<Play
 {
     Message message(Message_type::player_information);
     message << static_cast<std::uint32_t>(local_players.size() + remote_players.size());
+
     for (auto player : local_players)
     {
-        message << player.handle;
+        message << static_cast<std::uint16_t>(player.handle);
         message << static_cast<std::int16_t>(player.control_slot);
         message << player.id;
         message << player.nickname;
@@ -290,7 +291,7 @@ ts::cup::Message ts::cup::make_player_information_message(const std::vector<Play
 
     for (auto player : remote_players)
     {
-        message << player->handle;
+        message << static_cast<std::uint16_t>(player->handle);
         message << static_cast<std::int16_t>(controls::invalid_slot);
         message << player->id;
         message << player->nickname;
@@ -310,7 +311,7 @@ ts::cup::Player_information_message ts::cup::parse_player_information_message(co
     {
         for (std::uint32_t idx = 0; idx != player_count; ++idx)
         {
-            Player_id handle;
+            std::uint16_t handle;
             std::int16_t control_slot;
             std::uint64_t id;
             utf8_string nickname;
