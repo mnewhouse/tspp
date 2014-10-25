@@ -23,11 +23,6 @@
 
 using namespace ts;
 
-std::string concat(std::string a, std::string b)
-{
-    return a + b;
-}
-
 int main(int, char**)
 {
     std::locale::global(boost::locale::generator().generate(""));
