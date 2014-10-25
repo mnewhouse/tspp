@@ -129,9 +129,15 @@ void ts::server::impl::Server::dispatch_message(const Client_message& message)
         }
     }
 
-    if (message.client.type() == Generic_client::Local && local_client_link_)
+    if (local_client_link_)
     {
-        local_client_link_(message);
+        switch (message.client.type())
+        {
+        case Generic_client::Local:
+        case Generic_client::None:
+            local_client_link_(message);
+            break;
+        }
     }
 }
 

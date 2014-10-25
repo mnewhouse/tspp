@@ -273,6 +273,16 @@ void ts::server::Interaction_interface::Impl::handle_quit_message(const Client_m
         message_center_->dispatch_message(out);
     }
 
+    cup::Composite_message displayed_message;
+    displayed_message.append(client_name(client), sf::Color(200, 250, 0));
+    displayed_message.append(" has left the game.", sf::Color(0, 220, 0));
+
+
+    Client_message out;
+    out.message = cup::make_chatbox_output_message(displayed_message);
+    out.message_type = Message_type::Reliable;
+    message_center_->dispatch_message(out);
+
     disconnect_client(client_message.client);
 }
 
