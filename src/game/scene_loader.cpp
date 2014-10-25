@@ -21,15 +21,14 @@
 
 #include "scene_loader.hpp"
 #include "action_scene.hpp"
-
-#include "action/stage.hpp"
-#include "resources/settings/video_settings.hpp"
-
-#include "world/world.hpp"
-
 #include "track_builder.hpp"
 #include "car_image_generator.hpp"
 
+#include "action/stage.hpp"
+#include "world/world.hpp"
+#include "world/car.hpp"
+
+#include "resources/settings/video_settings.hpp"
 #include "graphics/texture.hpp"
 
 
@@ -98,6 +97,8 @@ std::unique_ptr<ts::game::Action_scene> ts::game::Scene_loader::load_scene(const
 
     Car_image_generator car_image_generator;
 
+    const auto& control_center = stage->control_center();
+
     for (const auto& car_data : car_list)
     {
         const auto car_def = car_data.car_def;
@@ -110,6 +111,10 @@ std::unique_ptr<ts::game::Action_scene> ts::game::Scene_loader::load_scene(const
         entity_def.scale.y = car_def->image_scale;
 
         action_scene->add_car(car_data.car, entity_def);
+        if (stage->is_car_controlled(car_data.car))
+        {
+            action_scene->add_followed_entity(car_data.car);
+        }
     }
 
     set_progress(1.0);

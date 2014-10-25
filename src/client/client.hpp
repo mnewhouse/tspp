@@ -95,6 +95,9 @@ namespace ts
 
             void async_connect(utf8_string remote_address, std::uint16_t remote_port);
             void send_registration_request();
+            
+            bool is_downloading() const;
+            std::pair<std::size_t, std::size_t> download_progress() const;
 
             void update(std::size_t frame_duration);
             void clean_stage();

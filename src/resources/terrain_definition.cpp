@@ -37,10 +37,13 @@ ts::resources::Terrain_definition::Terrain_definition()
 
 std::istream& ts::resources::operator>>(std::istream& stream, Terrain_definition& terrain_def)
 {
+    std::istringstream line_stream;
+
     for (std::string line, directive; directive != "end" && std::getline(stream, line); )
     {
         boost::trim(line);
-        std::istringstream line_stream(line);
+        line_stream.clear();
+        line_stream.str(line);
 
         read_directive(line_stream, directive);
 
@@ -141,6 +144,20 @@ std::istream& ts::resources::operator>>(std::istream& stream, Terrain_definition
                 terrain_def.is_wall = (value != 0);
             }
         }
+    }
+
+    return stream;
+}
+
+std::istream& ts::resources::operator>>(std::istream& stream, Sub_terrain& sub_terrain)
+{
+    std::int32_t terrain_id, component_id, level_start, level_count;
+    if (stream >> terrain_id >> component_id >> level_start >> level_count)
+    {
+        sub_terrain.terrain_id = terrain_id;
+        sub_terrain.component_id = component_id;
+        sub_terrain.level_start = level_start;
+        sub_terrain.level_count = level_count;
     }
 
     return stream;

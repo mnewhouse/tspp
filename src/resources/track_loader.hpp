@@ -19,42 +19,39 @@
 
 #pragma once
 
-#ifndef SERVER_INTERACTIONS_HPP
-#define SERVER_INTERACTIONS_HPP
-
-#include "server_messages.hpp"
+#ifndef TRACK_PROCESSOR_HPP
+#define TRACK_PROCESSOR_HPP
 
 namespace ts
 {
-    namespace cup
-    {
-        class Cup;
-    }
-
     namespace resources
     {
-        struct Resource_store;
-    }
+        class Track;
+        class Track_handle;
 
-    namespace server
-    {
-        class Client_map;
-        class Interaction_listener;
+        struct Broken_track_exception
+            : public std::logic_error
+        {
+            Broken_track_exception();
+        };
 
-        class Interaction_interface
+        class Track_loader
         {
         public:
-            Interaction_interface(Message_center* message_center, Client_map* client_map, cup::Cup* cup, const resources::Resource_store* resource_store);
-            ~Interaction_interface();
+            Track_loader();
+            ~Track_loader();
 
-            void add_interaction_listener(Interaction_listener* listener);
-            void remove_interaction_listener(Interaction_listener* listener);
+            void load_from_handle(const resources::Track_handle& track_handle);
+            void load_from_file(const utf8_string& file_name);
+            void load_from_stream(std::istream& stream, utf8_string working_directory);
 
-            void poll();
+            Track get_result();
+            const std::vector<utf8_string>& assets() const;
 
         private:
-            class Impl;
+            void include(const utf8_string& file_name);
 
+            struct Impl;
             std::unique_ptr<Impl> impl_;
         };
     }

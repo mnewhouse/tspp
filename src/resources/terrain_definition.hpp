@@ -59,7 +59,16 @@ namespace ts
             Terrain_color color;
         };
 
+        struct Sub_terrain
+        {
+            Terrain_id terrain_id;
+            Terrain_id component_id;
+            std::int32_t level_start;
+            std::int32_t level_count;
+        };
+
         std::istream& operator>>(std::istream& stream, Terrain_definition& terrain_def);
+        std::istream& operator>>(std::istream& stream, Sub_terrain& sub_terrain);
 
         bool operator==(const Terrain_definition& first, const Terrain_definition& second);
         bool operator!=(const Terrain_definition& first, const Terrain_definition& second);

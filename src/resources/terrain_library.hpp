@@ -37,7 +37,7 @@ namespace ts
             Terrain_library();
 
             void define_terrain(const Terrain_definition& terrain_definition);
-            void define_sub_terrain(Terrain_id terrain, Terrain_id sub_id, std::size_t level_start, std::size_t level_count);
+            void define_sub_terrain(const Sub_terrain& sub_terrain);
 
             const Terrain_definition& terrain_by_id(Terrain_id id) const;
             Terrain_id sub_terrain(Terrain_id id, std::size_t level) const;

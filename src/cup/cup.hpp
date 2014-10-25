@@ -100,7 +100,6 @@ namespace ts
             const std::vector<Player_handle>& local_players() const;
 
             std::size_t player_count() const;
-            std::size_t max_players() const;
             Player_handle get_player_by_id(Player_id player_id) const;
             
 

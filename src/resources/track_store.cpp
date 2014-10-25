@@ -20,8 +20,21 @@
 #include "stdinc.hpp"
 #include "track_store.hpp"
 
-namespace {
-    const char track_extension[] = ".trk";
+namespace ts
+{
+    namespace resources
+    {
+        static const char track_extension[] = ".trk";
+
+        static utf8_string path_to_track_name(const boost::filesystem::path& path);
+    }
+}
+
+ts::utf8_string ts::resources::path_to_track_name(const boost::filesystem::path& path)
+{
+    auto track_name = boost::filesystem::basename(path);
+    boost::to_lower(track_name);
+    return track_name;
 }
 
 ts::resources::Track_handle ts::resources::Track_store::random_track() const
@@ -63,7 +76,8 @@ void ts::resources::Track_store::scan_directory(const utf8_string& directory)
 }
 
 ts::resources::Track_store::Track_store(const utf8_string& root_directory)
-: random_engine_(std::random_device{}())
+: random_engine_(std::random_device{}()),
+  root_directory_path_(root_directory)
 {
     scan_directory(root_directory);
 }
@@ -75,7 +89,8 @@ void ts::resources::Track_store::scan_directory(impl::Track_directory& dir_conte
 
     dir_contents.path = directory;
 
-    for (directory_iterator it(directory.string()), end; it != end; ++it) {
+    for (directory_iterator it(directory.string()), end; it != end; ++it) 
+    {
         const auto& entry = *it;
         const auto& path = entry.path();
         const auto file_name = path.filename();        
@@ -83,23 +98,45 @@ void ts::resources::Track_store::scan_directory(impl::Track_directory& dir_conte
         boost::filesystem::path full_path = directory.string();
         full_path /= file_name;
 
-        if (is_directory(path)) {
+        if (is_directory(path)) 
+        {
             auto& sub_directory = dir_contents.sub_directories[file_name.string()];
             sub_directory.parent_directory = &dir_contents;
             scan_directory(sub_directory, full_path.string());
         }
 
-        else if (is_regular_file(path) && file_name.extension() == track_extension) {
+        else if (is_regular_file(path) && file_name.extension() == track_extension) 
+        {
             dir_contents.track_files.push_back(path.string());
 
-            auto track_name = basename(file_name);
-            boost::to_lower(track_name);
+            auto track_name = path_to_track_name(file_name);
 
             lookup_map_.insert(std::make_pair(track_name, dir_contents.track_files.back()));
         }
     }
 
     std::sort(dir_contents.track_files.begin(), dir_contents.track_files.end());
+}
+
+ts::resources::Track_handle ts::resources::Track_store::register_track(const utf8_string& relative_to_root)
+{
+    boost::filesystem::path path = relative_to_root.string();
+    boost::filesystem::path full_path = root_directory_path_.string() / path;
+
+    auto* track_directory = &root_directory_;
+    for (auto& path_component : path.parent_path())
+    {
+        track_directory = &track_directory->sub_directories[path_component.string()];
+    }    
+
+    track_directory->track_files.push_back(path.filename().string());
+
+    auto track_name = path_to_track_name(path);
+    auto path_string = full_path.string();
+
+    lookup_map_.insert(std::make_pair(track_name, path_string));
+
+    return Track_handle(path_string);
 }
 
 ts::resources::Track_handle ts::resources::Track_store::get_track_by_name(utf8_string track_name) const
@@ -128,6 +165,11 @@ std::vector<ts::resources::Track_handle> ts::resources::Track_store::get_matchin
 ts::resources::Track_directory ts::resources::Track_store::root_directory() const
 {
     return Track_directory(&root_directory_);
+}
+
+const ts::utf8_string& ts::resources::Track_store::root_directory_path() const
+{
+    return root_directory_path_;
 }
 
 ts::resources::Track_handle ts::resources::Track_directory::track_iterator::operator*() const

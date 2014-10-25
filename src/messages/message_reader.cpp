@@ -44,6 +44,19 @@ void ts::messages::Message_reader::advance(std::uint32_t offset)
     ptr_ += offset;
 }
 
+std::size_t ts::messages::Message_reader::read(std::uint8_t* out, std::size_t data_size)
+{
+    std::uint32_t bytes_left = end_ - ptr_;
+    if (bytes_left < data_size)
+    {
+        data_size = bytes_left;
+        failbit_ = true;
+    }
+
+    std::copy(ptr_, ptr_ + data_size, out);
+    return data_size;
+}
+
 ts::messages::Message_reader& ts::messages::Message_reader::operator>>(std::uint64_t& value)
 {
     if (!*this || end_ - ptr_ < 8)

@@ -74,6 +74,7 @@ namespace ts
 
             void append(Colored_text text);
             void append(const Composite_text& composite_text);
+            void append(utf8_string text, sf::Color color = sf::Color::Transparent);
 
             Composite_text& operator+=(const Colored_text& text);
             Composite_text& operator+=(const Composite_text& text);

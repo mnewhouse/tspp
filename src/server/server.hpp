@@ -34,9 +34,6 @@ namespace ts
         struct Cup_listener;
         struct Stage_data;
         struct Player_definition;
-
-        class Chatbox;
-        struct Chatbox_listener;
     }
 
     namespace action
@@ -82,10 +79,6 @@ namespace ts
 
             void add_cup_listener(cup::Cup_listener* cup_listener);
             void remove_cup_listener(cup::Cup_listener* cup_listener);
-
-            const cup::Chatbox* chatbox() const;
-            void add_chatbox_listener(cup::Chatbox_listener* listener);
-            void remove_chatbox_listener(cup::Chatbox_listener* listener);
 
             const game::Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback);
             const action::Stage* stage() const;

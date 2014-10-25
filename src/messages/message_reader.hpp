@@ -38,6 +38,8 @@ namespace ts
             void advance(std::uint32_t offset);
             void reset(const Message& message);
 
+            std::size_t read(std::uint8_t* data, std::size_t data_size);
+
             Message_reader& operator>>(std::uint64_t& value);
             Message_reader& operator>>(std::uint32_t& value);
             Message_reader& operator>>(std::uint16_t& value);

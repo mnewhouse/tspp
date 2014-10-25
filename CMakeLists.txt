@@ -48,7 +48,8 @@ set(SRC src/main.cpp
         src/audio/sound_effect_controller.hpp
         src/audio/sound_effect_controller.cpp
 
-		
+		src/client/chatbox_interface.hpp
+		src/client/chatbox_interface.cpp
 		src/client/client.hpp
 		src/client/client.cpp
 		src/client/client_control_interface.hpp
@@ -67,6 +68,8 @@ set(SRC src/main.cpp
 		src/client/local_players.hpp
 		src/client/local_players.cpp
 		src/client/registration.hpp
+		src/client/resource_downloader.hpp
+		src/client/resource_downloader.cpp
         
         src/controls/control.hpp
         src/controls/control.cpp
@@ -192,6 +195,7 @@ set(SRC src/main.cpp
         src/resources/car_definition.cpp
         src/resources/car_handle.hpp
         src/resources/car_handle.cpp
+		src/resources/car_identifier.hpp
         src/resources/car_store.hpp
         src/resources/car_store.cpp
         src/resources/control_point.hpp
@@ -230,11 +234,13 @@ set(SRC src/main.cpp
         src/resources/tile_library.hpp
         src/resources/tile_library.cpp
         src/resources/track.hpp
-        src/resources/track.cpp
-		src/resources/track_definition.hpp
+        src/resources/track.cpp		
         src/resources/track_handle.hpp
         src/resources/track_handle.cpp
 		src/resources/track_hash.hpp
+		src/resources/track_identifier.hpp
+		src/resources/track_loader.hpp
+		src/resources/track_loader.cpp
         src/resources/track_store.hpp
         src/resources/track_store.cpp
         src/resources/wall_definition.hpp
@@ -264,6 +270,8 @@ set(SRC src/main.cpp
 		src/server/client_map.cpp
 		src/server/generic_client.hpp
 		src/server/generic_client.cpp
+		src/server/resource_download_server.hpp
+		src/server/resource_download_server.cpp
 		src/server/server.hpp
 		src/server/server.cpp
 		src/server/server_interaction_listener.hpp

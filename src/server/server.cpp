@@ -159,6 +159,8 @@ void ts::server::impl::Server::poll()
         message_buffer_.message_type = Message_type::Fast;
         message_center_.handle_message(message_buffer_);
     }
+
+    interaction_interface_.poll();
 }
 
 void ts::server::Server::launch_action()
@@ -225,21 +227,6 @@ void ts::server::Server::remove_cup_listener(cup::Cup_listener* listener)
 void ts::server::Server::add_cup_listener(cup::Cup_listener* listener)
 {
     impl_->cup_.add_cup_listener(listener);
-}
-
-const ts::cup::Chatbox* ts::server::Server::chatbox() const
-{
-    return impl_->interaction_interface_.chatbox();
-}
-
-void ts::server::Server::add_chatbox_listener(cup::Chatbox_listener* listener)
-{
-    impl_->interaction_interface_.add_chatbox_listener(listener);
-}
-
-void ts::server::Server::remove_chatbox_listener(cup::Chatbox_listener* listener)
-{
-    impl_->interaction_interface_.add_chatbox_listener(listener);
 }
 
 const ts::game::Stage_loader* ts::server::Server::async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback)

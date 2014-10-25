@@ -21,6 +21,7 @@
 #include "pattern_builder.hpp"
 #include "track.hpp"
 
+#include "tile.hpp"
 #include "pattern.hpp"
 
 #include <SFML/Graphics.hpp>
@@ -43,30 +44,27 @@ ts::resources::Pattern ts::resources::Pattern_builder::operator()(std::function<
 {
     Pattern pattern(track_.size());
 
-    auto apply_tile_func = [&](const Tile_group_definition& tile_def, const Level_tile& tile,
-        const Tile_definition& sub_tile_def, const Level_tile& sub_tile,
-        Vector2d position, Rotation<double> rotation)
-    {
-        const auto& pattern_file = sub_tile_def.pattern_file();
-        const auto& resolved_path = resolve_include_path(pattern_file);
+    const auto& tile_list = track_.tile_list();
 
-        auto handle = pattern_loader_.load_from_file(resolved_path);
-        apply_pattern(pattern, *handle, sub_tile_def.pattern_rect, position, rotation);
+    for (const auto& placed_tile : track_.placed_tiles())
+    {
+        const auto* tile_def = placed_tile.tile_def;
+        const auto& tile = placed_tile.tile;
+        auto handle = pattern_loader_.load_from_file(tile_def->pattern_file());
+        apply_pattern(pattern, *handle, tile_def->pattern_rect, tile.position, tile.rotation);
 
         if (step_operation) step_operation();
-    };
-
-    const auto& tile_list = track_.tile_list();
-    for_each_tile(tile_list.begin(), tile_list.end(), track_.tile_library(), apply_tile_func);
+    }
 
     return pattern;
 }
 
 void ts::resources::Pattern_builder::preload_pattern(const utf8_string& path)
 {
-    pattern_loader_.load_from_file(resolve_include_path(path));
+    pattern_loader_.load_from_file(path);
 }
 
+/*
 const ts::utf8_string& ts::resources::Pattern_builder::resolve_include_path(const utf8_string& path)
 {
     auto it = precomputed_paths_.find(path);
@@ -78,6 +76,7 @@ const ts::utf8_string& ts::resources::Pattern_builder::resolve_include_path(cons
 
     return it->second;
 }
+*/
 
 
 void ts::resources::apply_pattern(Pattern& dest, const Pattern& source, 

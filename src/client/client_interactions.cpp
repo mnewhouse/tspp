@@ -19,11 +19,11 @@
 
 #include "stdinc.hpp"
 #include "client_interactions.hpp"
+#include "resource_downloader.hpp"
 
 #include "cup/cup_messages.hpp"
 #include "cup/stage_data.hpp"
 #include "cup/cup.hpp"
-#include "cup/chatbox.hpp"
 
 #include "resources/resource_store.hpp"
 #include "resources/track_store.hpp"
@@ -43,10 +43,8 @@ public:
     const utf8_string& registration_error() const;
     Registration_status registration_status() const;
 
-    const cup::Chatbox* chatbox() const;
-
-    void add_chatbox_listener(cup::Chatbox_listener* listener);
-    void remove_chatbox_listener(cup::Chatbox_listener* listener);
+    bool is_downloading() const;
+    std::pair<std::size_t, std::size_t> download_progress() const;
 
 private:
     virtual void handle_message(const Server_message& message) override;
@@ -58,7 +56,6 @@ private:
     void handle_cup_state_message(const Message& message);
     void handle_cup_progress_message(const Message& message);
     void handle_action_initialization_message(const Message& message);
-    void handle_chat_message(const Message& message);
 
     void registration_error(utf8_string error_string);
 
@@ -70,14 +67,17 @@ private:
     std::uint64_t registration_key_;
     utf8_string registration_error_;
 
-    cup::Chatbox chatbox_;
+    std::unique_ptr<cup::Action_initialization_message> queued_init_message_;
+
+    Resource_downloader resource_downloader_;
 };
 
 ts::client::Interaction_interface::Impl::Impl(Message_center* message_center, cup::Cup* cup, resources::Resource_store* resource_store)
 : Message_listener(message_center),
   message_center_(message_center),
   cup_(cup),
-  resource_store_(resource_store)
+  resource_store_(resource_store),
+  resource_downloader_(message_center, resource_store)
 {
 }
 
@@ -134,9 +134,6 @@ void ts::client::Interaction_interface::Impl::handle_message(const Server_messag
         case Msg::action_initialization:
             handle_action_initialization_message(message);
             break;
-
-        case Msg::chat_message:
-            handle_chat_message(message);
         }
     }
 }
@@ -190,20 +187,20 @@ void ts::client::Interaction_interface::Impl::handle_car_information_message(con
     resources::Car_settings car_settings;
     car_settings.set_car_mode(car_information.car_mode);
 
-    for (const auto& car_name : car_information.car_names)
+    for (const auto& car_identifier : car_information.cars)
     {
-        auto car_handle = car_store.get_car_by_name(car_name);
+        auto car_handle = car_store.get_car_by_name(car_identifier.car_name);
+        if (!car_handle)
+        {
+            resource_downloader_.request_car(car_identifier);
+        }
+
         car_settings.select_car(car_handle);
     }
 
     cup_->load_car_settings(car_settings);
 }
 
-void ts::client::Interaction_interface::Impl::handle_chat_message(const Message& message)
-{
-    auto chat_output = cup::parse_chatbox_output_message(message);
-    chatbox_.dispatch_message(chat_output.message);
-}
 
 void ts::client::Interaction_interface::Impl::handle_cup_state_message(const Message& message)
 {
@@ -215,6 +212,13 @@ void ts::client::Interaction_interface::Impl::handle_cup_progress_message(const 
 {
     auto progress_info = cup::parse_cup_progress_message(message);
     cup_->set_cup_progress(progress_info.cup_progress);
+
+    const auto& track_name = progress_info.track_identifier.track_name;
+    auto track_handle = resource_store_->track_store().get_track_by_name(track_name);
+    if (!track_handle)
+    {
+        resource_downloader_.request_track(progress_info.track_identifier);
+    }
 }
 
 void ts::client::Interaction_interface::Impl::handle_action_initialization_message(const Message& message)
@@ -247,21 +251,6 @@ void ts::client::Interaction_interface::Impl::handle_action_initialization_messa
     cup_->initialize_action(stage_data);
 }
 
-const ts::cup::Chatbox* ts::client::Interaction_interface::Impl::chatbox() const
-{
-    return &chatbox_;
-}
-
-void ts::client::Interaction_interface::Impl::add_chatbox_listener(cup::Chatbox_listener* listener)
-{
-    chatbox_.add_chatbox_listener(listener);
-}
-
-void ts::client::Interaction_interface::Impl::remove_chatbox_listener(cup::Chatbox_listener* listener)
-{
-    chatbox_.remove_chatbox_listener(listener);
-}
-
 void ts::client::Interaction_interface::Impl::registration_error(utf8_string error_string)
 {
     registration_error_ = std::move(error_string);
@@ -275,6 +264,16 @@ const ts::utf8_string& ts::client::Interaction_interface::Impl::registration_err
 ts::client::Registration_status ts::client::Interaction_interface::Impl::registration_status() const
 {
     return registration_status_;
+}
+
+bool ts::client::Interaction_interface::Impl::is_downloading() const
+{
+    return resource_downloader_.is_downloading();
+}
+
+std::pair<std::size_t, std::size_t> ts::client::Interaction_interface::Impl::download_progress() const
+{
+    return resource_downloader_.download_progress();
 }
 
 ts::client::Interaction_interface::Interaction_interface(Message_center* message_center, cup::Cup* cup, resources::Resource_store* resource_store)
@@ -301,17 +300,12 @@ void ts::client::Interaction_interface::send_registration_request()
     impl_->send_registration_request();
 }
 
-const ts::cup::Chatbox* ts::client::Interaction_interface::chatbox() const
+bool ts::client::Interaction_interface::is_downloading() const
 {
-    return impl_->chatbox();
+    return impl_->is_downloading();
 }
 
-void ts::client::Interaction_interface::add_chatbox_listener(cup::Chatbox_listener* listener)
+std::pair<std::size_t, std::size_t> ts::client::Interaction_interface::download_progress() const
 {
-    impl_->add_chatbox_listener(listener);
-}
-
-void ts::client::Interaction_interface::remove_chatbox_listener(cup::Chatbox_listener* listener)
-{
-    impl_->remove_chatbox_listener(listener);
+    return impl_->download_progress();
 }

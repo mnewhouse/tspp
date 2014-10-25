@@ -22,8 +22,6 @@
 #ifndef RESOURCES_TRACK_HPP
 #define RESOURCES_TRACK_HPP
 
-#include "tile_library.hpp"
-#include "terrain_library.hpp"
 #include "control_point.hpp"
 
 namespace ts
@@ -32,6 +30,25 @@ namespace ts
     {
         class Track_handle;
 
+        class Terrain_library;
+        class Tile_library;
+
+        struct Tile_definition;
+        struct Tile_group_definition;
+
+        struct Terrain_definition;
+        struct Sub_terrain;
+
+        struct Level_tile;
+        struct Placed_tile;
+
+        struct Start_point
+        {
+            Vector2<double> position;
+            Rotation<double> rotation;
+            std::size_t level;
+        };
+
         // The Track class provides abstractions for loading and representing
         // a track in memory, keeping track of tile definitions, terrain definitions,
         // placed tiles, control points, and all else that is needed.
@@ -39,64 +56,43 @@ namespace ts
         class Track
         {
         public:
-            struct Start_point
-            {
-                Vector2<double> position;
-                Rotation<double> rotation;
-                std::size_t level;
-            };
-
             Track();
             explicit Track(const Track_handle& track_handle);
+            Track(Track&& other);
+            ~Track();
 
-            Track(const Track&) = delete;
-            Track& operator=(const Track&) = delete;
-
-            void load_from_file(const utf8_string& file_name);
+            Track& operator=(Track&& other);
 
             const Terrain_library& terrain_library() const;
             const Tile_library& tile_library() const;
 
+            void place_tile(const Level_tile& level_tile);
+
+            void define_tile(const Tile_definition& tile_definition);
+            void define_tile_group(const Tile_group_definition& tile_group_definition);
+
+            void define_terrain(const Terrain_definition& terrain_definition);
+            void define_sub_terrain(const Sub_terrain& sub_terrain);
+
+            void add_control_point(const Control_point& control_point);
+            void add_start_point(const Start_point& start_point);
+
             const std::vector<Level_tile>& tile_list() const;
             const std::vector<Placed_tile>& placed_tiles() const;
-            Vector2u size() const;
+            std::size_t placed_tile_count() const;
 
             const std::vector<Start_point>& start_points() const;
             const std::vector<Control_point>& control_points() const;
 
+            void set_size(Vector2u size, std::size_t num_levels = 1);
+            Vector2u size() const;
             std::size_t num_levels() const;
 
-            utf8_string find_include_path(const utf8_string& file_name) const;
-
         private:
-            void include(const utf8_string& file_name);
-            void include(const utf8_string& file_name, std::size_t recursion_depth);
+            void load_from_file(const utf8_string& file_name);
 
-            void include(std::istream& stream, std::size_t recursion_depth = 0);
-
-            void add_tile(Level_tile level_tile);
-            void parse_tile_definition(std::istream& stream, const utf8_string& pattern_name, const utf8_string& image_name);
-            void parse_tile_group_definition(std::istream& stream, Tile_id id, std::size_t size);
-
-            void parse_terrain(std::istream& stream, const utf8_string& terrain_name);
-            void parse_control_points(std::istream& stream, std::size_t count);
-            void parse_start_points(std::istream& stream, std::size_t count);
-
-            void use_default_start_points();
-            void finalize_tiles();
-
-            std::vector<Level_tile> tile_list_;
-            std::vector<Placed_tile> placed_tiles_;
-            std::vector<Start_point> start_points_;
-            std::vector<Control_point> control_points_;
-
-            Vector2u track_size_;
-            std::size_t num_levels_;
-
-            Tile_library tile_lib_;
-            Terrain_library terrain_lib_;
-
-            utf8_string track_directory_;
+            struct Track_features;
+            std::unique_ptr<Track_features> track_features_;
         };
     }
 }

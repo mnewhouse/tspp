@@ -159,11 +159,6 @@ std::size_t ts::cup::Cup::player_count() const
     return player_map_.size();
 }
 
-std::size_t ts::cup::Cup::max_players() const
-{
-    return max_players_;
-}
-
 void ts::cup::Cup::load_track_settings(const resources::Track_settings& track_settings)
 {
     track_settings_ = track_settings;

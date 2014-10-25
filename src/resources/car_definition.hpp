@@ -22,16 +22,17 @@
 #ifndef RESOURCES_CAR_DEFINITION_HPP
 #define RESOURCES_CAR_DEFINITION_HPP
 
-#include "include_path.hpp"
 #include "image_type.hpp"
 #include "wall_definition.hpp"
-
-#include "world/handling.hpp"
 
 #include "core/rect.hpp"
 
 namespace ts
 {
+    namespace world
+    {
+        struct Handling_properties;
+    }
 
     namespace resources
     {
@@ -47,6 +48,7 @@ namespace ts
             Int_rect pattern_rect;
 
             std::shared_ptr<Pattern> pattern;
+            std::shared_ptr<world::Handling_properties> handling;
 
             Int_rect image_rect;
             float image_scale;
@@ -54,8 +56,6 @@ namespace ts
             Image_type image_type;
 
             Wall_definition wall_definition;
-
-            world::Handling_properties handling;
 
             std::vector<Vector2<double>> tire_positions;
 

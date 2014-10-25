@@ -22,13 +22,26 @@
 
 ts::utf8_string ts::resources::find_include_path(const utf8_string& file_name, std::initializer_list<utf8_string> search_paths)
 {
+    auto result = find_include_directory(file_name, search_paths);
+    if (result.empty())
+    {
+        return result;
+    }
+
+    boost::filesystem::path path = result.string();
+    path /= file_name.string();
+    return path.string();
+}
+
+ts::utf8_string ts::resources::find_include_directory(const utf8_string& file_name, std::initializer_list<utf8_string> search_paths)
+{
     for (const auto& path : search_paths)
     {
         boost::filesystem::path full_path = path.string();
         full_path /= file_name.string();
 
-        if (is_regular_file(full_path)) return full_path.string();
+        if (is_regular_file(full_path)) return path;
     }
 
-    throw Include_error(file_name);
+    return utf8_string();
 }

@@ -89,7 +89,7 @@ void ts::states::Network_menu::update(std::size_t frame_duration)
                 connection_dialog_->set_status_text("Registering...");
                 registration_status_ = client_cup_state_->registration_status();
             }
-            
+
             auto reg_status = client_cup_state_->registration_status();
             if (reg_status != registration_status_)
             {

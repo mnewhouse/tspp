@@ -74,3 +74,9 @@ std::vector<char> ts::core::read_stream_contents(std::istream& stream)
     return result;
 
 }
+
+std::vector<char> ts::core::read_file_contents(const utf8_string& file)
+{
+    boost::filesystem::ifstream stream(file.string(), std::istream::in | std::istream::binary);
+    return read_stream_contents(stream);
+}

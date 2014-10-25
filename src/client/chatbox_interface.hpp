@@ -19,43 +19,33 @@
 
 #pragma once
 
-#ifndef SERVER_INTERACTIONS_HPP
-#define SERVER_INTERACTIONS_HPP
+#ifndef LOCAL_INTERACTIONS_HPP
+#define LOCAL_INTERACTIONS_HPP
 
-#include "server_messages.hpp"
+#include "client/client_messages.hpp"
+
+#include "cup/chatbox.hpp"
 
 namespace ts
 {
-    namespace cup
+    namespace client
     {
-        class Cup;
-    }
-
-    namespace resources
-    {
-        struct Resource_store;
-    }
-
-    namespace server
-    {
-        class Client_map;
-        class Interaction_listener;
-
-        class Interaction_interface
+        class Chatbox_interface
+            : public Message_listener
         {
         public:
-            Interaction_interface(Message_center* message_center, Client_map* client_map, cup::Cup* cup, const resources::Resource_store* resource_store);
-            ~Interaction_interface();
+            Chatbox_interface(Message_center* message_center);
 
-            void add_interaction_listener(Interaction_listener* listener);
-            void remove_interaction_listener(Interaction_listener* listener);
+            virtual void handle_message(const Server_message& message) override;
 
-            void poll();
+            const cup::Chatbox* chatbox() const;
+            void add_chatbox_listener(cup::Chatbox_listener* listener);
+            void remove_chatbox_listener(cup::Chatbox_listener* listener);
 
         private:
-            class Impl;
+            void handle_chatbox_output(const Message& message);
 
-            std::unique_ptr<Impl> impl_;
+            cup::Chatbox chatbox_;
         };
     }
 }

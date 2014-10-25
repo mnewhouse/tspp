@@ -27,11 +27,12 @@
 
 #include "messages/message.hpp"
 
+#include "resources/track_identifier.hpp"
+#include "resources/car_identifier.hpp"
+
 #include "resources/settings/player_settings.hpp"
 #include "resources/settings/track_settings.hpp"
 #include "resources/settings/car_settings.hpp"
-
-#include "resources/track_definition.hpp"
 
 namespace ts
 {
@@ -40,8 +41,8 @@ namespace ts
         class Track_store;
         class Car_store;
 
-        class Track_handle;
         class Car_handle;
+
     }
 
     namespace cup
@@ -116,6 +117,7 @@ namespace ts
         {
             std::uint32_t message_type = 0;
             std::size_t cup_progress = 0;
+            resources::Track_identifier track_identifier;
         };
 
         struct Player_information_message
@@ -135,7 +137,7 @@ namespace ts
         {
             std::uint32_t message_type = 0;
             resources::Car_mode car_mode = resources::Car_mode::Fixed;
-            std::vector<utf8_string> car_names;
+            std::vector<resources::Car_identifier> cars;
         };
 
         struct Car_selection_message
@@ -209,7 +211,7 @@ namespace ts
         Message make_cup_state_message(cup::Cup_state cup_state);
         Cup_state_message parse_cup_state_message(const Message& message);
 
-        Message make_cup_progress_message(std::size_t progress, const resources::Track_handle& track_handle);
+        Message make_cup_progress_message(std::size_t progress, const resources::Track_identifier& track_handle);
         Cup_progress_message parse_cup_progress_message(const Message& message);
 
         Message make_player_information_message(const std::vector<Player_definition>& local_players, const std::vector<Player_handle>& remote_players);

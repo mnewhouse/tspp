@@ -32,6 +32,12 @@ namespace ts
         struct Client_message;
     }
 
+    namespace cup
+    {
+        class Chatbox;
+        struct Chatbox_listener;
+    }
+
     namespace resources
     {
         struct Resource_store;
@@ -61,6 +67,10 @@ namespace ts
 
             // This returns a non-owning pointer.
             controls::Control_interface* make_control_interface(const action::Stage* stage);
+
+            const cup::Chatbox* chatbox() const;
+            void add_chatbox_listener(cup::Chatbox_listener* listener);
+            void remove_chatbox_listener(cup::Chatbox_listener* listener);
 
         private:
             class Impl;

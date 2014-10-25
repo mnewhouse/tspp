@@ -51,13 +51,13 @@ ts::states::Server_cup_state::Server_cup_state(state_machine_type* state_machine
     Cup_state_base(local_client_.client_interface(), state_machine, context, resource_store)
 {
     server_.add_cup_listener(this);
-    server_.add_chatbox_listener(this);
+    local_client_.add_chatbox_listener(this);
 }
 
 ts::states::Server_cup_state::~Server_cup_state()
 {
     server_.remove_cup_listener(this);
-    server_.remove_chatbox_listener(this);
+    local_client_.remove_chatbox_listener(this);
 }
 
 void ts::states::Server_cup_state::update(std::size_t frame_duration)

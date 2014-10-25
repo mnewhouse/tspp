@@ -17,34 +17,30 @@
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "stdinc.hpp"
-#include "resource_downloader.hpp"
+#pragma once
 
-#include "network/client.hpp"
+#ifndef RESOURCES_CAR_IDENTIFIER_HPP
+#define RESOURCES_CAR_IDENTIFIER_HPP
 
-ts::cup::Resource_downloader::Resource_downloader(network::Client* client)
-: client_(client)
+namespace ts
 {
-}
-
-std::uint32_t ts::cup::Resource_downloader::generate_key() const
-{
-    std::uint32_t key = client_->generate_key() & 0xFFFFFFFF;
-    while (download_map_.find(key) != download_map_.end())
+    namespace resources
     {
-        key = client_->generate_key() & 0xFFFFFFFF;
+        struct Car_identifier
+        {
+            utf8_string car_name;
+        };
+
+        inline bool operator==(const Car_identifier& lhs, const Car_identifier& rhs)
+        {
+            return lhs.car_name == rhs.car_name;
+        }
+
+        inline bool operator!=(const Car_identifier& lhs, const Car_identifier& rhs)
+        {
+            return !(lhs == rhs);
+        }
     }
-
-    return key;
 }
 
-void ts::cup::Resource_downloader::request_track(const resources::Track_definition& track_definition)
-{
-    auto key = generate_key();
-    
-}
-
-bool ts::cup::Resource_downloader::is_downloading() const
-{
-    return !download_map_.empty();
-}
+#endif

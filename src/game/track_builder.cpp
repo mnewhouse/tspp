@@ -124,10 +124,11 @@ ts::game::Track_builder::Track_builder(const resources::Track& track)
 
 void ts::game::Track_builder::preload_image(const utf8_string& path)
 {
-    const auto& resolved_path = resolve_path(path);
-    image_loader_.load_from_file(resolved_path);
+    //const auto& resolved_path = resolve_path(path);
+    image_loader_.load_from_file(path);
 }
 
+/*
 const ts::utf8_string& ts::game::Track_builder::resolve_path(const utf8_string& path)
 {
     auto it = precomputed_paths_.find(path);
@@ -139,13 +140,14 @@ const ts::utf8_string& ts::game::Track_builder::resolve_path(const utf8_string& 
 
     return it->second;
 }
+*/
 
 void ts::game::Track_builder::add_large_tile(const resources::Placed_tile& placed_tile, Int_rect image_rect)
 {
     auto texture_size = current_target_texture_->texture_size;
 
     const auto* tile_def = placed_tile.tile_def;
-    const auto& resolved_image_path = resolve_path(tile_def->image_file());
+    const auto& image_path = tile_def->image_file();
     auto mapping_it = large_tile_mapping_.find(tile_def);
     if (mapping_it != large_tile_mapping_.end())
     {
@@ -168,7 +170,7 @@ void ts::game::Track_builder::add_large_tile(const resources::Placed_tile& place
                 Vector2i size(std::min(right - x, texture_size.x), std::min(bottom - y, texture_size.y));
 
                 auto allocated_space = target_texture->allocate_tile_space(size);
-                auto& tile_list = target_texture->tile_placement[resolved_image_path];
+                auto& tile_list = target_texture->tile_placement[image_path];
                 auto& tile_mapping = target_texture->tile_mapping;
 
                 impl::Tile_placement tile_placement;
@@ -254,10 +256,10 @@ void ts::game::Track_builder::build_tile_mapping(impl::Target_texture& target_te
     for (auto& tile_mapping : target_texture.tile_mapping)
     {
         const auto* tile_def = tile_mapping.first;
-        const auto& resolved_path = resolve_path(tile_def->image_file());
+        const auto& image_path = tile_def->image_file();
 
-        auto map_it = target_texture.tile_placement.find(resolved_path);
-        const sf::Image* image_ptr = image_loader_.load_from_file(resolved_path);
+        auto map_it = target_texture.tile_placement.find(image_path);
+        const sf::Image* image_ptr = image_loader_.load_from_file(image_path);
 
         if (image_ptr && map_it != target_texture.tile_placement.end())
         {
@@ -442,8 +444,9 @@ void ts::game::Track_builder::add_tile(const resources::Placed_tile& placed_tile
     auto mapping_it = tile_mapping.find(tile_def);
     if (mapping_it == tile_mapping.end())
     {
-        const auto& resolved_path = resolve_path(tile_def->image_file());
-        auto& tile_list = target_texture->tile_placement[resolved_path];
+        const auto& image_file = tile_def->image_file();
+
+        auto& tile_list = target_texture->tile_placement[image_file];
 
         auto image_rect = tile_def->image_rect;
         auto intersect_it = std::partition(tile_list.begin(), tile_list.end(),
@@ -487,7 +490,7 @@ void ts::game::Track_builder::add_tile(const resources::Placed_tile& placed_tile
             impl::Tile_placement tile_placement;
             tile_placement.source_rect = image_rect;
             tile_placement.target_rect = allocated_space;
-            target_texture->tile_placement[resolved_path].push_back(tile_placement);
+            target_texture->tile_placement[image_file].push_back(tile_placement);
 
             target_texture->tile_mapping[tile_def];
             add_tile_entry(placed_tile, target_texture);

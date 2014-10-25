@@ -22,6 +22,7 @@
 #ifndef CORE_STREAM_UTILITY_HPP
 #define CORE_STREAM_UTILITY_HPP
 
+#include "utf8_string.hpp"
 
 namespace ts
 {
@@ -31,6 +32,7 @@ namespace ts
         std::uint64_t read64(std::istream& stream);
 
         std::vector<char> read_stream_contents(std::istream& stream);
+        std::vector<char> read_file_contents(const utf8_string& file_name);
     }   
 }
 

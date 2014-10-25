@@ -49,7 +49,7 @@ std::unique_ptr<ts::action::Stage> ts::game::Stage_loader::load_world(const acti
 {
     set_state(State::Preprocessing);
     auto track = std::make_unique<resources::Track>(stage_data.track);
-    std::size_t sub_tile_count = track->placed_tiles().size();
+    std::size_t sub_tile_count = track->placed_tile_count();
 
     double progress_step = 1.0 / sub_tile_count;
     auto increment_progress = [&progress_step, this]()

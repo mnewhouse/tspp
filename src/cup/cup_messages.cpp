@@ -242,10 +242,11 @@ ts::cup::Message ts::cup::make_cup_state_message(Cup_state cup_state)
     return message;
 }
 
-ts::cup::Message ts::cup::make_cup_progress_message(std::size_t progress, const resources::Track_handle& track)
+ts::cup::Message ts::cup::make_cup_progress_message(std::size_t progress, const resources::Track_identifier& track)
 {
     Message message(Message_type::cup_progress);
     message << progress;
+    message << track.track_name;
 
     return message;
 }
@@ -270,7 +271,7 @@ ts::cup::Cup_progress_message ts::cup::parse_cup_progress_message(const Message&
     Message_reader message_reader(message);
 
     Cup_progress_message result;
-    message_reader >> result.message_type >> result.cup_progress;
+    message_reader >> result.message_type >> result.cup_progress >> result.track_identifier.track_name;
 
     return result;
 }
@@ -424,10 +425,10 @@ ts::cup::Car_information_message ts::cup::parse_car_information_message(const Me
     std::uint16_t car_mode = 0;
     if (message_reader >> result.message_type >> car_mode >> track_count)
     {
-        utf8_string car_name;
-        for (std::uint32_t n = 0; n != track_count && message_reader >> car_name; ++n)
+        resources::Car_identifier car_identifier;
+        for (std::uint32_t n = 0; n != track_count && message_reader >> car_identifier.car_name; ++n)
         {
-            result.car_names.push_back(car_name);
+            result.cars.push_back(car_identifier);
         }
 
         result.car_mode = static_cast<resources::Car_mode>(car_mode);

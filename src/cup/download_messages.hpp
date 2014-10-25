@@ -24,7 +24,8 @@
 
 #include "messages/message.hpp"
 
-#include "resources/track_definition.hpp"
+#include "resources/track_identifier.hpp"
+#include "resources/car_identifier.hpp"
 
 namespace ts
 {
@@ -32,7 +33,7 @@ namespace ts
     {
         using messages::Message;
 
-        class Message_type
+        struct Message_type
         {
             // Client -> server
             static const std::uint32_t track_download_request = 3401;
@@ -43,6 +44,8 @@ namespace ts
 
 
             // Server -> client
+            static const std::uint32_t download_refused = 4473;
+
             static const std::uint32_t file_info = 4481;
             static const std::uint32_t eof = 4482;
             static const std::uint32_t finished = 4483;
@@ -50,13 +53,25 @@ namespace ts
             static const std::uint32_t file_chunk = 4497;
         };
 
+        enum class Resource_type
+        {
+            Track,
+            Car,
+            Module,
+        };
+
 
         // Downloads
         struct Track_download_request
         {
-            std::uint32_t message_type = 0;
             std::uint32_t download_key = 0;
-            resources::Track_definition track_definition;
+            resources::Track_identifier track_identifier;
+        };
+
+        struct Car_download_request
+        {
+            std::uint32_t download_key = 0;
+            resources::Car_identifier car_identifier;
         };
 
         struct File_info
@@ -67,32 +82,46 @@ namespace ts
 
         struct File_list
         {
-            std::uint32_t message_type = 0;
             std::uint32_t download_key = 0;
             std::vector<File_info> file_info;
         };
 
         struct File_chunk
         {
-            std::uint32_t message_type = 0;
-            std::uint32_t downoad_key = 0;
+            std::uint32_t download_key = 0;
             std::vector<std::uint8_t> chunk;
         };
 
-        Message make_track_download_request(std::uint32_t download_key, const resources::Track_definition& track_definition);
+        struct Download_message
+        {
+            std::uint32_t download_key = 0;
+        };
+
+        Message make_track_download_request(std::uint32_t download_key, const resources::Track_identifier& track_identifier);
         Track_download_request parse_track_download_request(const Message& message);
 
+        Message make_car_download_request(std::uint32_t download_key, const resources::Car_identifier& car_identifier);
+        Car_download_request parse_car_download_request(const Message& message);
+
         Message make_pong_message(std::uint32_t download_key);
+        Download_message parse_pong_message(const Message& message);
+
 
         // Server->client download messages
         Message make_file_info_message(std::uint32_t download_key, const std::vector<File_info>& file_info);
         File_list parse_file_info_message(const Message& message);
 
-        Message make_file_chunk_message(std::uint32_t download_key, const std::uint8_t* data, const std::uint8_t* data_end);
+        Message make_download_refusal_message(std::uint32_t download_key);
+        Download_message parse_download_refusal_message(const Message& message);
+
+        Message make_file_chunk_message(std::uint32_t download_key, const std::uint8_t* data, std::uint32_t data_size);
         File_chunk parse_file_chunk_message(const Message& message);
 
         Message make_eof_message(std::uint32_t download_key);
-        Message make_finished_message(std::uint32_t download_key);        
+        Download_message parse_eof_message(const Message& message);
+
+        Message make_finished_message(std::uint32_t download_key);
+        Download_message parse_finished_message(const Message& message);
     }
 }
 

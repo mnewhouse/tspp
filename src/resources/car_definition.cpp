@@ -19,11 +19,14 @@
 
 #include "stdinc.hpp"
 #include "car_definition.hpp"
+#include "include_path.hpp"
 
 #include "core/directive_reader.hpp"
 #include "core/config.hpp"
 
 #include "pattern.hpp"
+
+#include "world/handling.hpp"
 
 
 ts::resources::Car_definition ts::resources::load_car_definition(std::istream& stream, const utf8_string& directory)
@@ -53,7 +56,8 @@ ts::resources::Car_definition ts::resources::load_car_definition(std::istream& s
 
         else if (directive == "handling")
         {
-            stream >> car_def.handling;
+            car_def.handling = std::make_shared<world::Handling_properties>();
+            stream >> *car_def.handling;
         }
 
         else if (directive == "mask") {

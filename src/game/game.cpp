@@ -88,6 +88,11 @@ void ts::game::Game::main()
     video_settings.current_screen_resolution = video_settings.screen_resolution;
 
     sf::RenderWindow render_window(video_mode, config::window_title, get_window_style(video_settings));
+
+    // Make the screen initially black. Better than white.
+    render_window.clear();
+    render_window.display();
+
     render_window.setKeyRepeatEnabled(false);
 
     gui::Context gui_context(&render_window, &resource_store.font_library());

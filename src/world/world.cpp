@@ -22,6 +22,7 @@
 #include "car.hpp"
 #include "collisions.hpp"
 
+#include "resources/terrain_library.hpp"
 #include "resources/track.hpp"
 #include "resources/pattern.hpp"
 

@@ -28,7 +28,7 @@ ts::world::Car::Car(World* world, const resources::Car_definition& car_definitio
       is_reversing_(false)
 {
     set_elasticity(car_definition.wall_definition.elasticity);
-    set_mass(car_definition.handling.mass);
+    set_mass(car_definition.handling->mass);
 }
 
 const ts::resources::Car_definition& ts::world::Car::car_definition() const
@@ -38,7 +38,7 @@ const ts::resources::Car_definition& ts::world::Car::car_definition() const
 
 void ts::world::Car::update(double frame_duration)
 {
-    handling_.update(car_definition_.handling, *this, frame_duration);
+    handling_.update(*car_definition_.handling, *this, frame_duration);
 }
 
 bool ts::world::Car::is_reversing() const
@@ -63,5 +63,5 @@ void ts::world::Car::set_current_traction(double traction)
 
 double ts::world::Car::top_speed() const
 {
-    return Handling::top_speed(car_definition_.handling);
+    return Handling::top_speed(*car_definition_.handling);
 }

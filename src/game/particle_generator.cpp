@@ -59,7 +59,7 @@ void ts::game::Particle_generator::update(std::size_t ticks)
         const auto& terrain = car->current_terrain();
         const auto& car_definition = car->car_definition();
 
-        auto slide_threshold = car_definition.handling.slide_threshold;
+        auto slide_threshold = car_definition.handling->slide_threshold;
 
         auto time_passed = particle_drawer_.current_ticks() - car_info.last_ticks;
 

@@ -24,6 +24,7 @@
 #include "client_interactions.hpp"
 #include "client_stage_interface.hpp"
 #include "client_control_interface.hpp"
+#include "chatbox_interface.hpp"
 
 #include "cup/cup.hpp"
 #include "network/client_connection.hpp"
@@ -79,6 +80,7 @@ public:
 
     Client_interface client_interface_;
     Interaction_interface interaction_interface_;
+    Chatbox_interface chatbox_interface_;
     Stage_interface stage_interface_;
 
     Server_message message_buffer_;
@@ -92,6 +94,7 @@ ts::client::impl::Client::Client(resources::Resource_store* resource_store)
   message_dispatcher_(&client_connection_, &message_center_),
   client_interface_(&message_center_, &cup_),
   interaction_interface_(&message_center_, &cup_, resource_store),
+  chatbox_interface_(&message_center_),
   stage_interface_(&message_center_)
 {
 }
@@ -186,17 +189,17 @@ void ts::client::Client::remove_cup_listener(cup::Cup_listener* listener)
 
 const ts::cup::Chatbox* ts::client::Client::chatbox() const
 {
-    return impl_->interaction_interface_.chatbox();
+    return impl_->chatbox_interface_.chatbox();
 }
 
 void ts::client::Client::add_chatbox_listener(cup::Chatbox_listener* listener)
 {
-    impl_->interaction_interface_.add_chatbox_listener(listener);
+    impl_->chatbox_interface_.add_chatbox_listener(listener);
 }
 
 void ts::client::Client::remove_chatbox_listener(cup::Chatbox_listener* listener)
 {
-    impl_->interaction_interface_.remove_chatbox_listener(listener);
+    impl_->chatbox_interface_.remove_chatbox_listener(listener);
 }
 
 
@@ -208,6 +211,16 @@ void ts::client::Client::async_connect(utf8_string remote_address, std::uint16_t
 void ts::client::Client::send_registration_request()
 {
     impl_->interaction_interface_.send_registration_request();
+}
+
+bool ts::client::Client::is_downloading() const
+{
+    return impl_->interaction_interface_.is_downloading();
+}
+
+std::pair<std::size_t, std::size_t> ts::client::Client::download_progress() const
+{
+    return impl_->interaction_interface_.download_progress();
 }
 
 const ts::game::Stage_loader* ts::client::Client::async_load_stage(const cup::Stage_data& stage_data, 

@@ -76,7 +76,7 @@ void ts::client::Stage_conductor::update(std::size_t frame_duration)
             }                  
         }
 
-        for (auto time = 0; time < advance_time_; time += frame_duration)
+        for (std::uint32_t time = 0; time < advance_time_; time += frame_duration)
         {
             stage_conductor_->update(frame_duration);
         }

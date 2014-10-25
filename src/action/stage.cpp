@@ -133,6 +133,11 @@ ts::world::Car* ts::action::Stage::get_car_by_id(std::uint16_t car_id) const
     return it->second;
 }
 
+bool ts::action::Stage::is_car_controlled(const world::Car* car) const
+{
+    return control_center_->is_controlled(car);
+}
+
 void ts::action::Stage::launch_game()
 {
     world_->launch_game();

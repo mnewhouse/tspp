@@ -21,6 +21,7 @@
 #include "server_interactions.hpp"
 #include "server_interaction_listener.hpp"
 #include "client_map.hpp"
+#include "resource_download_server.hpp"
 
 #include "cup/cup.hpp"
 #include "cup/cup_messages.hpp"
@@ -39,11 +40,8 @@ public:
     void add_interaction_listener(Interaction_listener* listener);
     void remove_interaction_listener(Interaction_listener* listener);
 
-    void add_chatbox_listener(cup::Chatbox_listener* chatbox_listener);
-    void remove_chatbox_listener(cup::Chatbox_listener* chatbox_listener);
-    const cup::Chatbox* chatbox() const;
-
     void broadcast_chat_message(const cup::Composite_message& message);
+    void poll();
 
 private:
     virtual void handle_message(const Client_message& client_message) override;
@@ -74,7 +72,7 @@ private:
     std::vector<Interaction_listener*> listeners_;
     std::unordered_set<Generic_client> awaiting_clients_;
 
-    cup::Chatbox chatbox_;
+    Resource_download_server download_server_;
 };
 
 ts::server::Interaction_interface::Interaction_interface(Message_center* message_center, Client_map* client_map, cup::Cup* cup,
@@ -93,7 +91,8 @@ ts::server::Interaction_interface::Impl::Impl(Message_center* message_center, Cl
   client_map_(client_map),
   message_center_(message_center),
   cup_(cup),
-  resource_store_(resource_store)
+  resource_store_(resource_store),
+  download_server_(message_center, resource_store)
 {
     cup->add_cup_listener(this);
 }
@@ -101,6 +100,11 @@ ts::server::Interaction_interface::Impl::Impl(Message_center* message_center, Cl
 ts::server::Interaction_interface::Impl::~Impl()
 {
     cup_->remove_cup_listener(this);
+}
+
+void ts::server::Interaction_interface::Impl::poll()
+{
+    download_server_.poll();
 }
 
 void ts::server::Interaction_interface::Impl::disconnect_client(const Generic_client& client)
@@ -173,7 +177,7 @@ void ts::server::Interaction_interface::Impl::handle_registration_request(const 
     Client_message out_message;
     out_message.client = client;
 
-    if (cup_->player_count() + registration_request.players.size() > cup_->max_players())
+    if (cup_->player_count() + registration_request.players.size() > 20)
     {
         // Too many players.
         out_message.message = cup::make_too_many_players_message(registration_key);
@@ -191,6 +195,19 @@ void ts::server::Interaction_interface::Impl::handle_registration_request(const 
         {
             auto player_handle = client_map_->register_player(client, player_def);
             player_def.handle = player_handle->handle;
+
+            // Send a nice chat message about this player
+            cup::Composite_message display_message;
+            display_message.append(player_def.nickname, sf::Color(200, 250, 0));
+            display_message.append(" has joined the game, ", sf::Color(0, 220, 0));
+
+            utf8_string player_count = std::to_string(cup_->player_count());
+            player_count += "/";
+            player_count += std::to_string(20);
+            display_message.append(std::move(player_count), sf::Color(200, 250, 0));
+            display_message.append(" players.", sf::Color(0, 220, 0));
+
+            broadcast_chat_message(display_message);
         }
 
         // Send acknowledgement message back
@@ -210,7 +227,10 @@ void ts::server::Interaction_interface::Impl::handle_registration_request(const 
         out_message.message = cup::make_cup_state_message(cup_->cup_state());
         message_center_->dispatch_message(out_message);
 
-        out_message.message = cup::make_cup_progress_message(cup_->cup_progress(), cup_->current_track());
+        resources::Track_identifier track_identifier;
+        track_identifier.track_name = cup_->current_track().name();
+
+        out_message.message = cup::make_cup_progress_message(cup_->cup_progress(), track_identifier);
         message_center_->dispatch_message(out_message);
 
         // Inform the listeners about the new player
@@ -269,8 +289,6 @@ void ts::server::Interaction_interface::Impl::broadcast_chat_message(const cup::
     Client_message out_message;
     out_message.message = cup::make_chatbox_output_message(displayed_message);
     message_center_->dispatch_message(out_message);
-
-    chatbox_.dispatch_message(displayed_message);
 }
 
 void ts::server::Interaction_interface::Impl::advance_if_ready()
@@ -300,7 +318,6 @@ void ts::server::Interaction_interface::Impl::on_state_change(cup::Cup_state old
     Client_message out_message;
     out_message.message_type = Message_type::Reliable;
     out_message.message = make_cup_state_message(new_state);
-
     message_center_->dispatch_message(out_message);
 
     if (new_state == Cup_state::Car_selection)
@@ -311,6 +328,16 @@ void ts::server::Interaction_interface::Impl::on_state_change(cup::Cup_state old
     if (new_state == Cup_state::Initializing)
     {
         wait_for_everyone();
+    }
+
+    if (new_state == Cup_state::Cup)
+    {
+        resources::Track_identifier track_identifier;
+        track_identifier.track_name = cup_->current_track().name();
+        track_identifier.track_hash.fill(0);
+        out_message.message = cup::make_cup_progress_message(cup_->cup_progress(), track_identifier);
+
+        message_center_->dispatch_message(out_message);
     }
 }
 
@@ -400,21 +427,6 @@ void ts::server::Interaction_interface::Impl::remove_interaction_listener(Intera
     listeners_.erase(std::remove(listeners_.begin(), listeners_.end(), listener), listeners_.end());
 }
 
-const ts::cup::Chatbox* ts::server::Interaction_interface::Impl::chatbox() const
-{
-    return &chatbox_;
-}
-
-void ts::server::Interaction_interface::Impl::add_chatbox_listener(cup::Chatbox_listener* listener)
-{
-    chatbox_.add_chatbox_listener(listener);
-}
-
-void ts::server::Interaction_interface::Impl::remove_chatbox_listener(cup::Chatbox_listener* listener)
-{
-    chatbox_.add_chatbox_listener(listener);
-}
-
 void ts::server::Interaction_interface::add_interaction_listener(Interaction_listener* listener)
 {
     impl_->add_interaction_listener(listener);
@@ -425,17 +437,7 @@ void ts::server::Interaction_interface::remove_interaction_listener(Interaction_
     impl_->remove_interaction_listener(listener);
 }
 
-const ts::cup::Chatbox* ts::server::Interaction_interface::chatbox() const
+void ts::server::Interaction_interface::poll()
 {
-    return impl_->chatbox();
-}
-
-void ts::server::Interaction_interface::add_chatbox_listener(cup::Chatbox_listener* listener)
-{
-    impl_->add_chatbox_listener(listener);
-}
-
-void ts::server::Interaction_interface::remove_chatbox_listener(cup::Chatbox_listener* listener)
-{
-    impl_->add_chatbox_listener(listener);
+    impl_->poll();
 }

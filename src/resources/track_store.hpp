@@ -123,17 +123,20 @@ namespace ts
         class Track_store
         {
         public:
-            Track_store() = default;
+            // Track_store() = default;
             Track_store(const utf8_string& root_directory);
 
             Track_handle get_track_by_name(utf8_string track_name) const;
             std::vector<Track_handle> get_matching_tracks(utf8_string partial_name) const;
 
-            Track_handle random_track(const utf8_string& path) const;
+            Track_handle random_track(const utf8_string& directory) const;
             Track_handle random_track() const;
             Track_handle random_track(const Track_directory& track_directory);
 
             Track_directory root_directory() const;
+            Track_handle register_track(const utf8_string& path_relative_to_root);
+
+            const utf8_string& root_directory_path() const;
 
 
             template <typename OutputIt>
@@ -142,10 +145,11 @@ namespace ts
 
             void scan_directory(const utf8_string& directory);
 
-        private:            
+        private:
             void scan_directory(impl::Track_directory& dir_contents, const utf8_string& directory);
 
             impl::Track_directory root_directory_;
+            utf8_string root_directory_path_;
             std::map<utf8_string, utf8_string> lookup_map_;
 
             mutable std::mt19937 random_engine_;

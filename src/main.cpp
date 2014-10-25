@@ -29,7 +29,7 @@ std::string concat(std::string a, std::string b)
 }
 
 int main(int, char**)
-{    
+{
     std::locale::global(boost::locale::generator().generate(""));
     boost::filesystem::path::imbue(std::locale());
 

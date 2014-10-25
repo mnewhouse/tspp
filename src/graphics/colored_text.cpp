@@ -38,7 +38,7 @@ ts::graphics::Composite_text::Composite_text(utf8_string text, sf::Color color)
 void ts::graphics::Composite_text::append(Colored_text text)
 {
     text_ += text.text;
-    components_.push_back(std::move(text));    
+    components_.push_back(std::move(text));
 }
 
 void ts::graphics::Composite_text::append(const Composite_text& Composite_text)
@@ -47,6 +47,11 @@ void ts::graphics::Composite_text::append(const Composite_text& Composite_text)
     {
         append(component);
     }
+}
+
+void ts::graphics::Composite_text::append(utf8_string text, sf::Color color)
+{
+    append(Colored_text(std::move(text), color));
 }
 
 ts::graphics::Composite_text& ts::graphics::Composite_text::operator+=(const Colored_text& text)

@@ -26,13 +26,8 @@ namespace ts
 {
     namespace resources
     {
-        struct Include_error
-            : public std::exception
-        {
-            Include_error(const utf8_string& file_name) {};
-        };
-
-        utf8_string find_include_path(const utf8_string& file_name, std::initializer_list<utf8_string> search_path);
+        utf8_string find_include_directory(const utf8_string& file_name, std::initializer_list<utf8_string> search_paths);
+        utf8_string find_include_path(const utf8_string& file_name, std::initializer_list<utf8_string> search_paths);
     }
 }
 

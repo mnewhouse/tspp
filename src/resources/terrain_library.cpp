@@ -33,11 +33,10 @@ void ts::resources::Terrain_library::define_terrain(const Terrain_definition& te
     define_sub_terrain(id, id, 0);
 }
 
-void ts::resources::Terrain_library::define_sub_terrain(Terrain_id terrain, Terrain_id sub_id,
-                                                        std::size_t level_start, std::size_t level_count)
+void ts::resources::Terrain_library::define_sub_terrain(const Sub_terrain& sub_terrain)
 {
-    for (unsigned i = 0; i != level_count; ++i) {
-        define_sub_terrain(terrain, sub_id, level_start++);
+    for (std::uint32_t level = sub_terrain.level_start, level_end = level + sub_terrain.level_count; level != level_end; ++level) {
+        define_sub_terrain(sub_terrain.terrain_id, sub_terrain.component_id, level);
     }
 }
 

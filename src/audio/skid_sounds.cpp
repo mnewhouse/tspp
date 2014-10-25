@@ -61,7 +61,7 @@ void ts::audio::Skid_sound_controller::update()
         const auto& terrain = car->current_terrain();
         
         auto speed = car->speed();
-        auto slide_threshold = car_def.handling.slide_threshold;        
+        auto slide_threshold = car_def.handling->slide_threshold;        
         auto traction = car->current_traction();        
 
         bool skid_state = (speed != 0.0 && traction < slide_threshold && terrain.skid_mark);

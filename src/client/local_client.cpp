@@ -24,8 +24,11 @@
 #include "client_interface.hpp"
 #include "client_messages.hpp"
 #include "client_control_interface.hpp"
+#include "chatbox_interface.hpp"
 
 #include "server/server.hpp"
+
+#include "cup/chatbox.hpp"
 
 #include "resources/resource_store.hpp"
 
@@ -57,13 +60,16 @@ public:
     Client_interface client_interface_;
     Local_message_dispatcher message_dispatcher_;
 
+    Chatbox_interface chatbox_interface_;
+
     std::unique_ptr<Control_interface> control_interface_;    
 };
 
 ts::client::Local_client::Impl::Impl(const server::Server* server, resources::Resource_store* resource_store)
 : message_center_(),
   client_interface_(&message_center_, server->cup()),
-  message_dispatcher_(&message_center_, server->message_center())
+  message_dispatcher_(&message_center_, server->message_center()),
+  chatbox_interface_(&message_center_)
 {
 }
 
@@ -117,4 +123,19 @@ ts::controls::Control_interface* ts::client::Local_client::make_control_interfac
 {
     impl_->control_interface_ = std::make_unique<Control_interface>(stage, &impl_->message_center_);
     return impl_->control_interface_.get();
+}
+
+const ts::cup::Chatbox* ts::client::Local_client::chatbox() const
+{
+    return impl_->chatbox_interface_.chatbox();
+}
+
+void ts::client::Local_client::add_chatbox_listener(cup::Chatbox_listener* listener)
+{
+    impl_->chatbox_interface_.add_chatbox_listener(listener);
+}
+
+void ts::client::Local_client::remove_chatbox_listener(cup::Chatbox_listener* listener)
+{
+    impl_->chatbox_interface_.remove_chatbox_listener(listener);
 }

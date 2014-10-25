@@ -19,8 +19,8 @@
 
 #pragma once
 
-#ifndef RESOURCES_TRACK_DEFINITION_HPP
-#define RESOURCES_TRACK_DEFINITION_HPP
+#ifndef RESOURCES_TRACK_IDENTIFIER_HPP
+#define RESOURCES_TRACK_IDENTIFIER_HPP
 
 #include "track_hash.hpp"
 
@@ -28,11 +28,21 @@ namespace ts
 {
     namespace resources
     {
-        struct Track_definition
+        struct Track_identifier
         {
             utf8_string track_name;
             Track_hash track_hash;
         };
+
+        inline bool operator==(const Track_identifier& lhs, const Track_identifier& rhs)
+        {
+            return lhs.track_name == rhs.track_name && lhs.track_hash == rhs.track_hash;
+        }
+
+        inline bool operator!=(const Track_identifier& lhs, const Track_identifier& rhs)
+        {
+            return !(lhs == rhs);
+        }
     }
 }
 

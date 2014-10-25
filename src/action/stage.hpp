@@ -75,6 +75,7 @@ namespace ts
             void set_stage_time(std::uint32_t);
 
             world::Car* get_car_by_id(std::uint16_t car_id) const;
+            bool is_car_controlled(const world::Car* car) const;
 
         private:
             void create_stage_entities(const Stage_data& stage_data);

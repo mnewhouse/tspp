@@ -88,8 +88,9 @@ ts::action::Message ts::action::make_game_state_message(const action::Stage* sta
         message << int24_t(x_velocity);
         message << int24_t(y_velocity);
 
+        auto ang_vel = static_cast<std::int32_t>(angular_velocity * velocity_multiplier);
         message << std::int16_t(rotation.radians() * rotation_multiplier); // Rotation
-        message << int24_t(angular_velocity * velocity_multiplier);
+        message << int24_t(ang_vel);
 
         std::uint16_t traction_data = std::uint16_t(traction * traction_multiplier) & 0x7FFF;
         traction_data |= std::uint16_t(reversing << 15);
