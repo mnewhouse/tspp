@@ -238,12 +238,6 @@ void ts::client::Interaction_interface::Impl::handle_action_initialization_messa
             stage_data.cars.push_back(car_data);
         }
     }
-
-    std::cout << "Action initialization\n";
-    if (stage_data.track)
-    {
-        std::cout << "Track found.\n";
-    }
     
     cup_->initialize_action(stage_data);
 }
