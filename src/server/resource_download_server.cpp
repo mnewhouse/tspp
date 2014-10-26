@@ -101,7 +101,8 @@ void ts::server::Resource_download_server::poll()
         auto& future = it->second;
         auto resource_id = it->first;
 
-        if (future.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready)
+        auto status = future.wait_for(std::chrono::milliseconds(0));
+        if (status == std::future_status::ready)
         {
             // Data is ready.
             auto assets = future.get();
@@ -130,7 +131,7 @@ void ts::server::Resource_download_server::poll()
                 refuse_download_request(resource_id);
             }
 
-            // And delete the std::future
+            // And delete the Future
             it = loading_resources_.erase(it);
         }
 

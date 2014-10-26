@@ -46,6 +46,8 @@ public:
     bool is_downloading() const;
     std::pair<std::size_t, std::size_t> download_progress() const;
 
+    void poll();
+
 private:
     virtual void handle_message(const Server_message& message) override;
 
@@ -59,6 +61,7 @@ private:
     void handle_server_quit_message(const Message& message);
 
     void registration_error(utf8_string error_string);
+    void initialize_action(const cup::Action_initialization_message& init_message);
 
     Message_center* message_center_;
     cup::Cup* cup_;
@@ -96,6 +99,15 @@ void ts::client::Interaction_interface::Impl::send_registration_request()
         out.message_type = Message_type::Reliable;
 
         message_center_->dispatch_message(out);        
+    }
+}
+
+void ts::client::Interaction_interface::Impl::poll()
+{
+    if (queued_init_message_ && !is_downloading())
+    {
+        initialize_action(*queued_init_message_);
+        queued_init_message_ = nullptr;
     }
 }
 
@@ -215,7 +227,21 @@ void ts::client::Interaction_interface::Impl::handle_cup_progress_message(const 
 void ts::client::Interaction_interface::Impl::handle_action_initialization_message(const Message& message)
 {
     auto action_info = cup::parse_action_initialization_message(message);
+    if (resource_downloader_.is_downloading())
+    {
+        // We can't initialize yet. Still downloading.
+        queued_init_message_ = std::make_unique<cup::Action_initialization_message>(std::move(action_info));
+    }
 
+    else
+    {
+        // Ok, good to go.
+        initialize_action(action_info);
+    }
+}
+
+void ts::client::Interaction_interface::Impl::initialize_action(const cup::Action_initialization_message& action_info)
+{
     const auto& track_store = resource_store_->track_store();
     const auto& car_store = resource_store_->car_store();
 
@@ -224,19 +250,16 @@ void ts::client::Interaction_interface::Impl::handle_action_initialization_messa
     
     for (const auto& car_info : action_info.car_list)
     {
-        // TODO: Handle resource downloading
-        // TODO: Error out if car not found
-        if (auto car_def = car_store.get_car_by_name(car_info.car_name))
-        {
-            cup::Car_data car_data;
-            car_data.car_def = car_def;
-            car_data.car_id = car_info.car_id;
-            car_data.start_pos = car_info.start_pos;
-            car_data.player.color = car_info.color;
-            car_data.controller = cup_->get_player_by_id(car_info.player);
+        auto car_def = car_store.get_car_by_name(car_info.car_name);
+           
+        cup::Car_data car_data;
+        car_data.car_def = car_def;
+        car_data.car_id = car_info.car_id;
+        car_data.start_pos = car_info.start_pos;
+        car_data.player.color = car_info.color;
+        car_data.controller = cup_->get_player_by_id(car_info.player);
 
-            stage_data.cars.push_back(car_data);
-        }
+        stage_data.cars.push_back(car_data);
     }
     
     cup_->initialize_action(stage_data);
@@ -311,4 +334,9 @@ bool ts::client::Interaction_interface::is_downloading() const
 std::pair<std::size_t, std::size_t> ts::client::Interaction_interface::download_progress() const
 {
     return impl_->download_progress();
+}
+
+void ts::client::Interaction_interface::poll()
+{
+    impl_->poll();
 }

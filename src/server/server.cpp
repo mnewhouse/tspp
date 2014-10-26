@@ -141,8 +141,6 @@ void ts::server::impl::Server::dispatch_message(const Client_message& message)
             break;
         }
     }
-
-    download_server_.poll();
 }
 
 void ts::server::impl::Server::poll()
@@ -169,6 +167,8 @@ void ts::server::impl::Server::poll()
         message_buffer_.message_type = Message_type::Fast;
         message_center_.handle_message(message_buffer_);
     }
+
+    download_server_.poll();
 }
 
 void ts::server::Server::launch_action()

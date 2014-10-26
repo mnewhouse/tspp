@@ -46,6 +46,7 @@ namespace ts
             ~Interaction_interface();
 
             void send_registration_request();
+            void poll();
 
             Registration_status registration_status() const;
             const utf8_string& registration_error() const;

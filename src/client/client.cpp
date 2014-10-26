@@ -112,6 +112,8 @@ void ts::client::impl::Client::poll()
         message_buffer_.message_type = Message_type::Fast;
         message_center_.handle_message(message_buffer_);
     }
+
+    interaction_interface_.poll();
 }
 
 ts::client::Client::Client(resources::Resource_store* resource_store)
