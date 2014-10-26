@@ -23,6 +23,7 @@
 #include "pattern.hpp"
 
 ts::resources::Car_store::Car_store(const utf8_string& root_directory)
+: root_directory_(root_directory)
 {
     scan_directory(root_directory);
 }
@@ -46,9 +47,9 @@ void ts::resources::Car_store::scan_directory(const utf8_string& directory)
     }
 }
 
-void ts::resources::Car_store::load_car_file(const utf8_string& file_name, const utf8_string& directory)
+void ts::resources::Car_store::load_car_file(const boost::filesystem::path& file_path, const utf8_string& directory)
 {
-    boost::filesystem::ifstream stream(file_name.string(), std::ifstream::in);
+    boost::filesystem::ifstream stream(file_path, std::ifstream::in);
     if (stream) 
     {
         for (auto& car_def : load_car_definitions(stream, directory)) 
@@ -62,15 +63,29 @@ void ts::resources::Car_store::load_car_file(const utf8_string& file_name, const
     }
 }
 
+void ts::resources::Car_store::register_car_file(utf8_string relative_to_root)
+{
+    auto path = boost::filesystem::path(root_directory_.string()) / relative_to_root.string();
+
+    load_car_file(path, path.parent_path().string());
+}
+
+const ts::utf8_string& ts::resources::Car_store::root_directory() const
+{
+    return root_directory_;
+}
+
 ts::resources::Car_handle ts::resources::Car_store::get_car_by_name(utf8_string car_name) const
 {
     car_name = to_lower(car_name);
 
     auto it = car_map_.find(car_name);
-    if (it != car_map_.end()) 
-        return Car_handle(&it->second);
+    if (it == car_map_.end())
+    {
+        return Car_handle();
+    }
 
-    return Car_handle();
+    return Car_handle(&it->second);
 }
 
 ts::resources::Car_store::iterator ts::resources::Car_store::begin() const

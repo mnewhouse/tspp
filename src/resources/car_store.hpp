@@ -33,7 +33,6 @@ namespace ts
         class Car_store
         {
         public:
-            Car_store() = default;
             Car_store(const utf8_string& root_directory);
             Car_handle get_car_by_name(utf8_string car_name) const;
 
@@ -63,13 +62,16 @@ namespace ts
             iterator end() const;
 
             void scan_directory(const utf8_string& directory);
+            const utf8_string& root_directory() const;
 
-        private:
-            
-            void load_car_file(const utf8_string& file_name, const utf8_string& directory);
+            void register_car_file(utf8_string relative_to_root);
+
+        private:            
+            void load_car_file(const boost::filesystem::path& file_name, const utf8_string& directory);
 
             std::map<utf8_string, Car_definition> car_map_;
             std::vector<Car_handle> car_list_;
+            utf8_string root_directory_;
         };
 
     }

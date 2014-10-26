@@ -204,7 +204,6 @@ void ts::server::Resource_download_server::resource_ready(const downloads::Resou
                 // And dispatch file headers
                 out_message.client = client;
                 out_message.message = downloads::make_file_info_message(search_result->download_key_, file_info);
-                out_message.message_type = Message_type::Reliable;
                 message_center_->dispatch_message(out_message);
             }
         }
@@ -280,6 +279,8 @@ void ts::server::Resource_download_server::handle_track_download_request(const C
 
         track_resources.push_back(track_resource);
         resource_it = std::prev(track_resources.end());
+
+        async_load_track_assets(resource_it->resource_id, resource_it->track_identifier);
     }
 
     Download_info download_info;
@@ -288,8 +289,6 @@ void ts::server::Resource_download_server::handle_track_download_request(const C
 
     auto& client_downloads = client_downloads_[client];
     client_downloads.push_back(download_info);
-
-    async_load_track_assets(resource_it->resource_id, resource_it->track_identifier);
 }
 
 void ts::server::Resource_download_server::handle_car_download_request(const Client_message& client_message)
@@ -363,7 +362,6 @@ void ts::server::Resource_download_server::refuse_download_request(std::size_t r
             {
                 out_message.client = client;
                 out_message.message = downloads::make_download_refusal_message(search_result->download_key_);
-                out_message.message_type = Message_type::Reliable;
                 message_center_->dispatch_message(out_message);
             }
         }
@@ -378,7 +376,6 @@ void ts::server::Resource_download_server::send_file_chunk(Download_info& downlo
     Client_message out_message;
     out_message.client = client;
     out_message.message = downloads::make_file_chunk_message(download_info.download_key_, download_info.data_ptr_, chunk_size);
-    out_message.message_type = Message_type::Reliable;
     message_center_->dispatch_message(out_message);
 
     download_info.data_ptr_ += chunk_size;
@@ -394,7 +391,6 @@ void ts::server::Resource_download_server::send_eof_message(Download_info& downl
     Client_message out_message;
     out_message.client = client;
     out_message.message = downloads::make_eof_message(download_info.download_key_);
-    out_message.message_type = Message_type::Reliable;
     message_center_->dispatch_message(out_message);
 
     if (++download_info.file_ptr_ < download_info.file_end_)
@@ -416,7 +412,6 @@ void ts::server::Resource_download_server::send_finish_message(const Generic_cli
     Client_message out_message;
     out_message.client = client;
     out_message.message = downloads::make_finished_message(download_key);
-    out_message.message_type = Message_type::Reliable;
     message_center_->dispatch_message(out_message);
 
     auto client_it = client_downloads_.find(client);

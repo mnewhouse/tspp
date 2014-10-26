@@ -28,43 +28,39 @@ ts::client::Client_interface::Client_interface(Message_center* message_center, c
 {
 }
 
+ts::client::Client_interface::~Client_interface()
+{
+    // Send quit message when this thing is destroyed.
+    quit();
+}
+
 void ts::client::Client_interface::select_cars(const std::vector<Car_selection>& car_selection) const
 {
-    message_buffer_.message = cup::make_car_selection_message(car_selection);
-    message_buffer_.message_type = Message_type::Reliable;
-    
+    message_buffer_.message = cup::make_car_selection_message(car_selection);    
     message_center_->dispatch_message(message_buffer_);
 }
 
 void ts::client::Client_interface::write_message(const utf8_string& message) const
 {
     message_buffer_.message = cup::make_chat_message(message);
-    message_buffer_.message_type = Message_type::Reliable;
-
     message_center_->dispatch_message(message_buffer_);
 }
 
 void ts::client::Client_interface::signal_ready() const
 {
     message_buffer_.message = cup::make_ready_signal_message();
-    message_buffer_.message_type = Message_type::Reliable;
-
     message_center_->dispatch_message(message_buffer_);
 }
 
 void ts::client::Client_interface::request_advance() const
 {
     message_buffer_.message = cup::make_advance_request_message();
-    message_buffer_.message_type = Message_type::Reliable;
-
     message_center_->dispatch_message(message_buffer_);
 }
 
 void ts::client::Client_interface::quit() const
 {
     message_buffer_.message = cup::make_client_quit_message();
-    message_buffer_.message_type = Message_type::Reliable;
-
     message_center_->dispatch_message(message_buffer_);
 }
 

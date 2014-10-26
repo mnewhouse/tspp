@@ -267,23 +267,28 @@ void ts::server::Interaction_interface::Impl::handle_quit_message(const Client_m
     const auto& client = client_message.client;
     if (client.type() == Generic_client::Local)
     {
+        // Local client requested quit.
+        // That means the whole server is quitting.
+        // We should inform all clients of this.
+
         Client_message out;
         out.message = cup::make_server_quit_message();
-        out.message_type = Message_type::Reliable;
+
         message_center_->dispatch_message(out);
     }
 
-    cup::Composite_message displayed_message;
-    displayed_message.append(client_name(client), sf::Color(200, 250, 0));
-    displayed_message.append(" has left the game.", sf::Color(0, 220, 0));
+    else
+    {
+        cup::Composite_message displayed_message;
+        displayed_message.append(client_name(client), sf::Color(200, 250, 0));
+        displayed_message.append(" has left the game.", sf::Color(0, 220, 0));
 
+        Client_message out;
+        out.message = cup::make_chatbox_output_message(displayed_message);
+        message_center_->dispatch_message(out);
 
-    Client_message out;
-    out.message = cup::make_chatbox_output_message(displayed_message);
-    out.message_type = Message_type::Reliable;
-    message_center_->dispatch_message(out);
-
-    disconnect_client(client_message.client);
+        disconnect_client(client_message.client);
+    }    
 }
 
 void ts::server::Interaction_interface::Impl::handle_chat_message(const Client_message& client_message)
@@ -326,7 +331,6 @@ void ts::server::Interaction_interface::Impl::on_state_change(cup::Cup_state old
     using cup::Cup_state;
 
     Client_message out_message;
-    out_message.message_type = Message_type::Reliable;
     out_message.message = make_cup_state_message(new_state);
     message_center_->dispatch_message(out_message);
 
@@ -345,8 +349,25 @@ void ts::server::Interaction_interface::Impl::on_state_change(cup::Cup_state old
         resources::Track_identifier track_identifier;
         track_identifier.track_name = cup_->current_track().name();
         track_identifier.track_hash.fill(0);
-        out_message.message = cup::make_cup_progress_message(cup_->cup_progress(), track_identifier);
+        
+        auto progress = cup_->cup_progress();
+        auto track_count = cup_->track_list().size();
 
+        out_message.message = cup::make_cup_progress_message(progress, track_identifier);
+        message_center_->dispatch_message(out_message);
+
+        cup::Composite_message displayed_message;
+        displayed_message.append("Track ", sf::Color(163, 218, 255));
+
+        utf8_string progress_string = std::to_string(progress + 1);
+        progress_string += "/";
+        progress_string += std::to_string(track_count);
+        displayed_message.append(std::move(progress_string), sf::Color(138, 249, 255));
+        displayed_message.append(" will be ", sf::Color(163, 218, 255));
+        displayed_message.append(track_identifier.track_name, sf::Color(138, 249, 255));
+        displayed_message.append(".", sf::Color(163, 218, 255));
+
+        out_message.message = cup::make_chatbox_output_message(displayed_message);
         message_center_->dispatch_message(out_message);
     }
 }
@@ -355,7 +376,6 @@ void ts::server::Interaction_interface::Impl::on_initialize(const cup::Stage_dat
 {
     Client_message out_message;
     out_message.message = cup::make_action_initialization_message(stage_data);
-    out_message.message_type = Message_type::Reliable;
     
     message_center_->dispatch_message(out_message);
 }
@@ -364,6 +384,14 @@ void ts::server::Interaction_interface::Impl::handle_ready_signal(const Client_m
 {
     // We're not waiting for this particular client anymore
     awaiting_clients_.erase(message.client);
+
+    cup::Composite_message displayed_message;
+    displayed_message.append(client_name(message.client), sf::Color(255, 220, 50));
+    displayed_message.append(" ready for action.", sf::Color(255, 150, 0));
+
+    Client_message out_message;
+    out_message.message = cup::make_chatbox_output_message(displayed_message);
+    message_center_->dispatch_message(out_message);
 
     // So we can advance if everybody else if ready.
     advance_if_ready();

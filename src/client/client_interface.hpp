@@ -41,6 +41,7 @@ namespace ts
         {
         public:
             Client_interface(Message_center* message_center, const cup::Cup* cup);
+            ~Client_interface();
 
             void select_cars(const std::vector<Car_selection>& car_selection) const;
             void signal_ready() const;

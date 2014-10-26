@@ -40,7 +40,7 @@ namespace ts
         struct Server_message
         {
             Message message;
-            Message_type message_type;
+            Message_type message_type = Message_type::Reliable;
         };
 
         using Message_center = messages::Message_center<Server_message>;

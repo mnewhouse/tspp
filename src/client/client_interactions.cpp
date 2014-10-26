@@ -56,6 +56,7 @@ private:
     void handle_cup_state_message(const Message& message);
     void handle_cup_progress_message(const Message& message);
     void handle_action_initialization_message(const Message& message);
+    void handle_server_quit_message(const Message& message);
 
     void registration_error(utf8_string error_string);
 
@@ -133,6 +134,10 @@ void ts::client::Interaction_interface::Impl::handle_message(const Server_messag
 
         case Msg::action_initialization:
             handle_action_initialization_message(message);
+            break;
+
+        case Msg::server_quit:
+            handle_server_quit_message(message);
             break;
         }
     }
@@ -249,6 +254,18 @@ void ts::client::Interaction_interface::Impl::handle_action_initialization_messa
     }
     
     cup_->initialize_action(stage_data);
+}
+
+void ts::client::Interaction_interface::Impl::handle_server_quit_message(const Message& message)
+{
+    cup::Composite_message displayed_message;
+    displayed_message.append("Server quitting.", sf::Color(200, 0, 0));
+    
+    Server_message out_message;
+    out_message.message_type = Message_type::Reliable;
+    out_message.message = cup::make_chatbox_output_message(displayed_message);
+
+    message_center_->handle_message(out_message);
 }
 
 void ts::client::Interaction_interface::Impl::registration_error(utf8_string error_string)

@@ -25,7 +25,9 @@
 #include "cup/chat_message.hpp"
 
 #include "resources/resource_store.hpp"
+#include "resources/car_store.hpp"
 #include "resources/track_store.hpp"
+
 
 ts::client::Resource_downloader::Resource_downloader(Message_center* message_center, resources::Resource_store* resource_store)
 : Message_listener(message_center),
@@ -116,7 +118,6 @@ void ts::client::Resource_downloader::handle_file_info_message(const Message& me
         chat_message.append(" files.", sf::Color(255, 150, 0));
 
         message_buffer_.message = cup::make_chatbox_output_message(chat_message);
-        message_buffer_.message_type = Message_type::Reliable;
         message_center_->handle_message(message_buffer_);
 
         
@@ -134,9 +135,7 @@ void ts::client::Resource_downloader::handle_refusal_message(const Message& mess
     cup::Composite_message chat_message;
     chat_message.append("Error: download failed.", sf::Color(200, 0, 0));
 
-    message_buffer_.message = cup::make_chatbox_output_message(chat_message);
-    message_buffer_.message_type = Message_type::Reliable;
-    
+    message_buffer_.message = cup::make_chatbox_output_message(chat_message);    
     message_center_->handle_message(message_buffer_);
 }
 
@@ -162,7 +161,6 @@ void ts::client::Resource_downloader::handle_file_chunk_message(const Message& m
 
         // Inform the server that we've received the chunk.
         message_buffer_.message = downloads::make_pong_message(file_chunk.download_key);
-        message_buffer_.message_type = Message_type::Reliable;
         message_center_->dispatch_message(message_buffer_);
     }
 }
@@ -185,7 +183,6 @@ void ts::client::Resource_downloader::handle_eof_message(const Message& message)
        chat_message.append(".", sf::Color(255, 150, 0));
 
        message_buffer_.message = cup::make_chatbox_output_message(chat_message);
-       message_buffer_.message_type = Message_type::Reliable;
        message_center_->handle_message(message_buffer_);
     }
 }
@@ -230,6 +227,11 @@ void ts::client::Resource_downloader::handle_finished_message(const Message& mes
             resource_store_->track_store().register_track(main_file);
         }
 
+        else if (download_info.resource_type == Resource_type::Car)
+        {
+            resource_store_->car_store().register_car_file(main_file);
+        }
+
         save_resource_files(download_info);
 
         download_map_.erase(download_it);
@@ -253,7 +255,6 @@ void ts::client::Resource_downloader::request_track(const resources::Track_ident
     download_info.resource_type = Resource_type::Track;
 
     message_buffer_.message = downloads::make_track_download_request(key, track_identifier);
-    message_buffer_.message_type = Message_type::Reliable;
 
     // And send the request
     message_center_->dispatch_message(message_buffer_);
@@ -272,13 +273,13 @@ void ts::client::Resource_downloader::request_car(const resources::Car_identifie
     auto key = generate_key();
     
     auto& download_info = download_map_[key];
-    download_info.full_target_directory_ = 
 
     download_info.target_directory_ += "download";
+    download_info.full_target_directory_ = resource_store_->car_store().root_directory();
+    download_info.full_target_directory_ += "/";
+    download_info.full_target_directory_ += download_info.target_directory_;    
 
     message_buffer_.message = downloads::make_car_download_request(key, car_identifier);
-    message_buffer_.message_type = Message_type::Reliable;
-
     message_center_->dispatch_message(message_buffer_);
 
     cup::Composite_message chat_message;
