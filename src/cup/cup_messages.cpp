@@ -342,7 +342,7 @@ ts::cup::Message ts::cup::make_car_selection_message(const std::vector<Car_selec
     message << static_cast<std::uint32_t>(car_selection.size());
     for (const auto& entry : car_selection)
     {
-        message << entry.player_handle->handle;
+        message << static_cast<std::uint16_t>(entry.player_id);
         message << static_cast<std::uint32_t>(entry.car_index);
     }
 
@@ -400,7 +400,7 @@ ts::cup::Track_information_message ts::cup::parse_track_information_message(cons
     return result;
 }
 
-ts::cup::Message ts::cup::make_car_information_message(const resources::Car_settings& car_settings, const resources::Car_store& car_store)
+ts::cup::Message ts::cup::make_car_information_message(const resources::Car_settings& car_settings)
 {
     const auto& selected_cars = car_settings.selected_cars();
 
@@ -421,17 +421,50 @@ ts::cup::Car_information_message ts::cup::parse_car_information_message(const Me
     Car_information_message result;
     Message_reader message_reader(message);
 
-    std::uint32_t track_count = 0;
+    std::uint32_t car_count = 0;
     std::uint16_t car_mode = 0;
-    if (message_reader >> result.message_type >> car_mode >> track_count)
+    if (message_reader >> result.message_type >> car_mode >> car_count)
     {
         resources::Car_identifier car_identifier;
-        for (std::uint32_t n = 0; n != track_count && message_reader >> car_identifier.car_name; ++n)
+        for (std::uint32_t n = 0; n != car_count && message_reader >> car_identifier.car_name; ++n)
         {
             result.cars.push_back(car_identifier);
         }
 
         result.car_mode = static_cast<resources::Car_mode>(car_mode);
+    }
+
+    return result;
+}
+
+ts::cup::Message ts::cup::make_car_selection_initiation_message(const resources::Car_settings& car_settings)
+{
+    const auto& selected_cars = car_settings.selected_cars();
+    Message message(Message_type::car_selection_initiation);
+
+    message << static_cast<std::uint32_t>(selected_cars.size());
+    for (auto& car_handle : selected_cars)
+    {
+        message << car_handle.car_name();
+    }
+
+    return message;
+}
+
+ts::cup::Car_information_message ts::cup::parse_car_selection_initiation_message(const Message& message)
+{    
+    Car_information_message result;
+    result.car_mode = resources::Car_mode::Free;
+    Message_reader message_reader(message);
+
+    std::uint32_t car_count = 0;
+    if (message_reader >> result.message_type >> car_count)
+    {
+        resources::Car_identifier car_identifier;
+        for (std::uint32_t n = 0; n != car_count && message_reader >> car_identifier.car_name; ++n)
+        {
+            result.cars.push_back(car_identifier);
+        }
     }
 
     return result;

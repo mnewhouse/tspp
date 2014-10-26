@@ -19,8 +19,8 @@
 
 #pragma once
 
-#ifndef TRACK_PROCESSOR_HPP
-#define TRACK_PROCESSOR_HPP
+#ifndef TRACK_LOADER_HPP
+#define TRACK_LOADER_HPP
 
 namespace ts
 {

@@ -50,41 +50,18 @@ std::size_t ts::cup::Cup::cup_progress() const
     return cup_progress_;
 }
 
-void ts::cup::Cup::select_car(resources::Car_handle car_handle)
+std::size_t ts::cup::Cup::stage_count() const
 {
-    car_settings_.select_car(car_handle);
-}
-
-void ts::cup::Cup::set_car_mode(resources::Car_mode car_mode)
-{
-    car_settings_.set_car_mode(car_mode);
-}
-
-ts::resources::Car_mode ts::cup::Cup::car_mode() const
-{
-    return car_settings_.car_mode();
-}
-
-const std::vector<ts::resources::Car_handle>& ts::cup::Cup::car_list() const
-{
-    return car_settings_.selected_cars();
+    return stage_count_;
 }
 
 ts::cup::Player_handle ts::cup::Cup::add_player(const Player& player, Player_id unique_id)
-{
-    Cup_player_data cup_player_data;
-    cup_player_data.handle = unique_id;
-    cup_player_data.nickname = player.nickname;
-    cup_player_data.color = player.color;
-    cup_player_data.id = player.id;
-    cup_player_data.control_slot = player.control_slot;
-    cup_player_data.car = (car_list().empty() ? resources::Car_handle() : car_list().front());
-    cup_player_data.start_pos = player_list_.size();
+{    
+    auto& player_def = player_map_[unique_id];
+    player_def.handle = unique_id;
+    static_cast<Player&>(player_def) = player;
 
-    auto& data = player_map_[unique_id];
-    data = cup_player_data;
-
-    Player_handle player_handle(&data);
+    Player_handle player_handle(&player_def);
     player_list_.push_back(player_handle);
 
     if (player.control_slot != controls::invalid_slot)
@@ -159,46 +136,6 @@ std::size_t ts::cup::Cup::player_count() const
     return player_map_.size();
 }
 
-void ts::cup::Cup::load_track_settings(const resources::Track_settings& track_settings)
-{
-    track_settings_ = track_settings;
-}
-
-void ts::cup::Cup::load_car_settings(const resources::Car_settings& car_settings)
-{
-    car_settings_ = car_settings;
-}
-
-const ts::resources::Track_settings& ts::cup::Cup::track_settings() const
-{
-    return track_settings_;
-}
-
-const ts::resources::Car_settings& ts::cup::Cup::car_settings() const
-{
-    return car_settings_;
-}
-
-void ts::cup::Cup::add_track(resources::Track_handle track_handle)
-{
-    track_settings_.add_track(track_handle);
-}
-
-void ts::cup::Cup::remove_track(resources::Track_handle track_handle)
-{
-    track_settings_.remove_track(track_handle);
-}
-
-void ts::cup::Cup::clear_tracks()
-{
-    track_settings_.clear_selection();
-}
-
-const std::vector<ts::resources::Track_handle>& ts::cup::Cup::track_list() const
-{
-    return track_settings_.selected_tracks();
-}
-
 void ts::cup::Cup::add_cup_listener(Cup_listener* cup_listener)
 {
     cup_listeners_.push_back(cup_listener);
@@ -207,24 +144,6 @@ void ts::cup::Cup::add_cup_listener(Cup_listener* cup_listener)
 void ts::cup::Cup::remove_cup_listener(Cup_listener* cup_listener)
 {
     cup_listeners_.erase(std::remove(cup_listeners_.begin(), cup_listeners_.end(), cup_listener), cup_listeners_.end());
-}
-
-void ts::cup::Cup::end()
-{
-    for (auto listener : cup_listeners_)
-    {
-        listener->on_end();
-    }
-}
-
-void ts::cup::Cup::restart()
-{    
-    for (auto listener : cup_listeners_)
-    {
-        listener->on_restart();
-    }
-
-    cup_progress_ = 0;
 }
 
 void ts::cup::Cup::set_cup_state(Cup_state new_state)
@@ -241,18 +160,14 @@ void ts::cup::Cup::set_cup_state(Cup_state new_state)
     }
 }
 
+void ts::cup::Cup::set_stage_count(std::size_t stage_count)
+{
+    stage_count_ = stage_count;
+}
+
 void ts::cup::Cup::set_cup_progress(std::size_t progress)
 {
     cup_progress_ = progress;
-}
-
-void ts::cup::Cup::set_player_car(Player_handle player, resources::Car_handle car_handle)
-{
-    auto it = player_map_.find(player->handle);
-    if (it != player_map_.end())
-    {
-        it->second.car = car_handle;
-    }
 }
 
 ts::cup::Player_handle ts::cup::Cup::get_player_by_id(Player_id player_id) const
@@ -266,107 +181,10 @@ ts::cup::Player_handle ts::cup::Cup::get_player_by_id(Player_id player_id) const
     return Player_handle(&it->second);
 }
 
-void ts::cup::Cup::advance()
-{
-    switch (state_)
-    {
-    case Cup_state::Registering:
-        start_cup();
-        break;
-
-    case Cup_state::Cup:
-        preinitialize_action();
-        break;
-
-    case Cup_state::Car_selection:
-        initialize_action();
-        break;
-
-    case Cup_state::Initializing:
-        launch_action();
-        break;
-
-    case Cup_state::Action:
-        stop_action();
-        break;
-
-    case Cup_state::End:
-        restart();
-        break;
-    }
-}
-
-void ts::cup::Cup::start_cup()
-{
-    if (track_list().empty())
-    {
-        set_cup_state(Cup_state::End);
-    }
-
-    else
-    {
-        set_cup_state(Cup_state::Cup);
-    }
-}
-
 void ts::cup::Cup::initialize_action(const Stage_data& stage_data)
 {
-    if (state_ != Cup_state::Initializing)
-    {
-        set_cup_state(Cup_state::Initializing);
-    }
-
     for (auto cup_listener : cup_listeners_)
     {
         cup_listener->on_initialize(stage_data);
     }   
-}
-
-void ts::cup::Cup::launch_action()
-{
-    set_cup_state(Cup_state::Action);
-}
-
-void ts::cup::Cup::stop_action()
-{
-    ++cup_progress_;
-
-    if (cup_progress_ >= track_list().size())
-    {
-        set_cup_state(Cup_state::End);
-    }
-
-    else
-    {
-        set_cup_state(Cup_state::Cup);
-    }
-}
-
-void ts::cup::Cup::initialize_action()
-{
-    set_cup_state(Cup_state::Initializing);
-}
-
-void ts::cup::Cup::preinitialize_action()
-{
-    action_players_ = player_list_;
-
-    if (car_mode() == resources::Car_mode::Free && car_list().size() > 1)
-    {
-        set_cup_state(Cup_state::Car_selection);
-    }
-
-    else
-    {
-        initialize_action();
-    }
-}
-
-ts::resources::Track_handle ts::cup::Cup::current_track() const
-{
-    const auto& selected_tracks = track_list();
-
-    if (cup_progress_ < selected_tracks.size()) return selected_tracks[cup_progress_];
-
-    return ts::resources::Track_handle();
 }

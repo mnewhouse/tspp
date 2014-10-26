@@ -24,8 +24,6 @@
 
 #include "tile.hpp"
 
-#include <SFML/Graphics/Transformable.hpp>
-
 namespace ts
 {
 
@@ -53,28 +51,5 @@ namespace ts
     }
 }
 
-template <typename IteratorType, typename F>
-void ts::resources::for_each_tile(IteratorType begin, IteratorType end, const Tile_library& tile_library, F func)
-{
-    for (auto it = begin; it != end; ++it) 
-    {
-        const auto& tile = *it;
-        auto tile_def = tile_library.tile_group(tile.id);
-        if (!tile_def) continue;
-
-        for (auto& sub_tile : tile_def->sub_tiles()) 
-        {
-            auto sub_tile_def = tile_library.tile(sub_tile.id);
-            if (!sub_tile_def) continue;
-
-            auto sub_tile_offset = transform_point(sub_tile.position, tile.rotation);
-            auto sub_tile_rotation = tile.rotation + sub_tile.rotation;
-
-            auto sub_tile_position = tile.position + sub_tile_offset;
-
-            func(*tile_def, tile, *sub_tile_def, sub_tile, sub_tile_position, sub_tile_rotation);
-        }
-    }
-}
 
 #endif

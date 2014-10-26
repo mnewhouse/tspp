@@ -19,10 +19,11 @@
 
 #include "stdinc.hpp"
 #include "action_scene.hpp"
-
+#include "view_context.hpp"
 #include "particle_generator.hpp"
 #include "car_image_generator.hpp"
 #include "drawable_entity.hpp"
+#include "track_builder.hpp"
 
 #include "resources/player_color.hpp"
 #include "resources/settings/video_settings.hpp"
@@ -41,13 +42,13 @@ ts::game::Drawable_entity_definition::Drawable_entity_definition(std::shared_ptr
 
 ts::game::Action_scene::Action_scene(Track_scene track_scene, const resources::Video_settings& video_settings)
 : track_scene_(std::move(track_scene)),
-  view_context_(video_settings.current_screen_resolution, track_scene_.track_size),
+  view_context_(std::make_unique<View_context>(video_settings.current_screen_resolution, track_scene_.track_size)),
   particle_generator_(std::make_unique<Particle_generator>()),
   car_image_generator_(std::make_unique<Car_image_generator>())
 {
     // Add a view, just in case there won't be any players registered
-    view_context_.add_view();
-    view_context_.arrange_evenly();
+    view_context_->add_view();
+    view_context_->arrange_evenly();
 
     calculate_vertex_bounds();
 }
@@ -81,7 +82,7 @@ void ts::game::Action_scene::remove_car(const world::Car* car)
 
     particle_generator_->remove_car(car);
 
-    for (auto& view : view_context_)
+    for (auto& view : *view_context_)
     {
         if (view.camera.target() == car)
         {
@@ -92,23 +93,23 @@ void ts::game::Action_scene::remove_car(const world::Car* car)
 
 void ts::game::Action_scene::reassign_screens()
 {
-    view_context_.clear();
+    view_context_->clear();
     for (auto entity : followed_entities_)
     {
-        if (auto view = view_context_.add_view())
+        if (auto view = view_context_->add_view())
         {
             view->camera.set_target(entity);
         } 
     }
 
-    view_context_.arrange_evenly();
+    view_context_->arrange_evenly();
 
     dirty_component_cache_ = true;
 }
 
 ts::game::View_context* ts::game::Action_scene::view_context()
 {
-    return &view_context_;
+    return view_context_.get();
 }
 
 void ts::game::Action_scene::add_followed_entity(const world::Entity* entity)
@@ -123,15 +124,15 @@ void ts::game::Action_scene::add_followed_entity(const world::Entity* entity)
 
 void ts::game::Action_scene::update_cameras(double frame_time)
 {
-    for (auto& view : view_context_)
+    for (auto& view : *view_context_)
     {
-        view.camera.update_view(view.view_port, view_context_.screen_size(), frame_time);
+        view.camera.update_view(view.view_port, view_context_->screen_size(), frame_time);
     }
 }
 
 void ts::game::Action_scene::render_view(std::size_t view_index, sf::RenderTarget& render_target, double frame_time)
 {
-    const auto& view = view_context_.view(view_index);
+    const auto& view = view_context_->view(view_index);
     const auto& component_cache = component_cache_[view_index];        
 
     Vector2<double> screen_size(render_target.getSize().x, render_target.getSize().y);
@@ -233,7 +234,7 @@ void ts::game::Action_scene::render(sf::RenderTarget& render_target, double fram
         dirty_component_cache_ = false;
     }
 
-    for (std::size_t view_index = 0; view_index != view_context_.view_count(); ++view_index)
+    for (std::size_t view_index = 0; view_index != view_context_->view_count(); ++view_index)
     {
         render_view(view_index, render_target, frame_time);
     }
@@ -259,7 +260,7 @@ void ts::game::Action_scene::update_entity_positions()
         drawable_entity.update_position();
     }
 
-    for (auto& view : view_context_)
+    for (auto& view : *view_context_)
     {
         view.camera.update_position();
     }
@@ -305,11 +306,11 @@ void ts::game::Action_scene::calculate_vertex_bounds()
 
 void ts::game::Action_scene::update_component_cache()
 {
-    component_cache_.resize(view_context_.view_count());
+    component_cache_.resize(view_context_->view_count());
 
-    for (std::size_t viewport_index = 0; viewport_index != view_context_.view_count(); ++viewport_index)
+    for (std::size_t viewport_index = 0; viewport_index != view_context_->view_count(); ++viewport_index)
     {
-        const auto& view = view_context_.view(viewport_index);
+        const auto& view = view_context_->view(viewport_index);
 
         auto& component_cache = component_cache_[viewport_index];
         component_cache.resize(track_scene_.components.size());

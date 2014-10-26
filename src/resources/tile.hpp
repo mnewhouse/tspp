@@ -22,9 +22,6 @@
 #ifndef RESOURCES_TILE_HPP
 #define RESOURCES_TILE_HPP
 
-#include "core/rect.hpp"
-#include "core/rotation.hpp"
-
 namespace ts
 {
 

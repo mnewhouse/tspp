@@ -24,12 +24,6 @@
 
 #include "cup_metadata.hpp"
 
-#include "resources/track_handle.hpp"
-#include "resources/car_handle.hpp"
-
-#include "resources/settings/car_settings.hpp"
-#include "resources/settings/track_settings.hpp"
-
 namespace ts
 {
     namespace resources
@@ -54,41 +48,21 @@ namespace ts
             Cup(Locality locality);
             ~Cup();
 
-            void add_track(resources::Track_handle track_handle);
-            void remove_track(resources::Track_handle track_handle);
-            void clear_tracks();
-
-            const std::vector<resources::Track_handle>& track_list() const;         
-
-            void select_car(resources::Car_handle car_handle);
-            void set_car_mode(resources::Car_mode car_mode);
-
-            const std::vector<resources::Car_handle>& car_list() const;
-            resources::Car_mode car_mode() const;
-
             void add_cup_listener(Cup_listener* cup_listener);
             void remove_cup_listener(Cup_listener* cup_listener);
 
             bool is_local() const;
             Cup_state cup_state() const;
             std::size_t cup_progress() const;
+            std::size_t stage_count() const;
 
             void set_cup_state(Cup_state cup_state);
             void set_cup_progress(std::size_t index);
-
-            void load_car_settings(const resources::Car_settings& car_settings);
-            void load_track_settings(const resources::Track_settings& track_settings);
-
-            const resources::Car_settings& car_settings() const;
-            const resources::Track_settings& track_settings() const;
-
-            void end();
-            void restart();
-            void advance();
+            void set_stage_count(std::size_t stage_count);
+            
 
             void initialize_action(const Stage_data& stage_data);
-
-            resources::Track_handle current_track() const;
+            void initiate_car_selection();
 
             Player_handle add_player(const Player& player, Player_id player_id);
             Player_handle add_player(const Player& player);
@@ -100,32 +74,24 @@ namespace ts
             const std::vector<Player_handle>& local_players() const;
 
             std::size_t player_count() const;
-            Player_handle get_player_by_id(Player_id player_id) const;
-            
-
-            void set_player_car(Player_handle player, resources::Car_handle car_handle);            
+            Player_handle get_player_by_id(Player_id player_id) const;            
 
         private:
-            void launch_action();
-            void stop_action();
-            void preinitialize_action();
-            void initialize_action();
-            void start_cup();
-
             Player_id allocate_player_id() const;
 
             Cup_state state_;
             Locality locality_;
 
-            std::uint32_t max_players_;
-
+            /*
             resources::Track_settings track_settings_;
             resources::Car_settings car_settings_;
+            */
 
             //std::vector<resources::Script_handle> loaded_scripts_;
 
-            std::size_t cup_progress_;
-            std::map<Player_id, Cup_player_data> player_map_;
+            std::size_t cup_progress_ = 0;
+            std::size_t stage_count_ = 0;
+            std::map<Player_id, Player_definition> player_map_;
             std::vector<Player_handle> player_list_;
             std::vector<Player_handle> action_players_;
             std::vector<Player_handle> local_players_;

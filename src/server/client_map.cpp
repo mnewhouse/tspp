@@ -20,11 +20,11 @@
 #include "stdinc.hpp"
 #include "client_map.hpp"
 
-#include "cup/cup.hpp"
+#include "cup/cup_controller.hpp"
 #include "network/server_connection.hpp"
 
-ts::server::Client_map::Client_map(cup::Cup* cup, network::Server_connection* server_connection)
-: cup_(cup),
+ts::server::Client_map::Client_map(cup::Cup_controller* cup_controller, network::Server_connection* server_connection)
+: cup_controller_(cup_controller),
   server_connection_(server_connection)
 {
 }
@@ -45,7 +45,7 @@ ts::cup::Player_handle ts::server::Client_map::register_player(const Generic_cli
         player_definition.control_slot = controls::invalid_slot;
     }
 
-    auto player_handle = cup_->add_player(player_definition);
+    auto player_handle = cup_controller_->add_player(player_definition);
     player_list.push_back(player_handle);
     return player_handle;
 }

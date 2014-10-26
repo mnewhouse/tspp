@@ -22,9 +22,9 @@
 #include "client_map.hpp"
 #include "server_interactions.hpp"
 #include "server_stage_interface.hpp"
+#include "resource_download_server.hpp"
 
-#include "cup/cup.hpp"
-#include "cup/cup_config.hpp"
+#include "cup/cup_controller.hpp"
 
 #include "network/server_connection.hpp"
 
@@ -56,8 +56,7 @@ public:
     void dispatch_message(const Client_message& message);
     void end_action();
 
-    cup::Cup cup_;
-    cup::Cup_config cup_config_;
+    cup::Cup_controller cup_controller_;
     network::Server_connection server_connection_;
 
     Message_center message_center_;
@@ -65,8 +64,11 @@ public:
     Client_message message_buffer_;
 
     Client_map client_map_;
-    Interaction_interface interaction_interface_;
     Stage_interface stage_interface_;
+    Interaction_interface interaction_interface_;
+    
+
+    Resource_download_server download_server_;
 
     using Local_client_link = std::function<void(const Client_message&)>;
     Local_client_link local_client_link_;
@@ -84,14 +86,14 @@ void ts::server::Server_message_dispatcher::dispatch_message(const Client_messag
 }
 
 ts::server::impl::Server::Server(resources::Resource_store* resource_store)
-: cup_(cup::Locality::Local),
-  cup_config_(&cup_, resource_store),
+: cup_controller_(resource_store),
   server_connection_(),
   message_center_(),
   message_dispatcher_(this, &message_center_),
-  client_map_(&cup_, &server_connection_),
-  interaction_interface_(&message_center_, &client_map_, &cup_, resource_store),
-  stage_interface_(&message_center_, &cup_)
+  client_map_(&cup_controller_, &server_connection_),
+  stage_interface_(&message_center_),
+  interaction_interface_(&message_center_, &client_map_, &cup_controller_, &stage_interface_),  
+  download_server_(&message_center_, resource_store)
 {
 }
 
@@ -139,6 +141,8 @@ void ts::server::impl::Server::dispatch_message(const Client_message& message)
             break;
         }
     }
+
+    download_server_.poll();
 }
 
 void ts::server::impl::Server::poll()
@@ -165,8 +169,6 @@ void ts::server::impl::Server::poll()
         message_buffer_.message_type = Message_type::Fast;
         message_center_.handle_message(message_buffer_);
     }
-
-    interaction_interface_.poll();
 }
 
 void ts::server::Server::launch_action()
@@ -176,9 +178,8 @@ void ts::server::Server::launch_action()
 
 void ts::server::impl::Server::end_action()
 {
-    if (cup_.cup_state() == cup::Cup_state::Action)
+    if (cup_controller_.cup_state() == cup::Cup_state::Action)
     {
-        cup_.advance();
     }
 }
 
@@ -217,7 +218,7 @@ const ts::server::Message_center* ts::server::Server::message_center() const
 
 const ts::cup::Cup* ts::server::Server::cup() const
 {
-    return &impl_->cup_;
+    return impl_->cup_controller_.cup();
 }
 
 void ts::server::Server::listen(std::uint16_t port)
@@ -227,12 +228,12 @@ void ts::server::Server::listen(std::uint16_t port)
 
 void ts::server::Server::remove_cup_listener(cup::Cup_listener* listener)
 {
-    impl_->cup_.remove_cup_listener(listener);
+    impl_->cup_controller_.remove_cup_listener(listener);
 }
 
 void ts::server::Server::add_cup_listener(cup::Cup_listener* listener)
 {
-    impl_->cup_.add_cup_listener(listener);
+    impl_->cup_controller_.add_cup_listener(listener);
 }
 
 const ts::game::Stage_loader* ts::server::Server::async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback)

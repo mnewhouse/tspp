@@ -173,14 +173,7 @@ void ts::client::Interaction_interface::Impl::handle_track_information_message(c
 {
     auto track_information = cup::parse_track_information_message(message);
     
-    cup_->clear_tracks();
-
-    const auto& track_store = resource_store_->track_store();
-    for (const auto& track_name : track_information.track_names)
-    {
-        auto track_handle = track_store.get_track_by_name(track_name);
-        cup_->add_track(track_handle);
-    }
+    cup_->set_stage_count(track_information.track_names.size());
 }
 
 void ts::client::Interaction_interface::Impl::handle_car_information_message(const Message& message)
@@ -189,9 +182,6 @@ void ts::client::Interaction_interface::Impl::handle_car_information_message(con
 
     const auto& car_store = resource_store_->car_store();
 
-    resources::Car_settings car_settings;
-    car_settings.set_car_mode(car_information.car_mode);
-
     for (const auto& car_identifier : car_information.cars)
     {
         auto car_handle = car_store.get_car_by_name(car_identifier.car_name);
@@ -199,11 +189,7 @@ void ts::client::Interaction_interface::Impl::handle_car_information_message(con
         {
             resource_downloader_.request_car(car_identifier);
         }
-
-        car_settings.select_car(car_handle);
     }
-
-    cup_->load_car_settings(car_settings);
 }
 
 
@@ -251,6 +237,12 @@ void ts::client::Interaction_interface::Impl::handle_action_initialization_messa
 
             stage_data.cars.push_back(car_data);
         }
+    }
+
+    std::cout << "Action initialization\n";
+    if (stage_data.track)
+    {
+        std::cout << "Track found.\n";
     }
     
     cup_->initialize_action(stage_data);

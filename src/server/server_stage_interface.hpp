@@ -26,7 +26,6 @@ namespace ts
 {
     namespace cup
     {
-        class Cup;
         struct Stage_data;
     }
 
@@ -45,7 +44,7 @@ namespace ts
         class Stage_interface
         {
         public:
-            Stage_interface(Message_center* message_center, cup::Cup* cup);
+            Stage_interface(Message_center* message_center);
             ~Stage_interface();
 
             const game::Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback);
@@ -55,6 +54,8 @@ namespace ts
 
             void clean_stage();
             void launch_action();
+
+            cup::Stage_data stage_data() const;
 
         private:
             class Impl;

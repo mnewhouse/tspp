@@ -73,7 +73,7 @@ namespace ts
             bool quit_event_pending() const;
 
         private:
-            std::unique_ptr<impl::Cup_GUI> impl_;         
+            std::unique_ptr<impl::Cup_GUI> impl_;     
         };
     }
 }

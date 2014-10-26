@@ -28,29 +28,25 @@ namespace ts
 {
     namespace cup
     {
-        class Cup;
-    }
-
-    namespace resources
-    {
-        struct Resource_store;
+        class Cup_controller;
     }
 
     namespace server
     {
         class Client_map;
         class Interaction_listener;
+        class Stage_interface;
 
         class Interaction_interface
         {
         public:
-            Interaction_interface(Message_center* message_center, Client_map* client_map, cup::Cup* cup, const resources::Resource_store* resource_store);
+            Interaction_interface(Message_center* message_center, Client_map* client_map, cup::Cup_controller* cup_controller,
+                                  const Stage_interface* stage_interface);
+
             ~Interaction_interface();
 
             void add_interaction_listener(Interaction_listener* listener);
             void remove_interaction_listener(Interaction_listener* listener);
-
-            void poll();
 
         private:
             class Impl;

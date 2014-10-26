@@ -32,13 +32,11 @@ ts::states::Client_cup_state::Client_cup_state(state_machine_type* state_machine
   Cup_state_base(client_.client_interface(), state_machine, context, resource_store)
 {
     client_.add_cup_listener(this);
-    client_.add_chatbox_listener(this);
 }
 
 ts::states::Client_cup_state::~Client_cup_state()
 {
     client_.remove_cup_listener(this);
-    client_.remove_chatbox_listener(this);
 }
 
 void ts::states::Client_cup_state::update(std::size_t frame_duration)

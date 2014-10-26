@@ -26,7 +26,7 @@
 
 #include "cup/stage_assembler.hpp"
 #include "cup/cup_listener.hpp"
-#include "cup/cup.hpp"
+#include "cup/cup_controller.hpp"
 
 namespace ts
 {
@@ -40,32 +40,27 @@ namespace ts
 }
 
 class ts::server::Stage_interface::Impl
-    : public game::Stage_interface, public cup::Cup_listener
+    : public game::Stage_interface
 {
 public:
-    Impl(Message_center* message_center, cup::Cup* cup);
+    Impl(Message_center* message_center);
     ~Impl();
 
     void launch_action();
     void update(std::size_t frame_duration);
-    virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
 
-    cup::Cup* cup_;
     Message_center* message_center_;
 
     std::unique_ptr<Stage_conductor> stage_conductor_;
 };
 
-ts::server::Stage_interface::Impl::Impl(Message_center* message_center, cup::Cup* cup)
-: cup_(cup),
-  message_center_(message_center)
+ts::server::Stage_interface::Impl::Impl(Message_center* message_center)
+: message_center_(message_center)
 {
-    cup->add_cup_listener(this);
 }
 
 ts::server::Stage_interface::Impl::~Impl()
 {
-    cup_->remove_cup_listener(this);
 }
 
 void ts::server::Stage_interface::Impl::update(std::size_t frame_duration)
@@ -85,18 +80,8 @@ void ts::server::Stage_interface::Impl::launch_action()
     stage()->launch_game();
 }
 
-void ts::server::Stage_interface::Impl::on_state_change(cup::Cup_state old_state, cup::Cup_state new_state)
-{
-    if (new_state == cup::Cup_state::Initializing)
-    {
-        // Gather stage data.
-        auto stage_data = cup::assemble_stage(*cup_);
-        cup_->initialize_action(stage_data);
-    }
-}
-
-ts::server::Stage_interface::Stage_interface(Message_center* message_center, cup::Cup* cup)
-   : impl_(std::make_unique<Impl>(message_center, cup))
+ts::server::Stage_interface::Stage_interface(Message_center* message_center)
+   : impl_(std::make_unique<Impl>(message_center))
 {
 }
 
@@ -128,4 +113,9 @@ void ts::server::Stage_interface::update(std::size_t frame_duration)
 const ts::action::Stage* ts::server::Stage_interface::stage() const
 {
     return impl_->stage();
+}
+
+ts::cup::Stage_data ts::server::Stage_interface::stage_data() const
+{
+    return impl_->stage()->stage_data();
 }

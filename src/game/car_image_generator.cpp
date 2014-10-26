@@ -60,7 +60,7 @@ namespace ts
 
 sf::Image ts::game::Car_image_generator::operator()(const resources::Car_definition& car_definition, const resources::Player_color& color_scheme, Frame_mode frame_mode) const
 {
-    auto image = get_image_by_filename(car_definition.image_file);    
+    auto source_image = get_image_by_filename(car_definition.image_file);
 
     const auto& image_rect = car_definition.image_rect;
 
@@ -79,11 +79,14 @@ sf::Image ts::game::Car_image_generator::operator()(const resources::Car_definit
     }
 
     Int_rect frame_bounds(image_rect.left, image_rect.top, frame_size.x, frame_size.y);
-    auto car_bounds = impl::find_image_bounds(image, frame_bounds);
+    auto car_bounds = impl::find_image_bounds(source_image, frame_bounds);
 
     auto color_map = impl::make_color_map(frame_size, car_bounds, color_scheme);
 
     Vector2i center = frame_size / 2;
+
+    sf::Image dest_image;
+    dest_image.create(frame_count * frame_size.x, frame_size.y, sf::Color::Transparent);
 
     for (std::size_t frame_index = 0; frame_index != frame_count; ++frame_index)
     {
@@ -100,7 +103,7 @@ sf::Image ts::game::Car_image_generator::operator()(const resources::Car_definit
 
             for (std::int32_t x = 0; x != frame_size.x; ++x, ++image_x)
             {
-                auto source_color = image.getPixel(image_x, image_y);
+                auto source_color = source_image.getPixel(image_x, image_y);
                 if (source_color.a == 0) continue;
 
                 Vector2i point(x, y);
@@ -116,13 +119,13 @@ sf::Image ts::game::Car_image_generator::operator()(const resources::Car_definit
                     auto target_color = color_map.pixels[source_y * frame_size.x + source_x];
 
                     auto new_color = impl::colorize(source_color, target_color);
-                    image.setPixel(image_x, image_y, new_color);
+                    dest_image.setPixel(image_x, image_y, new_color);
                 }
             }
         }
     }   
 
-    return image;
+    return dest_image;
 }
 
 sf::Color ts::game::impl::colorize(sf::Color source_color, sf::Color target_color)

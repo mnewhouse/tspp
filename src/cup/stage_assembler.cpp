@@ -20,32 +20,39 @@
 #include "stdinc.hpp"
 #include "stage_assembler.hpp"
 
+#include "cup_controller.hpp"
 #include "cup.hpp"
 
-ts::cup::Stage_data ts::cup::assemble_stage(const Cup& cup)
+ts::cup::Stage_data ts::cup::assemble_stage(const Cup_controller& cup_controller)
 {
-    const auto& players = cup.action_players();
-
-    std::uint16_t car_id = 0;
-
     Stage_data stage_data;
-    for (auto player : players)
-    {
-        Car_data car_data;
-        car_data.car_id = ++car_id;
-        car_data.car_def = player->car;
-        car_data.controller = player;
-        car_data.player.name = player->nickname;
-        car_data.player.id = player->id;
-        car_data.player.color = player->color;
-        car_data.start_pos = player->start_pos;
 
-        if (car_data.car_def)
+    const auto& players = cup_controller.stage_players();
+    
+    std::uint16_t car_id = 0;
+    
+    for (auto stage_player : players)
+    {
+        const auto& player = stage_player.player;
+        const auto& car = stage_player.car;
+        if (player)
         {
-            stage_data.cars.push_back(car_data);
-        }       
+            // This can proceed even if there is no car available, because it might be set later.
+            // And if it's not set, we have to start without this player.
+
+            stage_data.cars.emplace_back();
+            auto& car_data = stage_data.cars.back();
+
+            car_data.car_id = ++car_id;
+            car_data.car_def = car;
+            car_data.controller = player;
+            car_data.player.name = player->nickname;
+            car_data.player.id = player->id;
+            car_data.player.color = player->color;
+            car_data.start_pos = stage_player.start_pos;
+        }
     }
 
-    stage_data.track = cup.current_track();
+    stage_data.track = cup_controller.current_track();
     return stage_data;
 }

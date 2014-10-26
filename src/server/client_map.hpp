@@ -35,7 +35,7 @@ namespace ts
 
     namespace cup
     {
-        class Cup;
+        class Cup_controller;
         struct Player_definition;
     }
 
@@ -44,7 +44,7 @@ namespace ts
         class Client_map
         {
         public:
-            Client_map(cup::Cup* cup, network::Server_connection* server_connection);
+            Client_map(cup::Cup_controller* cup_controller, network::Server_connection* server_connection);
 
             void disconnect_client(const Generic_client& client_handle);
             void register_client(const Generic_client& client_handle);
@@ -60,7 +60,7 @@ namespace ts
             std::unordered_map<Generic_client, std::vector<cup::Player_handle>> player_mapping_;
             std::vector<Generic_client> client_list_;
 
-            cup::Cup* cup_;
+            cup::Cup_controller* cup_controller_;
             network::Server_connection* server_connection_;            
         };
     }

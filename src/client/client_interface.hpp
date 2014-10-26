@@ -50,6 +50,7 @@ namespace ts
             void quit() const;
 
             const cup::Cup* cup() const;
+            Message_center* message_center() const;
 
         private:
             Message_center* message_center_;

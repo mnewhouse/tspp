@@ -113,6 +113,8 @@ set(SRC src/main.cpp
 		src/cup/cup.cpp
 		src/cup/cup_config.hpp
 		src/cup/cup_config.cpp
+		src/cup/cup_controller.hpp
+		src/cup/cup_controller.cpp
 		src/cup/cup_listener.hpp
 		src/cup/cup_messages.hpp
 		src/cup/cup_messages.cpp

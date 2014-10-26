@@ -22,8 +22,6 @@
 #ifndef RESOURCES_TRACK_HANDLE_HPP
 #define RESOURCES_TRACK_HANDLE_HPP
 
-#include "track_identifier.hpp"
-
 namespace ts
 {
     namespace resources
@@ -42,7 +40,6 @@ namespace ts
 
         private:
             utf8_string track_path_;
-            Track_identifier track_identifier_;
         };
 
         inline bool operator==(const Track_handle& a, const Track_handle& b)

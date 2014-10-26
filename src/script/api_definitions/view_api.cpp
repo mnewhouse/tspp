@@ -27,6 +27,7 @@
 #include "script/script_userdata.hpp"
 
 #include "game/action_scene.hpp"
+#include "game/view_context.hpp"
 
 namespace ts
 {

@@ -72,9 +72,6 @@ ts::resources::Font_library& ts::resources::Resource_store::font_library()
     return *font_library_;
 }
 
-
-
-
 const ts::resources::Car_store& ts::resources::Resource_store::car_store() const
 {
     return *car_store_;

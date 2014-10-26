@@ -21,9 +21,14 @@
 #include "cup_gui.hpp"
 
 #include "client/client_interface.hpp"
+#include "client/client_messages.hpp"
+#include "cup/cup_messages.hpp"
 #include "cup/cup.hpp"
 
-#include "resources/track.hpp"
+#include "resources/resource_store.hpp"
+#include "resources/track_handle.hpp"
+#include "resources/car_handle.hpp"
+#include "resources/car_store.hpp"
 
 #include "game/car_image_generator.hpp"
 
@@ -63,14 +68,15 @@ namespace ts
         class Car_selection_dialog
         {
         public:
-            Car_selection_dialog(gui::Context* context, impl::Cup_GUI* cup_gui);
+            Car_selection_dialog(gui::Context* context, impl::Cup_GUI* cup_gui, const resources::Resource_store* resource_store);
 
-            void load(std::vector<cup::Player_handle> selected_players, std::vector<resources::Car_handle> possible_cars, resources::Track_handle track_handle);
+            void load(std::vector<cup::Player_definition> local_players, std::vector<resources::Car_identifier> possible_cars, 
+                      resources::Track_handle track_handle);
 
             void show();
             void hide();
 
-            const std::vector<client::Car_selection>& car_selection() const;
+            const std::vector<std::pair<cup::Player_definition, std::uint32_t>>& car_selection() const;
 
         private:
             void load_dialog();
@@ -81,15 +87,18 @@ namespace ts
 
             impl::Cup_GUI* cup_gui_;
             gui::Context* context_;
+            const resources::Resource_store* resource_store_;
 
-            std::vector<cup::Player_handle> selected_players_;
-            std::vector<resources::Car_handle> possible_cars_;
+            std::vector<cup::Player_definition> local_players_;
+            std::vector<resources::Car_identifier> possible_cars_;
+            std::vector<resources::Car_handle> car_handles_;
+            std::unordered_map<cup::Player_id, resources::Car_identifier> selection_cache_;
             resources::Track_handle track_handle_;
 
-            std::vector<std::shared_ptr<graphics::Texture>> player_car_textures_;
-            std::vector<Int_rect> texture_mapping_;
+            std::shared_ptr<graphics::Texture> car_preview_texture_;
+            std::map<std::pair<std::uint32_t, std::uint32_t>, Int_rect> texture_mapping_;
 
-            std::vector<client::Car_selection> car_selection_;
+            std::vector<std::pair<cup::Player_definition, std::uint32_t>> car_selection_;
 
             std::future<void> loading_future_;
 
@@ -101,6 +110,7 @@ namespace ts
 }
 
 class ts::states::impl::Cup_GUI
+    : private client::Message_listener
 {
 public:
     Cup_GUI(const client::Client_interface* client_interface, gui::Context* context, const resources::Resource_store* resource_store);
@@ -116,7 +126,7 @@ public:
     void update(std::size_t frame_duration);
     void set_cup_state_text(utf8_string text);
 
-    void show_car_selection_dialog();
+    void show_car_selection_dialog(const std::vector<resources::Car_identifier>& car_list);
 
     void show_progress_dialog();
     void hide_progress_dialog();
@@ -124,9 +134,13 @@ public:
     void set_loading_progress(double progress);
     void set_loading_progress_text(utf8_string text);
 
-    void output_chat_message(const cup::Composite_message& message);        
+    void output_chat_message(const cup::Composite_message& message);     
 
 private:
+    virtual void handle_message(const client::Server_message& message) override;
+    void handle_chatbox_output_message(const client::Message& message);
+    void handle_car_selection_initiation_message(const client::Message& message);
+
     void show_menu_background();
 
     void create_cup_document(gui::Context* context);
@@ -154,13 +168,14 @@ private:
 
 
 ts::states::impl::Cup_GUI::Cup_GUI(const client::Client_interface* client_interface, gui::Context* context, const resources::Resource_store* resource_store)
-: client_interface_(client_interface),
+: Message_listener(client_interface->message_center()), 
+  client_interface_(client_interface),
   cup_(client_interface->cup()),
   context_(context)
 {
     create_cup_document(context);
 
-    car_selection_dialog_ = std::make_unique<Car_selection_dialog>(context, this);
+    car_selection_dialog_ = std::make_unique<Car_selection_dialog>(context, this, resource_store);
     progress_dialog_ = std::make_unique<Loading_progress_dialog>(context);
 
 }
@@ -172,6 +187,39 @@ ts::states::Cup_GUI::Cup_GUI(const client::Client_interface* client_interface, g
 
 ts::states::Cup_GUI::~Cup_GUI()
 {
+}
+
+void ts::states::impl::Cup_GUI::handle_message(const client::Server_message& server_message)
+{
+    using Msg = cup::Message_type;
+
+    if (server_message.message_type == client::Message_type::Reliable)
+    {
+        const auto& message = server_message.message;
+        switch (message.type())
+        {
+        case Msg::chatbox_output:
+            handle_chatbox_output_message(message);
+            break;
+
+        case Msg::car_selection_initiation:
+            handle_car_selection_initiation_message(message);
+            break;
+        }
+    }
+}
+
+void ts::states::impl::Cup_GUI::handle_chatbox_output_message(const client::Message& message)
+{
+    auto output = cup::parse_chatbox_output_message(message);
+    output_chat_message(output.message);
+}
+
+void ts::states::impl::Cup_GUI::handle_car_selection_initiation_message(const client::Message& message)
+{
+    auto car_info = cup::parse_car_selection_initiation_message(message);
+
+    show_car_selection_dialog(car_info.cars);
 }
 
 void ts::states::impl::Cup_GUI::show()
@@ -236,17 +284,29 @@ void ts::states::impl::Cup_GUI::return_to_main_menu()
 
 void ts::states::impl::Cup_GUI::apply_car_selection()
 {
-    client_interface_->select_cars(car_selection_dialog_->car_selection());
+    std::vector<client::Car_selection> car_selection;
+    for (const auto& entry : car_selection_dialog_->car_selection())
+    {
+        client::Car_selection selection;
+        selection.player_id = entry.first.handle;
+        selection.car_index = entry.second;
+
+        car_selection.push_back(selection);
+    }
+
+    client_interface_->select_cars(car_selection);
 }
 
-void ts::states::impl::Cup_GUI::show_car_selection_dialog()
+void ts::states::impl::Cup_GUI::show_car_selection_dialog(const std::vector<resources::Car_identifier>& car_list)
 {
-    std::vector<cup::Player_handle> selected_players = cup_->local_players();
-    selected_players.erase(std::remove(selected_players.begin(), selected_players.end(), cup::Player_handle()), 
-        selected_players.end());
+    std::vector<cup::Player_definition> local_players;
+    for (const auto& player : cup_->local_players())
+    {
+        local_players.push_back(*player);
+    }
 
     car_selection_ready_ = false;
-    car_selection_dialog_->load(selected_players, cup_->car_list(), cup_->current_track());
+    car_selection_dialog_->load(local_players, car_list, resources::Track_handle());
 }
 
 void ts::states::Cup_GUI::set_cup_state_text(utf8_string text)
@@ -483,17 +543,39 @@ void ts::states::Loading_progress_dialog::create_progress_document(gui::Context*
     progress_bar_->set_position({ 40.0, 60 });
 }
 
-ts::states::Car_selection_dialog::Car_selection_dialog(gui::Context* context, impl::Cup_GUI* cup_gui)
-: cup_gui_(cup_gui)
+ts::states::Car_selection_dialog::Car_selection_dialog(gui::Context* context, impl::Cup_GUI* cup_gui, 
+                                                       const resources::Resource_store* resource_store)
+: cup_gui_(cup_gui),
+  context_(context),
+  resource_store_(resource_store)
 {
     create_car_selection_dialog(context);
 }
 
-void ts::states::Car_selection_dialog::load(std::vector<cup::Player_handle> selected_players, std::vector<resources::Car_handle> possible_cars, resources::Track_handle track_handle)
+void ts::states::Car_selection_dialog::load(std::vector<cup::Player_definition> local_players, std::vector<resources::Car_identifier> possible_cars,
+                                            resources::Track_handle track_handle)
 {
-    selected_players_ = std::move(selected_players);
+    const auto& car_store = resource_store_->car_store();
+
+    local_players_ = std::move(local_players);
     possible_cars_ = std::move(possible_cars);
-    track_handle_ = track_handle;
+    track_handle_ = track_handle;    
+
+    car_handles_.clear();    
+    for (const auto& car_identifier : possible_cars_)
+    {
+        car_handles_.push_back(car_store.get_car_by_name(car_identifier.car_name));
+    };
+
+    car_selection_.resize(local_players_.size());
+
+    std::uint32_t player_index = 0;
+    for (const auto& player : local_players_)
+    {
+        car_selection_[player_index].first = player;
+        car_selection_[player_index].second = 0;
+        ++player_index;
+    }
 
     std::async(std::launch::async, [this]() { load_dialog(); });
 }
@@ -570,62 +652,73 @@ void ts::states::Car_selection_dialog::create_car_selection_dialog(gui::Context*
 
 void ts::states::Car_selection_dialog::load_car_textures()
 {
-    game::Car_image_generator image_generator;
+    
 
-    std::size_t player_index = 0;
-
-    std::vector<sf::Image> images;
-    sf::Image compound_image;
-
-    player_car_textures_.clear();
+    car_preview_texture_ = nullptr;
     texture_mapping_.clear();
 
-    player_car_textures_.reserve(selected_players_.size());
-    texture_mapping_.reserve(selected_players_.size());
+    const auto& car_store = resource_store_->car_store();
 
-    for (auto player : selected_players_)
+    // Generate a compound texture with all player+car combinations.
+    game::Car_image_generator image_generator;
+
+    std::vector<sf::Image> temp_images;
+    temp_images.reserve(local_players_.size() * possible_cars_.size());
+    
+    Vector2u total_size;
+    std::size_t x_position = 0;
+    std::size_t player_index = 0;
+    for (auto player : local_players_)
     {
-        if (images.empty())
+        std::size_t car_index = 0;
+        for (auto& car : possible_cars_)
         {
-            Vector2u target_size;
-            std::int32_t position_x = 0;
+            auto mapping_pair = std::make_pair(player_index, car_index);
+            temp_images.emplace_back();
+            auto& temp_image = temp_images.back();
 
-            for (auto& car : possible_cars_)
+            if (auto car_handle = car_store.get_car_by_name(car.car_name))
             {
-                images.push_back(image_generator(*car, player->color, game::Car_image_generator::Single_frame));
+                temp_image = image_generator(*car_handle, player.color, game::Car_image_generator::Single_frame);
+                auto image_size = temp_image.getSize();
 
-                auto& image = images.back();
-                auto image_size = image.getSize();
+                texture_mapping_[mapping_pair] = Int_rect(x_position, 0, image_size.x, image_size.y);
 
-                texture_mapping_.push_back(Int_rect(position_x, 0, image_size.x, image_size.y));
-                position_x += image_size.x + 2;
+                x_position += image_size.x;
+                total_size.x = x_position;
+                total_size.y = std::max(image_size.y, total_size.y);                
 
-                target_size.x = position_x;
-                target_size.y = std::max(target_size.y, image_size.y);
+                // Padding
+                x_position += 2;
             }
 
-            compound_image.create(target_size.x, target_size.y, sf::Color::Transparent);
-        }
-
-        else
-        {
-            std::size_t image_index = 0;
-
-            for (auto& car : possible_cars_)
+            else
             {
-                images[image_index++] = image_generator(*car, player->color, game::Car_image_generator::Single_frame);
+                // No preview available. Empty mapping.
+                texture_mapping_[mapping_pair] = Int_rect();
+                
             }
+
+            ++car_index;
         }
 
-        std::size_t image_index = 0;
-        for (auto& image : images)
-        {
-            auto& bounds = texture_mapping_[image_index++];
-            compound_image.copy(image, bounds.left, bounds.top);
-        }
-
-        player_car_textures_.push_back(std::make_shared<graphics::Texture>(compound_image));
+        ++player_index;
     }
+
+    sf::Image compound_image;
+    compound_image.create(total_size.x, total_size.y);
+
+    for (const auto& mapping : texture_mapping_)
+    {
+        const auto& indices = mapping.first;
+        const auto& rect = mapping.second;
+        auto flat_index = indices.first * possible_cars_.size() + indices.second;
+        const auto& source = temp_images[flat_index];
+
+        compound_image.copy(source, rect.left, rect.top);
+    }
+
+    car_preview_texture_ = std::make_shared<graphics::Texture>(compound_image);
 }
 
 void ts::states::Car_selection_dialog::confirm()
@@ -633,7 +726,7 @@ void ts::states::Car_selection_dialog::confirm()
     cup_gui_->confirm_car_selection();
 }
 
-const std::vector<ts::client::Car_selection>& ts::states::Car_selection_dialog::car_selection() const
+const std::vector<std::pair<ts::cup::Player_definition, std::uint32_t>>& ts::states::Car_selection_dialog::car_selection() const
 {
     return car_selection_;
 }
@@ -657,42 +750,23 @@ void ts::states::Car_selection_dialog::load_dialog()
     car_set_style.text_hover_style = text_style;
     car_set_style.text_hover_style.color = sf::Color(255, 150, 0);
 
-    auto get_car_index = [this](resources::Car_handle car_handle) -> std::size_t
-    {
-        auto it = std::find(possible_cars_.begin(), possible_cars_.end(), car_handle);
-        if (it == possible_cars_.end()) return 0;
-
-        return it - possible_cars_.begin();
-    };
-
     selection_list_->clear();
-    car_selection_.clear();
 
-    std::size_t player_index = 0;
-    for (auto player_handle : selected_players_)
+    std::uint32_t player_index = 0;
+    for (auto player : local_players_)
     {
+        // Create a row for every player.
         auto row = selection_list_->create_row();
 
-        auto car_index = get_car_index(player_handle->car);
-
-        const auto& car = possible_cars_[car_index];
-
-        const auto& car_texture = player_car_textures_[player_index];
-        const auto& bounds = texture_mapping_[car_index];
-
-        auto name_text = row->create_child<gui::Text_element>(player_handle->nickname, text_style);
+        // Show the player name next to the car preview
+        auto name_text = row->create_child<gui::Text_element>(player.nickname, text_style);
         name_text->set_position({ 20.0, 8.0 });
 
         auto car_preview = row->create_child<gui::Element>(Vector2i(36, 36));
         car_preview->set_position({ 180.0, 2.0 });
 
         const auto centered = gui::Textured_background::Mode::Centered;
-
-        auto car_background = gui::make_background_style<gui::Textured_background>(car_texture, bounds, centered);
-
-        auto scale = 2.0 / car->image_scale;
-        car_background.background->set_scale({ scale, scale });
-
+        auto car_background = gui::make_background_style<gui::Textured_background>(car_preview_texture_, Int_rect(), centered);
         car_preview->set_background_style(car_background);
 
         auto car_option_set = row->create_child<gui::Option_set<std::size_t>>(car_set_style);
@@ -700,33 +774,45 @@ void ts::states::Car_selection_dialog::load_dialog()
 
         for (std::size_t index = 0; index != possible_cars_.size(); ++index)
         {
-            car_option_set->add_option(index, possible_cars_[index]->car_name);
+            car_option_set->add_option(index, possible_cars_[index].car_name);
         }
 
-        auto textured_background = car_background.background;
-
-        car_option_set->add_event_handler(gui::Option_set<std::size_t>::on_change, 
-            [=](const gui::Option_set<std::size_t>& option_set, std::size_t new_car_index)
+        auto update_selection = [=](const gui::Option_set<std::size_t>& option_set, std::size_t new_car_index)
         {
-            auto car = possible_cars_[new_car_index];
+            auto mapping_pair = std::make_pair(player_index, new_car_index);
+            auto mapping_it = texture_mapping_.find(mapping_pair);
+            if (mapping_it != texture_mapping_.end())
+            {
+                const auto& car_handle = car_handles_[new_car_index];
 
-            car_selection_[player_index].player_handle = player_handle;
-            car_selection_[player_index].car_index = new_car_index;
+                const auto& sub_rect = mapping_it->second;
+                car_background.background->set_sub_rect(sub_rect);
+                
+                auto scale = car_handle ? 2.0 / car_handle->image_scale : 1.0;
+                car_background.background->set_scale({ scale, scale });
 
-            const auto& sub_rect = texture_mapping_[new_car_index];
-            textured_background->set_sub_rect(sub_rect);
+                car_selection_[player_index].second = new_car_index;
+            }
+        };
 
-            auto scale = 2.0 / car->image_scale;
-            textured_background->set_scale({ scale, scale });
-        });
+        car_option_set->add_event_handler(gui::Option_set<std::size_t>::on_change, update_selection);
 
+        // Use the car this player previously chose
+        std::uint32_t car_index = 0;
+        auto previous_selection = selection_cache_.find(player.handle);
+        if (previous_selection != selection_cache_.end())
+        {
+            // Find the index of the previous selection
+            auto search_result = std::find(possible_cars_.begin(), possible_cars_.end(), previous_selection->second);
+            if (search_result != possible_cars_.end())
+            {
+                car_index = search_result - possible_cars_.begin();
+            }
+        }
+
+        // 'Initialize' the car preview
         car_option_set->set_value(car_index);
-
-        client::Car_selection car_selection;
-        car_selection.player_handle = player_handle;
-        car_selection.car_index = car_index;
-
-        car_selection_.push_back(car_selection);
+        update_selection(*car_option_set, car_index);
 
         ++player_index;
     }

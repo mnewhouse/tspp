@@ -29,7 +29,7 @@
 ts::action::Stage::Stage(std::unique_ptr<world::World> world, const Stage_data& stage_data)
 : world_(std::move(world)),
   control_center_(std::make_unique<controls::Control_center>()),
-  track_handle_(track_handle_)
+  track_handle_(stage_data.track)
 {
     create_stage_entities(stage_data);
 }
@@ -73,7 +73,7 @@ void ts::action::Stage::create_stage_entities(const Stage_data& stage_data)
             car_data_.emplace_back();
             car_data_.back().car = car;
 
-            Car_data& internal = car_data_.back();
+            cup::Car_data& internal = car_data_.back();
             internal = car_data;
 
             if (car_data.controller && car_data.controller->control_slot != controls::invalid_slot)
@@ -87,9 +87,22 @@ void ts::action::Stage::create_stage_entities(const Stage_data& stage_data)
     }
 }
 
-const std::vector<ts::action::Stage::Internal_car_data>& ts::action::Stage::car_data() const
+const std::vector<ts::action::Stage::Car_data>& ts::action::Stage::car_data() const
 {
     return car_data_;
+}
+
+ts::action::Stage_data ts::action::Stage::stage_data() const
+{
+    Stage_data result;
+    result.track = track_handle_;
+
+    for (const auto& car_data : car_data_)
+    {
+        result.cars.push_back(car_data);
+    }
+
+    return result;
 }
 
 const ts::world::World& ts::action::Stage::world() const

@@ -97,8 +97,7 @@ std::unique_ptr<ts::game::Action_scene> ts::game::Scene_loader::load_scene(const
 
     Car_image_generator car_image_generator;
 
-    const auto& control_center = stage->control_center();
-
+    std::size_t controlled_car_count = 0;
     for (const auto& car_data : car_list)
     {
         const auto car_def = car_data.car_def;
@@ -113,8 +112,16 @@ std::unique_ptr<ts::game::Action_scene> ts::game::Scene_loader::load_scene(const
         action_scene->add_car(car_data.car, entity_def);
         if (stage->is_car_controlled(car_data.car))
         {
+            // Spectate all cars that we control.
             action_scene->add_followed_entity(car_data.car);
+            ++controlled_car_count;
         }
+    }
+
+    // If we are not controlling any cars locally, we should at least spectate one.
+    if (controlled_car_count == 0 && !car_list.empty())
+    {
+        action_scene->add_followed_entity(car_list.front().car);
     }
 
     set_progress(1.0);

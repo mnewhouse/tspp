@@ -60,13 +60,13 @@ namespace ts
 
             void handle_control_event(std::uint16_t controllable_id, std::uint16_t controls_mask);            
 
-            struct Internal_car_data
-                : public Car_data
+            struct Car_data
+                : public action::Car_data
             {
                 world::Car* car;
             };
 
-            const std::vector<Internal_car_data>& car_data() const;
+            const std::vector<Car_data>& car_data() const;
 
             void update(std::size_t frame_duration);
             void launch_game();
@@ -80,7 +80,7 @@ namespace ts
         private:
             void create_stage_entities(const Stage_data& stage_data);
 
-            std::vector<Internal_car_data> car_data_;
+            std::vector<Car_data> car_data_;
             std::unordered_map<std::uint16_t, world::Car*> car_lookup_;
 
             resources::Track_handle track_handle_;

@@ -28,9 +28,9 @@ namespace ts
 {
     namespace cup
     {
-        class Cup;
+        class Cup_controller;
 
-        Stage_data assemble_stage(const Cup& cup_obj);
+        Stage_data assemble_stage(const Cup_controller& cup_obj);
     }
 }
 

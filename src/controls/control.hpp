@@ -24,7 +24,6 @@
 
 namespace ts
 {
-
     namespace controls
     {
         using Slot = std::int32_t;

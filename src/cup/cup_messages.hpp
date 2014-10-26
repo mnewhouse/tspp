@@ -75,12 +75,13 @@ namespace ts
 
             static const std::uint32_t cup_state = 2301;
             static const std::uint32_t cup_progress = 2302;
+            static const std::uint32_t car_selection_initiation = 2346;
             static const std::uint32_t action_initialization = 2351;
 
             static const std::uint32_t player_information = 2441;
             static const std::uint32_t track_information = 2401;
             static const std::uint32_t resource_information = 2411;
-            static const std::uint32_t car_information = 2421;
+            static const std::uint32_t car_information = 2421;            
 
             static const std::uint32_t chatbox_output = 2831;
             static const std::uint32_t server_quit = 2571;
@@ -220,8 +221,11 @@ namespace ts
         Message make_track_information_message(const resources::Track_settings& track_settings, const resources::Track_store& track_store);
         Track_information_message parse_track_information_message(const Message& message);
 
-        Message make_car_information_message(const resources::Car_settings& car_settings, const resources::Car_store& car_store);
+        Message make_car_information_message(const resources::Car_settings& car_settings);
         Car_information_message parse_car_information_message(const Message& message);
+
+        Message make_car_selection_initiation_message(const resources::Car_settings& car_settings);
+        Car_information_message parse_car_selection_initiation_message(const Message& message);
 
         Message make_chatbox_output_message(const Composite_message& composite_message);
         Chatbox_output_message parse_chatbox_output_message(const Message& message);

@@ -104,7 +104,7 @@ void ts::client::Resource_downloader::handle_file_info_message(const Message& me
 
         cup::Composite_message chat_message;
         chat_message.append("About to receive ", sf::Color(255, 150, 0));
-        chat_message.append(std::to_string(file_count), sf::Color(255, 0, 0));
+        chat_message.append(std::to_string(file_count), sf::Color(255, 220, 50));
         if (download_info.resource_type == Resource_type::Track)
         {
             chat_message.append(" track", sf::Color(255, 150, 0));
@@ -115,12 +115,14 @@ void ts::client::Resource_downloader::handle_file_info_message(const Message& me
             chat_message.append(" car", sf::Color(255, 150, 0));
         }
 
-        chat_message.append(" files.", sf::Color(255, 150, 0));
+        chat_message.append(" files. (", sf::Color(255, 150, 0));
+        chat_message.append(std::to_string(download_info.total_size_ / 1024), sf::Color(255, 220, 50));
+        chat_message.append(" KiB)", sf::Color(255, 150, 0));
 
         message_buffer_.message = cup::make_chatbox_output_message(chat_message);
         message_center_->handle_message(message_buffer_);
 
-        
+        // Send pong message, to inform the server we're ready for the next chunk.        
         message_buffer_.message = downloads::make_pong_message(file_list.download_key);
         message_center_->dispatch_message(message_buffer_);
     }

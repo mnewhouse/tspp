@@ -64,6 +64,11 @@ void ts::client::Client_interface::quit() const
     message_center_->dispatch_message(message_buffer_);
 }
 
+ts::client::Message_center* ts::client::Client_interface::message_center() const
+{
+    return message_center_;
+}
+
 const ts::cup::Cup* ts::client::Client_interface::cup() const
 {
     return cup_;

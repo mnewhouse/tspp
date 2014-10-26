@@ -22,6 +22,10 @@
 #ifndef LOCAL_CUP_HPP
 #define LOCAL_CUP_HPP
 
+#include "resources/settings_copy.hpp"
+#include "resources/settings/track_settings.hpp"
+#include "resources/settings/car_settings.hpp"
+
 namespace ts
 {
     namespace resources
@@ -31,23 +35,29 @@ namespace ts
 
     namespace cup
     {
-        class Cup;
-
-        void load_cup_config(Cup* cup, const resources::Resource_store* resource_store);
-        void save_cup_config(const Cup* cup, resources::Resource_store* resource_store);
-
         class Cup_config
         {
         public:
-            Cup_config(Cup* cup, resources::Resource_store* resource_store);
+            Cup_config(resources::Resource_store* resource_store);
             ~Cup_config();
 
             Cup_config(const Cup_config&) = delete;
             Cup_config& operator=(const Cup_config&) = delete;
 
+            const resources::Car_settings& car_settings() const;
+            const resources::Track_settings& track_settings() const;
+
         private:
-            Cup* cup_;
             resources::Resource_store* resource_store_;
+
+            template <typename T>
+            using Settings_copy = resources::Settings_copy<T>;
+
+            using Car_settings = resources::Car_settings;
+            using Track_settings = resources::Track_settings;
+
+            Settings_copy<Car_settings> car_settings_;
+            Settings_copy<Track_settings> track_settings_;
         };
     }
 }

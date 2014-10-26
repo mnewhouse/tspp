@@ -25,8 +25,6 @@
 #include "stage_loader.hpp"
 #include "loaded_scene.hpp"
 
-#include "cup/stage_data.hpp"
-
 namespace ts
 {
     namespace resources

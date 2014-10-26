@@ -22,12 +22,11 @@
 #ifndef GAME_ACTION_SCENE_HPP
 #define GAME_ACTION_SCENE_HPP
 
+#include "track_builder.hpp"
+
 #include "graphics/render_scene.hpp"
 
 #include "resources/image_type.hpp"
-
-#include "track_builder.hpp"
-#include "view_context.hpp"
 
 namespace ts
 {
@@ -40,13 +39,22 @@ namespace ts
     namespace world
     {
         class Car;
+        class Entity;
     }
 
     namespace game
     {
+        class View_context;
+        struct View;
+
         class Car_image_generator;
         class Particle_generator;
+
         class Drawable_entity;
+
+        struct Track_component;
+        struct Track_scene;
+
 
         struct Drawable_entity_definition
         {
@@ -97,12 +105,13 @@ namespace ts
 
             void calculate_vertex_bounds();
 
-            std::vector<Drawable_entity> drawable_entities_;            
             Track_scene track_scene_;
+            std::unique_ptr<View_context> view_context_;
+
+            std::vector<Drawable_entity> drawable_entities_;            
             std::vector<std::vector<Double_rect>> vertex_bounds_;
-            std::vector<std::vector<Track_component>> component_cache_;
+            std::vector<std::vector<Track_component>> component_cache_;           
             
-            View_context view_context_;
             std::vector<const world::Entity*> followed_entities_;
 
             bool enable_split_screen_ = true;

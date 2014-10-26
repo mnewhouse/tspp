@@ -137,7 +137,6 @@ void ts::client::Client::end_action()
 {
     if (impl_->cup_.cup_state() == cup::Cup_state::Action)
     {
-        impl_->cup_.advance();
     }
 }
 

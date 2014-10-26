@@ -21,12 +21,16 @@
 #include "server_interactions.hpp"
 #include "server_interaction_listener.hpp"
 #include "client_map.hpp"
-#include "resource_download_server.hpp"
+#include "server_stage_interface.hpp"
 
 #include "cup/cup.hpp"
-#include "cup/cup_messages.hpp"
-#include "cup/chatbox.hpp"
 #include "cup/cup_listener.hpp"
+#include "cup/cup_controller.hpp"
+#include "cup/cup_messages.hpp"
+#include "cup/stage_data.hpp"
+#include "cup/stage_assembler.hpp"
+#include "cup/chatbox.hpp"
+
 
 #include "resources/resource_store.hpp"
 
@@ -34,14 +38,15 @@ class ts::server::Interaction_interface::Impl
     : public Message_listener, public cup::Cup_listener
 {
 public:
-    Impl(Message_center* message_center, Client_map* client_map, cup::Cup* cup, const resources::Resource_store* resource_store);
+    Impl(Message_center* message_center, Client_map* client_map, 
+         cup::Cup_controller* cup_controller, const Stage_interface* stage_interface);
+
     ~Impl();
 
     void add_interaction_listener(Interaction_listener* listener);
     void remove_interaction_listener(Interaction_listener* listener);
 
     void broadcast_chat_message(const cup::Composite_message& message);
-    void poll();
 
 private:
     virtual void handle_message(const Client_message& client_message) override;
@@ -59,6 +64,8 @@ private:
     void disconnect_client(const Generic_client& client);
     utf8_string client_name(const Generic_client& client) const;
 
+    void broadcast_cup_progress();
+
     void wait_for_everyone();
     void advance_if_ready();
     void handle_ready_signal(const Client_message& client_message);
@@ -66,18 +73,16 @@ private:
 
     Client_map* client_map_;
     Message_center* message_center_;
-    cup::Cup* cup_;
-    const resources::Resource_store* resource_store_;
+    cup::Cup_controller* cup_controller_;
+    const Stage_interface* stage_interface_;
 
     std::vector<Interaction_listener*> listeners_;
     std::unordered_set<Generic_client> awaiting_clients_;
-
-    Resource_download_server download_server_;
 };
 
-ts::server::Interaction_interface::Interaction_interface(Message_center* message_center, Client_map* client_map, cup::Cup* cup,
-                                                         const resources::Resource_store* resource_store)
-: impl_(std::make_unique<Impl>(message_center, client_map, cup, resource_store))
+ts::server::Interaction_interface::Interaction_interface(Message_center* message_center, Client_map* client_map, 
+                                                         cup::Cup_controller* cup_controller, const Stage_interface* stage_interface)
+: impl_(std::make_unique<Impl>(message_center, client_map, cup_controller, stage_interface))
 {
 }
 
@@ -85,26 +90,20 @@ ts::server::Interaction_interface::~Interaction_interface()
 {
 }
 
-ts::server::Interaction_interface::Impl::Impl(Message_center* message_center, Client_map* client_map, cup::Cup* cup,
-                                              const resources::Resource_store* resource_store)
+ts::server::Interaction_interface::Impl::Impl(Message_center* message_center, Client_map* client_map, 
+                                              cup::Cup_controller* cup_controller, const Stage_interface* stage_interface)
 : Message_listener(message_center),
   client_map_(client_map),
   message_center_(message_center),
-  cup_(cup),
-  resource_store_(resource_store),
-  download_server_(message_center, resource_store)
+  cup_controller_(cup_controller),
+  stage_interface_(stage_interface)
 {
-    cup->add_cup_listener(this);
+    cup_controller_->add_cup_listener(this);
 }
 
 ts::server::Interaction_interface::Impl::~Impl()
 {
-    cup_->remove_cup_listener(this);
-}
-
-void ts::server::Interaction_interface::Impl::poll()
-{
-    download_server_.poll();
+    cup_controller_->remove_cup_listener(this);
 }
 
 void ts::server::Interaction_interface::Impl::disconnect_client(const Generic_client& client)
@@ -177,7 +176,7 @@ void ts::server::Interaction_interface::Impl::handle_registration_request(const 
     Client_message out_message;
     out_message.client = client;
 
-    if (cup_->player_count() + registration_request.players.size() > 20)
+    if (cup_controller_->cup()->player_count() + registration_request.players.size() > 20)
     {
         // Too many players.
         out_message.message = cup::make_too_many_players_message(registration_key);
@@ -188,7 +187,7 @@ void ts::server::Interaction_interface::Impl::handle_registration_request(const 
     
     else
     {
-        auto remote_players = cup_->player_list();
+        auto remote_players = cup_controller_->cup()->player_list();
         client_map_->register_client(client);
 
         for (auto& player_def : registration_request.players)
@@ -201,7 +200,7 @@ void ts::server::Interaction_interface::Impl::handle_registration_request(const 
             display_message.append(player_def.nickname, sf::Color(200, 250, 0));
             display_message.append(" has joined the game, ", sf::Color(0, 220, 0));
 
-            utf8_string player_count = std::to_string(cup_->player_count());
+            utf8_string player_count = std::to_string(cup_controller_->cup()->player_count());
             player_count += "/";
             player_count += std::to_string(20);
             display_message.append(std::move(player_count), sf::Color(200, 250, 0));
@@ -218,20 +217,28 @@ void ts::server::Interaction_interface::Impl::handle_registration_request(const 
         out_message.message = cup::make_player_information_message(registration_request.players, remote_players);
         message_center_->dispatch_message(out_message);
 
-        out_message.message = cup::make_track_information_message(resource_store_->track_settings(), resource_store_->track_store());
+        out_message.message = cup::make_car_information_message(cup_controller_->car_settings());
         message_center_->dispatch_message(out_message);
 
-        out_message.message = cup::make_car_information_message(resource_store_->car_settings(), resource_store_->car_store());
+        out_message.message = cup::make_cup_state_message(cup_controller_->cup_state());
         message_center_->dispatch_message(out_message);
 
-        out_message.message = cup::make_cup_state_message(cup_->cup_state());
-        message_center_->dispatch_message(out_message);
+        auto cup_state = cup_controller_->cup_state();
+        if (cup_state != cup::Cup_state::Registering)
+        {
+            resources::Track_identifier track_identifier;
+            track_identifier.track_name = cup_controller_->current_track().name();
 
-        resources::Track_identifier track_identifier;
-        track_identifier.track_name = cup_->current_track().name();
+            out_message.message = cup::make_cup_progress_message(cup_controller_->cup_progress(), track_identifier);
+            message_center_->dispatch_message(out_message);
+        }
 
-        out_message.message = cup::make_cup_progress_message(cup_->cup_progress(), track_identifier);
-        message_center_->dispatch_message(out_message);
+        if (cup_state == cup::Cup_state::Initializing || cup_state == cup::Cup_state::Action)
+        {
+            // Send action initialization message.
+            out_message.message = cup::make_action_initialization_message(stage_interface_->stage_data());
+            message_center_->dispatch_message(out_message);
+        }
 
         // Inform the listeners about the new player
         for (auto listener : listeners_)
@@ -258,7 +265,7 @@ void ts::server::Interaction_interface::Impl::handle_advance_request(const Clien
 
     if (client.type() == Generic_client::Local)
     {
-        cup_->advance();
+        cup_controller_->advance();
     }
 }
 
@@ -311,7 +318,7 @@ void ts::server::Interaction_interface::Impl::advance_if_ready()
     // Check if we're not waiting for any clients
     if (awaiting_clients_.empty())
     {
-        cup_->advance();
+        cup_controller_->advance();
     }
 }
 
@@ -334,42 +341,63 @@ void ts::server::Interaction_interface::Impl::on_state_change(cup::Cup_state old
     out_message.message = make_cup_state_message(new_state);
     message_center_->dispatch_message(out_message);
 
+    if (old_state == Cup_state::Car_selection || old_state == Cup_state::Initializing)
+    {
+        // No need to wait for anyone anymore
+        awaiting_clients_.clear();
+    }
+
     if (new_state == Cup_state::Car_selection)
     {
+        out_message.message = cup::make_car_selection_initiation_message(cup_controller_->car_settings());
+        message_center_->dispatch_message(out_message);
+
         wait_for_everyone();
     }
 
-    if (new_state == Cup_state::Initializing)
+    else if (new_state == Cup_state::Awaiting_initialization)
+    {
+        cup_controller_->initialize_action(cup::assemble_stage(*cup_controller_));
+    }
+
+    else if (new_state == Cup_state::Initializing)
     {
         wait_for_everyone();
     }
 
-    if (new_state == Cup_state::Cup)
+    else if (new_state == Cup_state::Cup)
     {
-        resources::Track_identifier track_identifier;
-        track_identifier.track_name = cup_->current_track().name();
-        track_identifier.track_hash.fill(0);
+        broadcast_cup_progress();
+    }
+}
+
+void ts::server::Interaction_interface::Impl::broadcast_cup_progress()
+{
+    
+    resources::Track_identifier track_identifier;
+    track_identifier.track_name = cup_controller_->current_track().name();
+    track_identifier.track_hash.fill(0);
         
-        auto progress = cup_->cup_progress();
-        auto track_count = cup_->track_list().size();
+    auto progress = cup_controller_->cup_progress();
+    auto track_count = cup_controller_->stage_count();
 
-        out_message.message = cup::make_cup_progress_message(progress, track_identifier);
-        message_center_->dispatch_message(out_message);
+    Client_message out_message;
+    out_message.message = cup::make_cup_progress_message(progress, track_identifier);
+    message_center_->dispatch_message(out_message);
 
-        cup::Composite_message displayed_message;
-        displayed_message.append("Track ", sf::Color(163, 218, 255));
+    cup::Composite_message displayed_message;
+    displayed_message.append("Track ", sf::Color(163, 218, 255));
 
-        utf8_string progress_string = std::to_string(progress + 1);
-        progress_string += "/";
-        progress_string += std::to_string(track_count);
-        displayed_message.append(std::move(progress_string), sf::Color(138, 249, 255));
-        displayed_message.append(" will be ", sf::Color(163, 218, 255));
-        displayed_message.append(track_identifier.track_name, sf::Color(138, 249, 255));
-        displayed_message.append(".", sf::Color(163, 218, 255));
+    utf8_string progress_string = std::to_string(progress + 1);
+    progress_string += "/";
+    progress_string += std::to_string(track_count);
+    displayed_message.append(std::move(progress_string), sf::Color(138, 249, 255));
+    displayed_message.append(" will be ", sf::Color(163, 218, 255));
+    displayed_message.append(track_identifier.track_name, sf::Color(138, 249, 255));
+    displayed_message.append(".", sf::Color(163, 218, 255));
 
-        out_message.message = cup::make_chatbox_output_message(displayed_message);
-        message_center_->dispatch_message(out_message);
-    }
+    out_message.message = cup::make_chatbox_output_message(displayed_message);
+    message_center_->dispatch_message(out_message);
 }
 
 void ts::server::Interaction_interface::Impl::on_initialize(const cup::Stage_data& stage_data)
@@ -382,19 +410,23 @@ void ts::server::Interaction_interface::Impl::on_initialize(const cup::Stage_dat
 
 void ts::server::Interaction_interface::Impl::handle_ready_signal(const Client_message& message)
 {
-    // We're not waiting for this particular client anymore
-    awaiting_clients_.erase(message.client);
+    auto cup_state = cup_controller_->cup_state();
+    if (cup_state == cup::Cup_state::Car_selection || cup_state == cup::Cup_state::Initializing)
+    {        
+        // We're not waiting for this particular client anymore
+        awaiting_clients_.erase(message.client);
 
-    cup::Composite_message displayed_message;
-    displayed_message.append(client_name(message.client), sf::Color(255, 220, 50));
-    displayed_message.append(" ready for action.", sf::Color(255, 150, 0));
+        cup::Composite_message displayed_message;
+        displayed_message.append(client_name(message.client), sf::Color(255, 220, 50));
+        displayed_message.append(" ready for action.", sf::Color(255, 150, 0));
 
-    Client_message out_message;
-    out_message.message = cup::make_chatbox_output_message(displayed_message);
-    message_center_->dispatch_message(out_message);
+        Client_message out_message;
+        out_message.message = cup::make_chatbox_output_message(displayed_message);
+        message_center_->dispatch_message(out_message);
 
-    // So we can advance if everybody else if ready.
-    advance_if_ready();
+        // So we can advance if everybody else if ready.
+        advance_if_ready();
+    }
 }
 
 void ts::server::Interaction_interface::Impl::handle_car_selection(const Client_message& message)
@@ -402,11 +434,11 @@ void ts::server::Interaction_interface::Impl::handle_car_selection(const Client_
     auto client = message.client;
     auto car_selection_message = cup::parse_car_selection_message(message.message);
 
-    const auto& possible_cars = cup_->car_list();
+    const auto& possible_cars = cup_controller_->car_list();
     auto client_players = client_map_->get_players_by_client(client);
 
     // We have to be in the car selection state for this message to be accepted.
-    if (cup_->cup_state() == cup::Cup_state::Car_selection)
+    if (cup_controller_->cup_state() == cup::Cup_state::Car_selection)
     {
         for (const auto& entry : car_selection_message.car_selection)
         {
@@ -425,9 +457,12 @@ void ts::server::Interaction_interface::Impl::handle_car_selection(const Client_
                 const auto& selected_car = possible_cars[entry.car_id];
                 const auto& player = *search_result;
 
-                cup_->set_player_car(player, selected_car);
+                cup_controller_->set_player_car(player, selected_car);
             }
         }
+
+        awaiting_clients_.erase(client);
+        advance_if_ready();
     }
 }
 
@@ -473,9 +508,4 @@ void ts::server::Interaction_interface::add_interaction_listener(Interaction_lis
 void ts::server::Interaction_interface::remove_interaction_listener(Interaction_listener* listener)
 {
     impl_->remove_interaction_listener(listener);
-}
-
-void ts::server::Interaction_interface::poll()
-{
-    impl_->poll();
 }

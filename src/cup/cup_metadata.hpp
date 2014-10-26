@@ -24,8 +24,6 @@
 
 #include "player.hpp"
 
-#include "resources/car_handle.hpp"
-
 namespace ts
 {
     namespace cup
@@ -35,6 +33,7 @@ namespace ts
             Registering,
             Cup,
             Car_selection,
+            Awaiting_initialization,
             Initializing,
             Action,
             End
@@ -55,18 +54,11 @@ namespace ts
             Player_id handle; 
         };
 
-        struct Cup_player_data
-            : public Player_definition
-        {
-            std::uint32_t start_pos;
-            resources::Car_handle car;
-        };
-
-        using Player_handle = Pointer_handle<const Cup_player_data>;
+        using Player_handle = Pointer_handle<const Player_definition>;
 
         struct Car_selection
         {
-            Player_handle player_handle;
+            Player_id player_id;
             std::uint32_t car_index;
         };
     }

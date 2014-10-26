@@ -157,7 +157,7 @@ std::int32_t ts::world::Control_point_manager::control_point_id(const Control_po
 
 const ts::world::Control_point* ts::world::Control_point_manager::get_control_point_by_id(std::int32_t id) const
 {
-    if (id >= 0 && id < static_control_points_.size()) return &static_control_points_[id];
+    if (id >= 0 && static_cast<std::size_t>(id) < static_control_points_.size()) return &static_control_points_[id];
 
     return nullptr;
 }
