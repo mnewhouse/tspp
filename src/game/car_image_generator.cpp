@@ -131,15 +131,14 @@ sf::Color ts::game::impl::colorize(sf::Color source_color, sf::Color target_colo
 {
     if (source_color.a == 0) return source_color;
 
-    auto red_amount = std::max(source_color.r - std::abs(source_color.g - source_color.b), 0);
-
     auto min_value = std::min(source_color.r, std::min(source_color.g, source_color.b));
     auto max_value = std::max(source_color.r, std::max(source_color.g, source_color.b));
 
-    target_color.r = source_color.r + (((target_color.r - source_color.r) * target_color.r * red_amount + 0xFFFF) >> 16);
-    target_color.g = source_color.g + (((target_color.g - source_color.g) * target_color.g * red_amount + 0xFFFF) >> 16);
-    target_color.b = source_color.b + (((target_color.b - source_color.b) * target_color.b * red_amount + 0xFFFF) >> 16);
-    target_color.a = source_color.a;
+    auto red_amount = std::max(source_color.r - std::abs(source_color.g - source_color.b), 0) / static_cast<double>(max_value);
+
+    target_color.r = static_cast<sf::Uint8>(std::round(source_color.r + (target_color.r - source_color.r) * red_amount));
+    target_color.g = static_cast<sf::Uint8>(std::round(source_color.g + (target_color.g - source_color.g) * red_amount));
+    target_color.b = static_cast<sf::Uint8>(std::round(source_color.b + (target_color.b - source_color.b) * red_amount));
 
     target_color.r = clamp(target_color.r, min_value, max_value);
     target_color.g = clamp(target_color.g, min_value, max_value);

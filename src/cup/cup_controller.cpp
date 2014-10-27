@@ -315,6 +315,7 @@ void ts::cup::Cup_controller::Impl::end_action()
 {
     const auto track_count = cup_config_.track_settings().selected_tracks().size();
     const auto cup_progress = cup_.cup_progress() + 1;
+    cup_.set_cup_progress(cup_progress);
 
     if (cup_progress >= track_count)
     {
