@@ -226,8 +226,8 @@ void ts::resources::apply_pattern(Pattern& dest, const Pattern& source,
             assert(source_x >= 0 && source_x < rect.width);
             assert(source_y >= 0 && source_y < rect.height);
 
-            auto terrain = source(source_x + rect.left, source_y + rect.top);
-            if (terrain != 0)
+            
+            if (auto terrain = source(source_x + rect.left, source_y + rect.top))
             {
                 *dest_ptr = terrain;
             }

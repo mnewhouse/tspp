@@ -20,7 +20,18 @@
 #include "stdinc.hpp"
 #include "image_loader.hpp"
 
-const sf::Image* ts::graphics::Image_loader::load_from_file(const utf8_string& file_name)
+ts::graphics::Image_load_error::Image_load_error(utf8_string file_path)
+: std::logic_error("failed to open image " + file_path.string()),
+  file_path_(std::move(file_path))
+{
+}
+
+const ts::utf8_string& ts::graphics::Image_load_error::file_path() const
+{
+    return file_path_;
+}
+
+const sf::Image* ts::graphics::Image_loader::load_from_file(const utf8_string& file_name, std::nothrow_t)
 {
     auto it = image_map_.find(file_name);
     if (it != image_map_.end())
@@ -29,6 +40,17 @@ const sf::Image* ts::graphics::Image_loader::load_from_file(const utf8_string& f
     }
 
     return load_from_file_impl(file_name);
+}
+
+const sf::Image& ts::graphics::Image_loader::load_from_file(const utf8_string& file_name)
+{
+    auto* image = load_from_file(file_name, std::nothrow);
+    if (!image)
+    {
+        throw Image_load_error(file_name);
+    }
+
+    return *image;
 }
 
 const sf::Image* ts::graphics::Image_loader::load_from_file_impl(const utf8_string& file_name)
@@ -49,8 +71,6 @@ const sf::Image* ts::graphics::Image_loader::load_from_file_impl(const utf8_stri
             return &image;
         }
 
-
-        // Meh. I don't like this.
         image_map_.erase(file_name);
     }
 

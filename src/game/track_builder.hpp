@@ -82,6 +82,17 @@ namespace ts
                 void deallocate_tile_space(Int_rect bounding_box);
             };
         }
+
+        struct Texture_load_error
+            : public std::logic_error
+        {
+        public:
+            Texture_load_error(utf8_string file_name);
+
+        private:
+            utf8_string file_name_;
+        };
+
         struct Track_component
         {
             Track_component() = default;

@@ -33,12 +33,14 @@ ts::resources::Car_definition ts::resources::load_car_definition(std::istream& s
 {
     Car_definition car_def;
 
-    for (std::string line, directive; directive != "end" && std::getline(stream, line); ) {
+    for (std::string line, directive; directive != "end" && std::getline(stream, line); ) 
+    {
         boost::trim(line);
         std::istringstream line_stream(line);
         if (!read_directive(line_stream, directive)) continue;
 
-        if (directive == "image" || directive == "rotimage") {
+        if (directive == "image" || directive == "rotimage") 
+        {
             std::string file;
             Int_rect rect;
             float scale;            
@@ -60,10 +62,12 @@ ts::resources::Car_definition ts::resources::load_car_definition(std::istream& s
             stream >> *car_def.handling;
         }
 
-        else if (directive == "mask") {
+        else if (directive == "mask") 
+        {
             std::string pattern_file;
             Int_rect pattern_rect;
-            if (line_stream >> pattern_file >> pattern_rect) {
+            if (line_stream >> pattern_file >> pattern_rect) 
+            {
                 car_def.pattern_file = find_include_path(pattern_file, { directory });
                 car_def.pattern_rect = pattern_rect;
 
@@ -71,7 +75,8 @@ ts::resources::Car_definition ts::resources::load_car_definition(std::istream& s
             }
         }
 
-        else if (directive == "elasticity") {
+        else if (directive == "elasticity") 
+        {
             line_stream >> car_def.wall_definition.elasticity;
         }
 
@@ -84,7 +89,8 @@ ts::resources::Car_definition ts::resources::load_car_definition(std::istream& s
             }
         }
 
-        else if (directive == "enginesample") {
+        else if (directive == "enginesample") 
+        {
             std::string file_name;
             if (line_stream >> file_name)
             {
@@ -112,13 +118,15 @@ std::vector<ts::resources::Car_definition> ts::resources::load_car_definitions(s
             boost::trim(line);
             const auto& car_name = line;
 
-            try {
+            try 
+            {
                 result.push_back(load_car_definition(stream, directory));
                 result.back().car_name = car_name;
             }
 
-            catch (...) {
-                // Failed to load car data
+            catch (const std::exception&) 
+            {
+                // Failed to load car data, but no big deal.
             }
         }
     }

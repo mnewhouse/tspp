@@ -72,6 +72,7 @@ void ts::states::Cup_state_base::update(std::size_t frame_duration)
     else
     {
         loading_sequence_->poll();
+        
         cup_gui_->set_loading_progress(loading_sequence_->progress());
         cup_gui_->set_loading_progress_text(loading_sequence_->progress_string());
     }
@@ -80,7 +81,15 @@ void ts::states::Cup_state_base::update(std::size_t frame_duration)
     {
         if (loading_sequence_->is_complete())
         {
-            launch_action(make_action_state(loading_sequence_->transfer_result()));
+            try
+            {
+                launch_action(make_action_state(loading_sequence_->transfer_result()));
+            }
+
+            catch (const std::exception& error)
+            {
+                client_interface_->load_error(error.what());
+            }            
         }
     }
 

@@ -613,3 +613,19 @@ ts::cup::Message ts::cup::make_server_quit_message()
 {
     return Message(Message_type::server_quit);
 }
+
+ts::cup::Message ts::cup::make_load_error_message(const utf8_string& error_string)
+{
+    Message result(Message_type::load_error);
+    result << error_string;
+    return result;
+}
+
+ts::cup::Load_error_message ts::cup::parse_load_error_message(const Message& message)
+{
+    Load_error_message result;
+    Message_reader message_reader(message);
+
+    message_reader >> result.message_type >> result.error_string;
+    return result;
+}

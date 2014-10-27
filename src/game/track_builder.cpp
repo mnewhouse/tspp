@@ -230,17 +230,14 @@ void ts::game::Track_builder::generate_texture(impl::Target_texture& target_text
         const auto& resolved_path = file_info.first;
         const auto& tile_list = file_info.second;
 
-        const auto* source = image_loader_.load_from_file(resolved_path);
-        if (source)
+        const sf::Image& source = image_loader_.load_from_file(resolved_path);
+        for (auto& tile_placement : tile_list)
         {
-            for (auto& tile_placement : tile_list)
-            {
-                const auto& source_rect = tile_placement.source_rect;
-                const auto& target_rect = tile_placement.target_rect;
+            const auto& source_rect = tile_placement.source_rect;
+            const auto& target_rect = tile_placement.target_rect;
 
-                image_buffer_.copy(*source, target_rect.left, target_rect.top,
-                                   sf::IntRect(source_rect.left, source_rect.top, source_rect.width, source_rect.height));
-            }
+            image_buffer_.copy(source, target_rect.left, target_rect.top,
+                               sf::IntRect(source_rect.left, source_rect.top, source_rect.width, source_rect.height));
         }
     }
 
@@ -259,9 +256,9 @@ void ts::game::Track_builder::build_tile_mapping(impl::Target_texture& target_te
         const auto& image_path = tile_def->image_file();
 
         auto map_it = target_texture.tile_placement.find(image_path);
-        const sf::Image* image_ptr = image_loader_.load_from_file(image_path);
+        const sf::Image& image = image_loader_.load_from_file(image_path);
 
-        if (image_ptr && map_it != target_texture.tile_placement.end())
+        if (map_it != target_texture.tile_placement.end())
         {
             const auto& source_rect = tile_def->image_rect;
             const auto& area_list = map_it->second;
@@ -289,7 +286,7 @@ void ts::game::Track_builder::build_tile_mapping(impl::Target_texture& target_te
                 auto y_offset = intersect_area.top - search_result->source_rect.top;
 
                 auto& mapping = tile_mapping.second;
-                mapping.image = image_ptr;
+                mapping.image = &image;
                 mapping.source_rect = intersect_area;
                 mapping.target_rect.left = search_result->target_rect.left + x_offset;
                 mapping.target_rect.top = search_result->target_rect.top + y_offset;

@@ -28,15 +28,27 @@ namespace ts
 {
     namespace graphics
     {
-        class Image_loader
+        struct Image_load_error
+            : std::logic_error
         {
-        public:
-            const sf::Image* load_from_file(const utf8_string& file_name);
+            Image_load_error(utf8_string file_path);
+
+            const utf8_string& file_path() const;
 
         private:
+            utf8_string file_path_;
+        };
+
+        class Image_loader
+        {
+        public:            
+            const sf::Image& load_from_file(const utf8_string& file_name);
+            const sf::Image* load_from_file(const utf8_string& file_name, std::nothrow_t);
+
+        private:            
             const sf::Image* load_from_file_impl(const utf8_string& file_name);
 
-            std::unordered_map<utf8_string, sf::Image> image_map_;
+            std::map<utf8_string, sf::Image> image_map_;
             std::vector<char> file_buffer_;
         };
     }

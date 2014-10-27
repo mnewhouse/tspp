@@ -24,6 +24,8 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "graphics/image_loader.hpp"
+
 namespace ts
 {
     namespace resources
@@ -46,11 +48,7 @@ namespace ts
             sf::Image operator()(const resources::Car_definition& car_definition, const resources::Player_color& color_scheme, Frame_mode = All_frames) const;
 
         private:
-            const sf::Image& get_image_by_filename(const utf8_string& file_name) const;
-            const sf::Image& load_image_from_file(const utf8_string& file_name) const;
-
-            mutable std::map<utf8_string, sf::Image> image_map_;
-            mutable std::vector<char> file_buffer_;
+            mutable graphics::Image_loader image_loader_;
         };
     }
 }

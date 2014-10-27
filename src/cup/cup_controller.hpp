@@ -73,6 +73,7 @@ namespace ts
 
             std::size_t stage_count() const;
             std::size_t cup_progress() const;
+            void skip_stage();
 
             resources::Car_handle player_car(const Player_handle& player_handle) const;
             void set_player_car(const Player_handle& player_handle, const resources::Car_handle& car_handle);

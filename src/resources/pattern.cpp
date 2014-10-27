@@ -25,6 +25,79 @@ extern "C"
 #include <png.h>
 }
 
+namespace ts
+{
+    namespace png
+    {
+        struct Info_struct
+        {
+            explicit Info_struct(png_structp read_ptr, png_infop info_ptr)
+                : read_ptr_(read_ptr),
+                  info_ptr_(info_ptr)
+            {
+            }
+
+            Info_struct()
+                : read_ptr_(png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr)),
+                  info_ptr_(png_create_info_struct(read_ptr_))
+            {
+
+            }
+
+            ~Info_struct()
+            {
+                if (info_ptr_)
+                {
+                    png_destroy_info_struct(read_ptr_, &info_ptr_);
+                }
+                
+                if (read_ptr_)
+                {
+                    png_destroy_read_struct(&read_ptr_, nullptr, nullptr);
+                }
+                    
+            }
+
+            Info_struct(const Info_struct&) = delete;
+            Info_struct& operator=(const Info_struct&) = delete;
+
+            png_structp& read_ptr()
+            {
+                return read_ptr_;
+            }
+            
+            png_infop& info_ptr()
+            {
+                return info_ptr_;
+            }
+            
+            explicit operator bool() const
+            {
+                return read_ptr_ && info_ptr_;
+            }
+
+
+        private:
+            png_structp read_ptr_;
+            png_infop info_ptr_;
+        };
+
+        struct Reader_struct
+        {
+            const unsigned char* data_;
+            const unsigned char* end_;            
+        };
+
+        void read_using_reader_struct(png_structp png_ptr, png_bytep outBytes, png_size_t byteCountToRead);
+    }
+}
+
+ts::resources::Pattern_load_error::Pattern_load_error(utf8_string file_path)
+: std::logic_error("could not load pattern file " + file_path.string() + " (must be paletted PNG image)"),
+  file_path_(std::move(file_path))
+{
+}
+
 ts::resources::Pattern::Pattern(const utf8_string& file_name, Int_rect rect)
 {
     load_from_file(file_name, rect);
@@ -51,99 +124,98 @@ ts::resources::Pattern& ts::resources::Pattern::operator=(Pattern&& other)
     return *this;
 }
 
-
+void ts::png::read_using_reader_struct(png_structp png_ptr, png_bytep out_bytes, png_size_t byte_count)
+{
+    auto* reader = static_cast<Reader_struct*>(png_ptr->io_ptr);
+    if (reader)
+    {
+        png_size_t bytes_left = reader->end_ - reader->data_;
+        if (bytes_left >= byte_count)
+        {
+            std::copy(reader->data_, reader->data_ + byte_count, out_bytes);
+            reader->data_ += byte_count;
+        }
+    }
+}
 
 void ts::resources::Pattern::load_from_file(const utf8_string& file_name, Int_rect rect)
 {
-    auto file_handle = std::fopen(file_name.string().c_str(), "rb");
-    if (!file_handle) 
+    boost::filesystem::basic_ifstream<unsigned char> stream(file_name.string(), std::ifstream::in | std::ifstream::binary);
+    if (stream)
     {
-        throw std::runtime_error("could not open pattern file " + file_name.string() + ".");
-    }
-
-    auto destroy_file_handle = scope_exit([file_handle]() { std::fclose(file_handle); });    
-
-    auto read_png_file = [this](FILE* file, Int_rect rect)
-    {
-        unsigned char sig[8] = {};
-
-        std::fread(sig, 1, 8, file);
-        if (!png_check_sig(sig, 8)) return false;
-
-        png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-        if (!png_ptr) return false;
-
-        auto destroy_read_struct = scope_exit([&]() { png_destroy_read_struct(&png_ptr, nullptr, nullptr); });
-
-        png_infop info_ptr = png_create_info_struct(png_ptr);
-        if (!info_ptr) return false;
-
-        if (setjmp(png_jmpbuf(png_ptr))) return false;
-
-        auto destroy_info_struct = scope_exit([&]() { png_destroy_info_struct(png_ptr, &info_ptr); });
-
-        png_init_io(png_ptr, file);
-        png_set_sig_bytes(png_ptr, 8);
-        png_read_info(png_ptr, info_ptr);
-
-        if (png_get_color_type(png_ptr, info_ptr) != PNG_COLOR_TYPE_PALETTE)
-            return false;
-
-        int image_width = png_get_image_width(png_ptr, info_ptr);
-        int image_height = png_get_image_height(png_ptr, info_ptr);
-
-        std::vector<Terrain_id> byte_array(image_width * image_height);
-        std::vector<png_bytep> row_pointers(image_height);
-
-
+        auto file_contents = core::read_stream_contents(stream);
+        if (file_contents.size() && png_check_sig(file_contents.data(), 8))
         {
-            std::uint32_t row = 0;
-            std::generate(row_pointers.begin(), row_pointers.end(), 
-                [&]() { return &byte_array[row++ * image_width]; }
-            );
-        }
+            png::Info_struct png_info;
+            auto& read_ptr = png_info.read_ptr();
+            auto& info_ptr = png_info.info_ptr();
 
-        png_read_image(png_ptr, &row_pointers[0]);
-        png_read_end(png_ptr, nullptr);
-
-        if (rect.width == 0) {
-            rect.width = image_width;
-            rect.left = 0;
-        }
-
-        if (rect.height == 0) {
-            rect.height = image_height;
-            rect.top = 0;
-        }
-
-        if (image_width == rect.width && rect.left == 0 &&
-            image_height == rect.height && rect.top == 0) 
-        {
-            bytes_ = std::move(byte_array);
-        }
-
-        else 
-        {
-            for (auto y = rect.top; y != rect.bottom(); ++y) 
+            if (png_info && setjmp(png_jmpbuf(read_ptr)) == 0)
             {
-                for (auto x = rect.left; x != rect.right(); ++x) 
+                png::Reader_struct reader;
+                reader.data_ = file_contents.data() + 8;
+                reader.end_ = file_contents.data() + file_contents.size();
+
+                png_set_read_fn(read_ptr, static_cast<void*>(&reader), png::read_using_reader_struct);
+                png_set_sig_bytes(read_ptr, 8);
+                png_read_info(read_ptr, info_ptr);
+
+                // Must be paletted image
+                if (png_get_color_type(read_ptr, info_ptr) == PNG_COLOR_TYPE_PALETTE)
                 {
-                    auto idx = x + y * image_width;
-                    (*this)(x, y) = byte_array[idx];
+                    std::size_t image_width = png_get_image_width(read_ptr, info_ptr);
+                    std::size_t image_height = png_get_image_height(read_ptr, info_ptr);
+
+                    std::vector<png_byte> byte_array(image_width * image_height);
+                    std::vector<png_bytep> row_pointers(image_height);
+
+                    for (std::size_t row = 0; row != image_height; ++row)
+                    {
+                        row_pointers[row] = &byte_array[row * image_width];
+                    }
+
+                    if (rect.width == 0)
+                    {
+                        rect.left = 0;
+                        rect.width = image_width;
+                    }
+
+                    if (rect.height == 0)
+                    {
+                        rect.top = 0;
+                        rect.height = image_height;
+                    }
+
+                    png_read_image(read_ptr, row_pointers.data());
+                    png_read_end(read_ptr, info_ptr);
+
+                    if (image_width >= static_cast<std::size_t>(rect.right()) && image_height >= static_cast<std::size_t>(rect.bottom()))
+                    {
+                        // Resize
+                        resize(rect.width, rect.height);
+
+                        // And copy the bytes over
+                        auto* data_ptr = &bytes_[0];
+                        for (std::uint32_t y = rect.top, bottom = rect.bottom(); y != bottom; ++y)
+                        {
+                            auto source_ptr = &byte_array[y * image_width + rect.left];
+
+                            for (auto row_end = data_ptr + rect.width; data_ptr != row_end; ++data_ptr, ++source_ptr)
+                            {
+                                *data_ptr = *source_ptr;
+                            }
+                        }
+
+                        // Only if we reach this point, we can avoid throwing an exception.
+                        // Pretty god-awful, so many levels of indentation.
+                        return;
+                    }
                 }
-            }            
-        }
-
-        size_.x = rect.width;
-        size_.y = rect.height;
-        
-        return true;
-    };
-
-    if (!read_png_file(file_handle, rect)) 
-    {
-        throw std::runtime_error("invalid pattern file; must be an indexed PNG image");
+            }
+        }        
     }
+
+    throw Pattern_load_error(file_name);
 }
 
 ts::resources::Pattern::const_iterator ts::resources::Pattern::begin() const
@@ -205,6 +277,9 @@ ts::Vector2u ts::resources::Pattern::size() const
 void ts::resources::Pattern::resize(Vector2u new_size)
 {
     bytes_.resize(new_size.x * new_size.y);
+
+    size_.x = new_size.x;
+    size_.y = new_size.y;
 }
 
 void ts::resources::Pattern::resize(std::uint32_t width, std::uint32_t height)

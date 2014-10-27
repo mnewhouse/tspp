@@ -140,6 +140,7 @@ private:
     virtual void handle_message(const client::Server_message& message) override;
     void handle_chatbox_output_message(const client::Message& message);
     void handle_car_selection_initiation_message(const client::Message& message);
+    void handle_load_error_message(const client::Message& message);
 
     void show_menu_background();
 
@@ -205,6 +206,10 @@ void ts::states::impl::Cup_GUI::handle_message(const client::Server_message& ser
         case Msg::car_selection_initiation:
             handle_car_selection_initiation_message(message);
             break;
+
+        case Msg::load_error:
+            handle_load_error_message(message);
+            break;
         }
     }
 }
@@ -220,6 +225,18 @@ void ts::states::impl::Cup_GUI::handle_car_selection_initiation_message(const cl
     auto car_info = cup::parse_car_selection_initiation_message(message);
 
     show_car_selection_dialog(car_info.cars);
+}
+
+void ts::states::impl::Cup_GUI::handle_load_error_message(const client::Message& message)
+{
+    auto error_message = cup::parse_load_error_message(message);
+
+    cup::Composite_message composite_message;
+    composite_message.append("Error loading stage: " + error_message.error_string, sf::Color(220, 0, 0));
+
+    output_chat_message(composite_message);
+
+    hide_progress_dialog();
 }
 
 void ts::states::impl::Cup_GUI::show()

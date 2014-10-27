@@ -27,6 +27,7 @@ namespace ts
     namespace game
     {
         // A generic wrapper for asynchronous loading, to be inherited from.
+        
 
         template <typename StateType, typename ResultType>
         class Generic_loader
@@ -116,7 +117,8 @@ namespace ts
 
      if (is_completed() && completion_handler_)
      {
-         completion_handler_();
+         auto handler = std::move(completion_handler_);
+         handler();
      }
  }
 
@@ -159,7 +161,16 @@ namespace ts
  template <typename StateType, typename ResultType>
  ResultType ts::game::Generic_loader<StateType, ResultType>::transfer_result()
  {
-     return future_.get();
+     try 
+     {
+         return future_.get();
+     }
+
+     catch (...)
+     {
+         future_ = {};
+         throw;
+     }
  }
 
 

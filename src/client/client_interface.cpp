@@ -64,6 +64,12 @@ void ts::client::Client_interface::quit() const
     message_center_->dispatch_message(message_buffer_);
 }
 
+void ts::client::Client_interface::load_error(const utf8_string& error_message) const
+{
+    message_buffer_.message = cup::make_load_error_message(error_message);
+    message_center_->handle_message(message_buffer_);
+}
+
 ts::client::Message_center* ts::client::Client_interface::message_center() const
 {
     return message_center_;

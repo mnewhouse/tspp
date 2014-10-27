@@ -102,6 +102,27 @@ const ts::resources::Track_settings& ts::cup::Cup_controller::track_settings() c
     return impl_->cup_config_.track_settings();
 }
 
+void ts::cup::Cup_controller::skip_stage()
+{
+    const auto& tracks = track_list();
+    auto progress = cup_progress();
+    if (progress < tracks.size())
+    {
+        ++progress;
+        impl_->cup_.set_cup_progress(progress);
+
+        if (progress == tracks.size())
+        {
+            impl_->cup_.set_cup_state(Cup_state::End);
+        }
+
+        else
+        {
+            impl_->cup_.set_cup_state(Cup_state::Cup);
+        }
+    }
+}
+
 ts::resources::Track_handle ts::cup::Cup_controller::current_track() const
 {
     const auto& tracks = track_list();

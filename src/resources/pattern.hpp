@@ -28,6 +28,15 @@ namespace ts
 {
     namespace resources
     {
+        struct Pattern_load_error
+            : std::logic_error
+        {
+            Pattern_load_error(utf8_string file_path);
+
+        private:
+            utf8_string file_path_;
+        };
+
         class Pattern
         {
         public:

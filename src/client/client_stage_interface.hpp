@@ -52,6 +52,8 @@ namespace ts
             const game::Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback);
 
             void update(std::size_t frame_duration);
+
+            void poll_loader();
             void clean_stage();
             void launch_action();
 

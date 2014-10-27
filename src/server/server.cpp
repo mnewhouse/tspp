@@ -22,6 +22,7 @@
 #include "client_map.hpp"
 #include "server_interactions.hpp"
 #include "server_stage_interface.hpp"
+#include "server_load_errors.hpp"
 #include "resource_download_server.hpp"
 
 #include "cup/cup_controller.hpp"
@@ -169,6 +170,16 @@ void ts::server::impl::Server::poll()
     }
 
     download_server_.poll();
+
+    try
+    {
+        stage_interface_.poll_loader();
+    }
+
+    catch (const std::exception& error)
+    {
+        handle_load_error(error.what(), message_center_, cup_controller_);
+    }
 }
 
 void ts::server::Server::launch_action()

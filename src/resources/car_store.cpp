@@ -43,7 +43,7 @@ void ts::resources::Car_store::scan_directory(const utf8_string& directory)
     
     catch (const boost::filesystem::filesystem_error&)
     {
-        // Silently ignore errors, as if the directory were empty.
+        // Silently ignore filesystem errors, as if the directory were empty.
     }
 }
 

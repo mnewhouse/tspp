@@ -280,6 +280,8 @@ set(SRC src/main.cpp
 		src/server/server_interaction_listener.cpp
 		src/server/server_interactions.hpp
 		src/server/server_interactions.cpp
+		src/server/server_load_errors.hpp
+		src/server/server_load_errors.cpp
 		src/server/server_messages.hpp
 		src/server/server_stage_conductor.hpp
 		src/server/server_stage_conductor.cpp

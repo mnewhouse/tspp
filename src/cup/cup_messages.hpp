@@ -85,6 +85,9 @@ namespace ts
 
             static const std::uint32_t chatbox_output = 2831;
             static const std::uint32_t server_quit = 2571;
+
+            // Misc. messages
+            static const std::uint32_t load_error = 7115;
         };
 
         struct Stage_data;
@@ -183,6 +186,12 @@ namespace ts
             std::vector<Car> car_list;
         };
 
+        struct Load_error_message
+        {
+            std::uint32_t message_type = 0;
+            utf8_string error_string;
+        };
+
         // Client -> server messages
         Message make_registration_request_message(std::uint64_t registration_key, const resources::Player_settings& player_settings, const resources::Player_store& player_store);
         Registration_request parse_registration_request_message(const Message& message);
@@ -235,6 +244,8 @@ namespace ts
 
         Message make_server_quit_message();
 
+        Message make_load_error_message(const utf8_string& error_string);
+        Load_error_message parse_load_error_message(const Message& message);
     }
 }
 

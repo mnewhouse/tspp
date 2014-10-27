@@ -60,8 +60,7 @@ namespace ts
 
 sf::Image ts::game::Car_image_generator::operator()(const resources::Car_definition& car_definition, const resources::Player_color& color_scheme, Frame_mode frame_mode) const
 {
-    auto source_image = get_image_by_filename(car_definition.image_file);
-
+    const auto& source_image = image_loader_.load_from_file(car_definition.image_file);
     const auto& image_rect = car_definition.image_rect;
 
     Vector2i frame_size = { image_rect.width, image_rect.height };
@@ -148,34 +147,6 @@ sf::Color ts::game::impl::colorize(sf::Color source_color, sf::Color target_colo
 
     return target_color;
 };
-
-const sf::Image& ts::game::Car_image_generator::get_image_by_filename(const utf8_string& file_name) const
-{
-    auto it = image_map_.find(file_name);
-    if (it == image_map_.end())
-    {
-        return load_image_from_file(file_name);
-    }
-
-    return it->second;
-}
-
-const sf::Image& ts::game::Car_image_generator::load_image_from_file(const utf8_string& file_name) const
-{
-    boost::filesystem::ifstream stream(file_name.string(), std::ios::binary | std::ios::in);
-
-    stream.seekg(0, std::ios::end);
-    std::size_t size = static_cast<std::size_t>(stream.tellg());
-    file_buffer_.resize(size);
-
-    stream.seekg(0);
-    stream.read(file_buffer_.data(), file_buffer_.size());
-
-    auto& image = image_map_[file_name];
-    image.loadFromMemory(file_buffer_.data(), file_buffer_.size());
-
-    return image;
-}
 
 ts::game::impl::Color_map::Color_map(Vector2i frame_size_)
 : pixels(frame_size_.x * frame_size_.y),

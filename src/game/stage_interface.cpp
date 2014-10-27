@@ -30,11 +30,10 @@ const ts::game::Stage_loader* ts::game::Stage_interface::async_load_stage(const 
     });
 
     stage_loader_.async_load(stage_data);
-
     return &stage_loader_;
 }
 
-void ts::game::Stage_interface::poll()
+void ts::game::Stage_interface::poll_loader()
 {
     stage_loader_.poll();
 }

@@ -57,6 +57,8 @@ namespace ts
 
             void async_load(const action::Stage_data& stage_data);
 
+            // Inherited function: poll()
+            // Throws resources::Pattern_load_error or resources::Broken_track_exception.
             using State = Stage_loader_state;
 
         private:

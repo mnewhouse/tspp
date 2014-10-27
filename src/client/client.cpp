@@ -114,6 +114,16 @@ void ts::client::impl::Client::poll()
     }
 
     interaction_interface_.poll();
+
+    try
+    {
+        stage_interface_.poll_loader();
+    }
+
+    catch (const std::exception& error)
+    {
+        client_interface_.load_error(error.what());
+    }
 }
 
 ts::client::Client::Client(resources::Resource_store* resource_store)
@@ -145,7 +155,6 @@ void ts::client::Client::end_action()
 void ts::client::Client::update(std::size_t frame_duration)
 {
     impl_->poll();
-
     impl_->stage_interface_.update(frame_duration);
 }
 
@@ -202,7 +211,6 @@ void ts::client::Client::remove_chatbox_listener(cup::Chatbox_listener* listener
 {
     impl_->chatbox_interface_.remove_chatbox_listener(listener);
 }
-
 
 void ts::client::Client::async_connect(utf8_string remote_address, std::uint16_t remote_port)
 {

@@ -40,7 +40,6 @@ void ts::game::Loading_sequence::async_load(const action::Stage* stage)
 
     scene_loader_.set_completion_handler([this]()
     {
-        loaded_scene_.action_scene = scene_loader_.transfer_result();
         test_readiness();
     });
 
@@ -51,7 +50,6 @@ void ts::game::Loading_sequence::async_load(const action::Stage* stage)
 
     audio_loader_.set_completion_handler([this]()
     {
-        loaded_scene_.sound_controller = audio_loader_.transfer_result();
         test_readiness();
     });
 
@@ -61,7 +59,7 @@ void ts::game::Loading_sequence::async_load(const action::Stage* stage)
 
 bool ts::game::Loading_sequence::is_complete() const
 {
-    return loaded_scene_.action_scene && loaded_scene_.sound_controller;
+    return scene_loader_.is_completed() && audio_loader_.is_completed();
 }
 
 bool ts::game::Loading_sequence::is_loading() const
@@ -71,12 +69,10 @@ bool ts::game::Loading_sequence::is_loading() const
 
 void ts::game::Loading_sequence::test_readiness()
 {
-    if (is_complete())
+    if (is_complete() && completion_handler_)
     {
-        if (completion_handler_)
-        {
-            completion_handler_();
-        }
+        auto completion_handler = std::move(completion_handler_);
+        completion_handler();
     }
 }
 
@@ -90,6 +86,9 @@ void ts::game::Loading_sequence::state_change(const utf8_string& state)
 
 ts::game::Loaded_scene ts::game::Loading_sequence::transfer_result()
 {
+    loaded_scene_.action_scene = scene_loader_.transfer_result();
+    loaded_scene_.sound_controller = audio_loader_.transfer_result();
+
     return std::move(loaded_scene_);
 }
 

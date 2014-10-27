@@ -52,6 +52,7 @@ namespace ts
             void update(std::size_t frame_duration);
             const action::Stage* stage() const;
 
+            void poll_loader();
             void clean_stage();
             void launch_action();
 

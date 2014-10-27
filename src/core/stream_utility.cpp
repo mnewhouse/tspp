@@ -58,25 +58,3 @@ std::uint64_t ts::core::read64(std::istream& stream)
 
     return result;
 };
-
-std::vector<char> ts::core::read_stream_contents(std::istream& stream)
-{
-    auto current_pos = stream.tellg();
-    stream.seekg(0, std::istream::end);
-
-    auto num_bytes = static_cast<std::size_t>(stream.tellg() - current_pos);
-
-    stream.seekg(current_pos);
-    std::vector<char> result(num_bytes);
-
-    stream.read(result.data(), num_bytes);
-
-    return result;
-
-}
-
-std::vector<char> ts::core::read_file_contents(const utf8_string& file)
-{
-    boost::filesystem::ifstream stream(file.string(), std::istream::in | std::istream::binary);
-    return read_stream_contents(stream);
-}

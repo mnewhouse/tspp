@@ -56,6 +56,12 @@ struct ts::resources::Track_loader::Impl
 };
 
 
+ts::resources::Broken_track_exception::Broken_track_exception(utf8_string missing_file)
+: std::logic_error("broken track (missing file '" + missing_file.string() + "')"),
+  missing_file_(std::move(missing_file))
+{
+}
+
 ts::utf8_string ts::resources::Track_loader::Impl::resolve_asset_path(const utf8_string& file_name)
 {
     auto include_directory = find_include_directory(file_name, { working_directory_, config::data_directory });
@@ -95,14 +101,17 @@ void ts::resources::Track_loader::Impl::include(const utf8_string& file_name)
     // Test if the file has not been included before
     if (included_files_.find(file_name) == included_files_.end())
     {
-        auto include_path = resolve_asset_path(file_name);
-
-        included_files_.insert(include_path);
+        auto include_path = resolve_asset_path(file_name);        
 
         boost::filesystem::ifstream stream(include_path.string(), std::istream::in);
+        if (!stream)
+        {
+            throw Broken_track_exception(file_name);
+        }
 
-        add_asset(std::move(include_path));
+        add_asset(include_path);
 
+        included_files_.insert(std::move(include_path));
         include(stream);
     }
 }

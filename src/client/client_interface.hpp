@@ -52,6 +52,8 @@ namespace ts
             const cup::Cup* cup() const;
             Message_center* message_center() const;
 
+            void load_error(const utf8_string& load_error) const;
+
         private:
             Message_center* message_center_;
             const cup::Cup* cup_;

@@ -28,6 +28,9 @@
 #include "cup/cup_listener.hpp"
 #include "cup/cup_controller.hpp"
 
+#include "resources/pattern.hpp"
+#include "resources/track_loader.hpp"
+
 namespace ts
 {
     namespace server
@@ -65,8 +68,6 @@ ts::server::Stage_interface::Impl::~Impl()
 
 void ts::server::Stage_interface::Impl::update(std::size_t frame_duration)
 {
-    poll();
-
     if (stage_conductor_)
     {
         stage_conductor_->update(frame_duration);
@@ -108,6 +109,11 @@ void ts::server::Stage_interface::clean_stage()
 void ts::server::Stage_interface::update(std::size_t frame_duration)
 {
     impl_->update(frame_duration);
+}
+
+void ts::server::Stage_interface::poll_loader()
+{
+    impl_->poll_loader();
 }
 
 const ts::action::Stage* ts::server::Stage_interface::stage() const

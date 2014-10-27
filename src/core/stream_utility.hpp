@@ -31,9 +31,35 @@ namespace ts
         std::uint32_t read32(std::istream& stream);
         std::uint64_t read64(std::istream& stream);
 
-        std::vector<char> read_stream_contents(std::istream& stream);
-        std::vector<char> read_file_contents(const utf8_string& file_name);
+        template <typename CharType>
+        std::vector<CharType> read_stream_contents(std::basic_istream<CharType>& stream);
+
+        template <typename CharType = unsigned char>
+        std::vector<CharType> read_file_contents(const utf8_string& file_name);
     }   
+}
+
+template <typename CharType>
+std::vector<CharType> ts::core::read_stream_contents(std::basic_istream<CharType>& stream)
+{
+    auto current_pos = stream.tellg();
+    stream.seekg(0, std::istream::end);
+
+    auto num_bytes = static_cast<std::size_t>(stream.tellg() - current_pos);
+
+    stream.seekg(current_pos);
+    std::vector<CharType> result(num_bytes);
+
+    stream.read(result.data(), num_bytes);
+
+    return result;
+}
+
+template <typename CharType>
+std::vector<CharType> ts::core::read_file_contents(const utf8_string& file_name)
+{
+    boost::filesystem::basic_ifstream<CharType> stream(file_name.string(), std::istream::in | std::istream::binary);
+    return read_stream_contents(stream);
 }
 
 #endif

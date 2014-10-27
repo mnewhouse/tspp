@@ -32,7 +32,10 @@ namespace ts
         struct Broken_track_exception
             : public std::logic_error
         {
-            Broken_track_exception();
+            Broken_track_exception(utf8_string missing_file);
+
+        private:
+            utf8_string missing_file_;
         };
 
         class Track_loader
