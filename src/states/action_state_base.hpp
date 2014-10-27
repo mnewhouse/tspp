@@ -26,7 +26,6 @@
 
 #include "user_interface/gui_state.hpp"
 
-#include "world/world_listener.hpp"
 #include "cup/cup_listener.hpp"
 
 namespace ts
@@ -57,11 +56,8 @@ namespace ts
             virtual void update(std::size_t frame_duration) override;
 
             virtual void on_activate() override;
-        private:            
             virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state);
-
-            virtual void end_action() = 0;
-
+        private:            
             game::Loaded_scene scene_;
 
             std::unique_ptr<controls::Event_translator> control_event_translator_;

@@ -187,11 +187,9 @@ void ts::server::Server::launch_action()
     impl_->stage_interface_.launch_action();
 }
 
-void ts::server::impl::Server::end_action()
+void ts::server::Server::end_action()
 {
-    if (cup_controller_.cup_state() == cup::Cup_state::Action)
-    {
-    }
+    impl_->stage_interface_.clean_stage();
 }
 
 ts::server::Server::Server(resources::Resource_store* resource_store)
@@ -250,16 +248,6 @@ void ts::server::Server::add_cup_listener(cup::Cup_listener* listener)
 const ts::game::Stage_loader* ts::server::Server::async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback)
 {
     return impl_->stage_interface_.async_load_stage(stage_data, completion_callback);
-}
-
-void ts::server::Server::end_action()
-{
-    impl_->end_action();
-}
-
-void ts::server::Server::clean_stage()
-{
-    impl_->stage_interface_.clean_stage();
 }
 
 const ts::action::Stage* ts::server::Server::stage() const

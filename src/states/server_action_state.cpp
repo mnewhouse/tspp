@@ -27,13 +27,12 @@ ts::states::Server_action_state::Server_action_state(game::Loaded_scene loaded_s
     : Action_state_base(std::move(loaded_scene), control_interface, state_machine, context, resource_store),
       server_(server)
 {
-    server_->add_cup_listener(this);
 }
 
 ts::states::Server_action_state::~Server_action_state()
 {
     server_->remove_cup_listener(this);
-    server_->clean_stage();
+    server_->end_action();
 }
 
 void ts::states::Server_action_state::update(std::size_t frame_duration)
@@ -47,10 +46,6 @@ void ts::states::Server_action_state::on_activate()
 {
     Action_state_base::on_activate();
 
+    server_->add_cup_listener(this);
     server_->launch_action();
-}
-
-void ts::states::Server_action_state::end_action()
-{
-    server_->end_action();    
 }

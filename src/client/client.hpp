@@ -100,7 +100,7 @@ namespace ts
             std::pair<std::size_t, std::size_t> download_progress() const;
 
             void update(std::size_t frame_duration);
-            void clean_stage();
+
             void launch_action();
             void end_action();
 

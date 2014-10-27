@@ -22,10 +22,13 @@
 #include "server_action_state.hpp"
 
 #include "cup/stage_assembler.hpp"
+#include "cup/cup.hpp"
 
 #include "resources/settings/network_settings.hpp"
 #include "resources/settings/player_settings.hpp"
 #include "resources/player_store.hpp"
+
+#include "client/client_interface.hpp"
 
 namespace ts
 {
@@ -50,7 +53,6 @@ ts::states::Server_cup_state::Server_cup_state(state_machine_type* state_machine
   : Server_cup_state_members(resource_store),
     Cup_state_base(local_client_.client_interface(), state_machine, context, resource_store)
 {
-    server_.add_cup_listener(this);
 }
 
 ts::states::Server_cup_state::~Server_cup_state()
@@ -68,6 +70,16 @@ void ts::states::Server_cup_state::update(std::size_t frame_duration)
 void ts::states::Server_cup_state::listen(std::uint16_t port)
 {
     server_.listen(port);
+}
+
+void ts::states::Server_cup_state::on_activate()
+{
+    Cup_state_base::on_activate();
+
+    if (server_.cup()->cup_state() == cup::Cup_state::Action)
+    {
+        local_client_.client_interface()->request_advance();
+    }
 }
 
 void ts::states::Server_cup_state::on_initialize(const cup::Stage_data& stage_data)

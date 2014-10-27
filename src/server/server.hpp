@@ -85,7 +85,6 @@ namespace ts
 
             void launch_action();
             void end_action();
-            void clean_stage();
 
         private:
             std::unique_ptr<impl::Server> impl_;

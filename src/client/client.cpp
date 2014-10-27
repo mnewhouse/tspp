@@ -135,11 +135,6 @@ ts::client::Client::~Client()
 {
 }
 
-void ts::client::Client::clean_stage()
-{
-    impl_->stage_interface_.clean_stage();
-}
-
 void ts::client::Client::launch_action()
 {
     impl_->stage_interface_.launch_action();
@@ -147,9 +142,7 @@ void ts::client::Client::launch_action()
 
 void ts::client::Client::end_action()
 {
-    if (impl_->cup_.cup_state() == cup::Cup_state::Action)
-    {
-    }
+    impl_->stage_interface_.clean_stage();
 }
 
 void ts::client::Client::update(std::size_t frame_duration)

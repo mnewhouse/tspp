@@ -45,9 +45,7 @@ namespace ts
             virtual void update(std::size_t frame_duration) override;
             virtual void on_activate() override;
 
-        private:
-            virtual void end_action() override;
-            
+        private:            
             client::Client* client_;
         };
     }

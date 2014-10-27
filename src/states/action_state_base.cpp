@@ -66,7 +66,7 @@ void ts::states::Action_state_base::handle_event(const sf::Event& event)
     {
         if (event.key.code == sf::Keyboard::Escape) 
         {
-            end_action();
+            state_machine()->change_state();
         }
     }
 }
