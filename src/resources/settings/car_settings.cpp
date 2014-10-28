@@ -22,7 +22,7 @@
 
 #include "resources/car_store.hpp"
 
-const std::vector<ts::resources::Car_handle>& ts::resources::Car_settings::selected_cars() const
+const std::vector<ts::resources::Car_identifier>& ts::resources::Car_settings::selected_cars() const
 {
     return selected_cars_;
 }
@@ -32,25 +32,25 @@ ts::resources::Car_mode ts::resources::Car_settings::car_mode() const
     return car_mode_;
 }
 
-void ts::resources::Car_settings::select_car(Car_handle car_handle)
+void ts::resources::Car_settings::select_car(const Car_identifier& car_identifier)
 {
     if (car_mode_ == Car_mode::Fixed)
     {
         selected_cars_.clear();
-        selected_cars_.push_back(car_handle);
+        selected_cars_.push_back(car_identifier);
     }
 
-    else if (!is_car_selected(car_handle))
+    else if (!is_car_selected(car_identifier))
     {
-        selected_cars_.push_back(car_handle);
+        selected_cars_.push_back(car_identifier);
     }
 }
 
-void ts::resources::Car_settings::deselect_car(Car_handle car_handle)
+void ts::resources::Car_settings::deselect_car(const Car_identifier& car_identifier)
 {
-    if (selected_cars_.size() != 1 || selected_cars_.front() != car_handle)
+    if (selected_cars_.size() != 1 || selected_cars_.front() != car_identifier)
     {
-        auto remove_it = std::remove(selected_cars_.begin(), selected_cars_.end(), car_handle);
+        auto remove_it = std::remove(selected_cars_.begin(), selected_cars_.end(), car_identifier);
         selected_cars_.erase(remove_it, selected_cars_.end());
     }
 }
@@ -65,16 +65,7 @@ void ts::resources::Car_settings::set_car_mode(Car_mode car_mode)
     car_mode_ = car_mode;
 }
 
-bool ts::resources::Car_settings::is_car_selected(Car_handle car_handle) const
+bool ts::resources::Car_settings::is_car_selected(const Car_identifier& car_identifier) const
 {
-    return std::find(selected_cars_.begin(), selected_cars_.end(), car_handle) != selected_cars_.end();
-}
-
-
-void ts::resources::Car_settings::load_car_definitions(const Car_store* car_store)
-{
-    for (auto& car : selected_cars_)
-    {
-        car = car_store->get_car_by_name(car.car_name());
-    }
+    return std::find(selected_cars_.begin(), selected_cars_.end(), car_identifier) != selected_cars_.end();
 }

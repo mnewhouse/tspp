@@ -936,6 +936,9 @@ ts::gui::Document_handle ts::states::Car_setup_menu::create_car_setup_document(C
     auto& car_store = cup_setup_menu->resource_store()->car_store();
     for (auto car_handle : car_store)
     {
+        resources::Car_identifier car_identifier;
+        car_identifier.car_name = car_handle->car_name;
+
         auto row = car_list->create_row();
 
         auto text = row->create_child<gui::Text_element>(car_handle->car_name, car_text_style);
@@ -947,12 +950,12 @@ ts::gui::Document_handle ts::states::Car_setup_menu::create_car_setup_document(C
         row->register_background_style(gui::states::selected, car_list_selected_style);
 
         row->add_event_handler(gui::events::on_click,
-            [this, car_handle](gui::Element& row)
+            [this, car_identifier](gui::Element& row)
         {
-            toggle_car_selection(car_handle);
+            toggle_car_selection(car_identifier);
         });
 
-        car_rows_.push_back({ car_handle, row });
+        car_rows_.push_back({ car_identifier, row });
 
         auto car_img = row->create_child<gui::Element>(Vector2<double>(40.0, 40.0));
         car_img->set_position({ 280.0, 0.0 });
@@ -1060,16 +1063,16 @@ void ts::states::Car_setup_menu::traverse_car_mode()
     update_selection_rows();
 }
 
-void ts::states::Car_setup_menu::toggle_car_selection(resources::Car_handle car_handle)
+void ts::states::Car_setup_menu::toggle_car_selection(const resources::Car_identifier& car_identifier)
 {
-    if (car_settings_->is_car_selected(car_handle))
+    if (car_settings_->is_car_selected(car_identifier))
     {
-        car_settings_->deselect_car(car_handle);
+        car_settings_->deselect_car(car_identifier);
     }
 
     else
     {
-        car_settings_->select_car(car_handle);
+        car_settings_->select_car(car_identifier);
     }
 
     update_selection_rows();
@@ -1080,7 +1083,7 @@ void ts::states::Car_setup_menu::update_selection_rows()
 {
     for (auto& row : car_rows_)
     {
-        bool selected = car_settings_->is_car_selected(row.car_handle);
+        bool selected = car_settings_->is_car_selected(row.car_identifier);
 
         row.row_elem->set_state(gui::states::selected, selected);
     }

@@ -22,6 +22,10 @@
 #include "cup.hpp"
 #include "cup_config.hpp"
 
+#include "resources/resource_store.hpp"
+#include "resources/car_handle.hpp"
+#include "resources/car_store.hpp"
+
 struct ts::cup::Cup_controller::Impl
 {
     Impl(resources::Resource_store* resource_store);
@@ -37,6 +41,7 @@ struct ts::cup::Cup_controller::Impl
     Cup cup_;
     Cup_config cup_config_;
 
+    const resources::Resource_store* resource_store_;
     std::vector<resources::Car_handle> selected_cars_;
     std::unordered_map<Player_handle, resources::Car_handle> car_mapping_;
     std::vector<Stage_player> stage_players_;
@@ -44,7 +49,8 @@ struct ts::cup::Cup_controller::Impl
 
 ts::cup::Cup_controller::Impl::Impl(resources::Resource_store* resource_store)
 : cup_(Locality::Local),
-  cup_config_(resource_store)
+  cup_config_(resource_store),
+  resource_store_(resource_store)
 {
 }
 
@@ -82,7 +88,7 @@ ts::resources::Car_mode ts::cup::Cup_controller::car_mode() const
     return car_settings().car_mode();
 }
 
-const std::vector<ts::resources::Car_handle>& ts::cup::Cup_controller::car_list() const
+const std::vector<ts::resources::Car_identifier>& ts::cup::Cup_controller::car_list() const
 {
     return car_settings().selected_cars();
 }
@@ -146,9 +152,13 @@ ts::cup::Player_handle ts::cup::Cup_controller::add_player(const Player& player)
     return impl_->cup_.add_player(player);
 }
 
-void ts::cup::Cup_controller::set_player_car(const Player_handle& player, const resources::Car_handle& car_handle)
+void ts::cup::Cup_controller::set_player_car(const Player_handle& player, const resources::Car_identifier& car_identifier)
 {
-    impl_->car_mapping_[player] = car_handle;
+    const auto& car_store = impl_->resource_store_->car_store();
+    if (auto car_handle = car_store.get_car_by_name(car_identifier.car_name))
+    {
+        impl_->car_mapping_[player] = car_handle;
+    }    
 }
 
 ts::resources::Car_handle ts::cup::Cup_controller::player_car(const Player_handle& player) const
@@ -234,11 +244,21 @@ void ts::cup::Cup_controller::Impl::start_cup()
 void ts::cup::Cup_controller::Impl::preinitialize_action()
 {
     const auto& car_settings = cup_config_.car_settings();
+    const auto& car_store = resource_store_->car_store();
     const auto car_mode = car_settings.car_mode();
+
 
     // Store selected cars away, so that it doesn't bug out when 
     // cars are added or removed during car selection.
-    selected_cars_ = car_settings.selected_cars();
+    selected_cars_.clear();
+    for (const auto& car_identifier : car_settings.selected_cars())
+    {
+        if (auto car_handle = car_store.get_car_by_name(car_identifier.car_name))
+        {
+            selected_cars_.push_back(car_handle);
+        }
+    }
+
     stage_players_.clear();
 
     // Do the same for the cup's players.

@@ -26,13 +26,16 @@
 #include "cup/cup_metadata.hpp"
 
 #include "resources/settings/car_settings.hpp"
-#include "resources/settings/track_settings.hpp"
+#include "resources/car_handle.hpp"
 
 namespace ts
 {
     namespace resources
     {
         struct Resource_store;
+
+        class Track_settings;
+        class Track_handle;
     }
 
     namespace cup
@@ -63,7 +66,7 @@ namespace ts
             void advance();            
             cup::Cup_state cup_state() const;
 
-            const std::vector<resources::Car_handle>& car_list() const;
+            const std::vector<resources::Car_identifier>& car_list() const;
             const resources::Car_settings& car_settings() const;
             resources::Car_mode car_mode() const;
 
@@ -76,7 +79,7 @@ namespace ts
             void skip_stage();
 
             resources::Car_handle player_car(const Player_handle& player_handle) const;
-            void set_player_car(const Player_handle& player_handle, const resources::Car_handle& car_handle);
+            void set_player_car(const Player_handle& player_handle, const resources::Car_identifier& car_identifier);
 
             Player_handle add_player(const Player& player);
             Player_handle add_player(const Player& player, Player_id player_id);

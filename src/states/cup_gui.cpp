@@ -291,6 +291,8 @@ void ts::states::impl::Cup_GUI::update(std::size_t frame_duration)
     {
         car_selection_dialog_->show();
         car_selection_ready_ = false;
+
+        cup_document_->set_active(false);
     }
 }
 
@@ -370,7 +372,9 @@ void ts::states::impl::Cup_GUI::set_car_selection_dialog_ready()
 void ts::states::impl::Cup_GUI::confirm_car_selection()
 {
     car_selection_dialog_->hide();
+
     cup_document_->set_visible(true);
+    cup_document_->set_active(true);
 
     apply_car_selection();
 }

@@ -22,7 +22,7 @@
 #ifndef CAR_SETTINGS_HPP
 #define CAR_SETTINGS_HPP
 
-#include "resources/car_handle.hpp"
+#include "resources/car_identifier.hpp"
 
 namespace ts
 {
@@ -40,19 +40,18 @@ namespace ts
         class Car_settings
         {
         public:
-            void select_car(Car_handle car);
-            void deselect_car(Car_handle car);
+            void select_car(const Car_identifier& car);
+            void deselect_car(const Car_identifier& car);
 
-            const std::vector<Car_handle>& selected_cars() const;
+            const std::vector<Car_identifier>& selected_cars() const;
 
             void set_car_mode(Car_mode car_mode);
             Car_mode car_mode() const;
 
-            bool is_car_selected(Car_handle car) const;
-            void load_car_definitions(const Car_store* car_store);
+            bool is_car_selected(const Car_identifier& car) const;
 
         private:
-            std::vector<Car_handle> selected_cars_;
+            std::vector<Car_identifier> selected_cars_;
             Car_mode car_mode_ = Car_mode::Free;
         };
     }

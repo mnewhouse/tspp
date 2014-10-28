@@ -408,9 +408,9 @@ ts::cup::Message ts::cup::make_car_information_message(const resources::Car_sett
     
     result << static_cast<std::uint16_t>(car_settings.car_mode());
     result << static_cast<std::uint32_t>(selected_cars.size());
-    for (auto& car_handle : selected_cars)
+    for (const auto& car_identifier : selected_cars)
     {
-        result << car_handle.car_name();
+        result << car_identifier.car_name;
     }
 
     return result;
@@ -443,9 +443,9 @@ ts::cup::Message ts::cup::make_car_selection_initiation_message(const resources:
     Message message(Message_type::car_selection_initiation);
 
     message << static_cast<std::uint32_t>(selected_cars.size());
-    for (auto& car_handle : selected_cars)
+    for (const auto& car_identifier : selected_cars)
     {
-        message << car_handle.car_name();
+        message << car_identifier.car_name;
     }
 
     return message;

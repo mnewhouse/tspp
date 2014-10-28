@@ -35,7 +35,6 @@ ts::resources::Resource_store::Resource_store()
   settings_(std::make_unique<Settings>(config::settings_file)),
   font_library_(std::make_unique<Font_library>())
 {
-    settings_->car_settings.load_car_definitions(&car_store());
 }
 
 ts::resources::Resource_store::~Resource_store()

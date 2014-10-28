@@ -323,14 +323,15 @@ std::istream& ts::resources::operator>>(std::istream& stream, Car_settings& car_
             std::string car_name;
             if (line_stream >> car_name)
             {
-                Car_handle car_handle(std::move(car_name));
-                car_settings.select_car(car_handle);
+                Car_identifier car_identifier;
+                car_identifier.car_name = car_name;
+                
+                car_settings.select_car(car_identifier);
             }
         }
     }
 
     car_settings.set_car_mode(car_mode);
-
     return stream;
 }
 
@@ -430,9 +431,9 @@ std::ostream& ts::resources::operator<<(std::ostream& stream, const Car_settings
         stream << "CarMode " << car_mode_string << "\n";
     }    
 
-    for (const auto& car_handle : car_settings.selected_cars())
+    for (const auto& car_identifier : car_settings.selected_cars())
     {
-        stream << "SelectedCar " << car_handle->car_name << "\n";
+        stream << "SelectedCar " << car_identifier.car_name << "\n";
     }
 
     return stream;

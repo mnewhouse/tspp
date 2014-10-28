@@ -27,10 +27,9 @@
 #include "user_interface/document_handle.hpp"
 #include "user_interface/elements/elements.hpp"
 
-#include "resources/track_store.hpp"
-#include "resources/car_handle.hpp"
-
+#include "resources/car_identifier.hpp"
 #include "resources/settings/car_settings.hpp"
+#include "resources/track_store.hpp"
 
 namespace ts
 {
@@ -147,7 +146,7 @@ namespace ts
             void hide();
 
         private:
-            void toggle_car_selection(resources::Car_handle car_handle);
+            void toggle_car_selection(const resources::Car_identifier& car_identifier);
             void traverse_car_mode();
             void update_selection_rows();
             utf8_string car_mode_to_string(resources::Car_mode car_mode) const;
@@ -160,7 +159,7 @@ namespace ts
 
             struct Car_row
             {
-                resources::Car_handle car_handle;
+                resources::Car_identifier car_identifier;
                 gui::Element* row_elem;
             };
 
