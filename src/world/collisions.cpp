@@ -338,8 +338,8 @@ std::pair<ts::world::Entity_state, ts::world::Entity_state> ts::world::resolve_e
     auto relative_offset = subject->position() - object->position();
     auto deflection_boost = normalize(relative_offset) * 10.0;
 
-    result.first.velocity = subject_velocity - deflection * subject_speed_1d + deflection * new_subject_speed_1d + deflection_boost;
-    result.second.velocity = object_velocity - deflection * object_speed_1d + deflection * new_object_speed_1d - deflection_boost;
+    result.first.velocity = subject_velocity - normal * subject_speed_1d + deflection * new_subject_speed_1d + deflection_boost;
+    result.second.velocity = object_velocity - normal * object_speed_1d + deflection * new_object_speed_1d - deflection_boost;
 
     return result;
 }
