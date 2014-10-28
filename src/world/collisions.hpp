@@ -40,9 +40,11 @@ namespace ts
             double valid_time_point = 0.0;
             double time_point = 0.0;
             Vector2<double> normal;
-            Vector2<int> global_point;
-            Vector2<int> subject_point;
-            Vector2<int> object_point;
+            Vector2<double> deflection;
+
+            Vector2<std::int32_t> global_point;
+            Vector2<std::int32_t> subject_point;
+            Vector2<std::int32_t> object_point;
 
             double impact = 0.0;
             double elasticity_factor = 1.0;
@@ -67,9 +69,9 @@ namespace ts
         struct Entity_state;
 
         template <typename InputIt, typename PriorityTest>
-        Collision_result detect_entity_collision(const Entity_state& subject, InputIt it, InputIt end, PriorityTest priority_test);
+        Collision_result detect_entity_collision(const Entity_state& subject, InputIt it, InputIt end, PriorityTest priority_test, bool collided_before = false);
 
-        Collision_result detect_entity_collision(Entity_state subject, Entity_state object);
+        Collision_result detect_entity_collision(Entity_state subject, Entity_state object, bool collided_before = false);
         Collision_result detect_scenery_collision(const Entity_state& entity_state, const world::World& world,
             const Static_collision_bitmap& scenery);
 
@@ -82,14 +84,15 @@ namespace ts
 }
 
 template <typename InputIt, typename PriorityTest>
-ts::world::Collision_result ts::world::detect_entity_collision(const Entity_state& subject, InputIt it, InputIt end, PriorityTest priority_test)
+ts::world::Collision_result ts::world::detect_entity_collision(const Entity_state& subject, InputIt it, InputIt end, 
+                                                               PriorityTest priority_test, bool collided_before)
 {
     if (it == end) return {};
 
-    auto collision = detect_entity_collision(subject, *it);
+    auto collision = detect_entity_collision(subject, *it, collided_before);
     while (++it != end)
     {
-        auto new_collision = detect_entity_collision(subject, *it);
+        auto new_collision = detect_entity_collision(subject, *it, collided_before);
         if (priority_test(new_collision, collision))
         {
             collision = new_collision;

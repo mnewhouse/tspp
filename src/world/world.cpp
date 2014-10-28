@@ -195,7 +195,7 @@ void ts::world::World::update(std::size_t frame_duration)
         auto scenery_collision = detect_scenery_collision(entity_state, *this, scenery_bitmap_);
 
         auto entity_collision = detect_entity_collision(entity_state, state_buffer_.begin(), state_buffer_.end(), 
-                                                        collision_priority_test);        
+                                                        collision_priority_test, true);
 
         auto collision = std::min(entity_collision, scenery_collision, collision_priority_test);        
         if (collision)
@@ -203,6 +203,12 @@ void ts::world::World::update(std::size_t frame_duration)
             auto time_left = 1.0 - time_point;
             collision.time_point = time_point + time_left * collision.time_point;
             collision.valid_time_point = time_point + time_left * std::max(collision.valid_time_point, 0.0);
+
+            if (collision.object_state.entity)
+            {
+                std::swap(collision.deflection.x, collision.deflection.y);
+                collision.deflection.x = -collision.deflection.x;                
+            }
         }
 
         return collision;

@@ -38,7 +38,7 @@ ts::Vector2<double> ts::world::adjust_position(Vector2<double> position)
     return position;
 }
 
-ts::world::Collision_result ts::world::detect_entity_collision(Entity_state subject_state, Entity_state object_state)
+ts::world::Collision_result ts::world::detect_entity_collision(Entity_state subject_state, Entity_state object_state, bool collided_before)
 {
     auto subject = subject_state.entity;
     auto object = object_state.entity;
@@ -137,6 +137,13 @@ ts::world::Collision_result ts::world::detect_entity_collision(Entity_state subj
         result.normal = calculate_normal(object_state, relative_offset, result.global_point, result.time_point);
     }
 
+    result.deflection = result.normal;
+    if (collided_before)
+    {
+        std::swap(result.deflection.x, result.deflection.y);
+        result.deflection.x = -result.deflection.x;
+    }
+
     std::tie(result.subject_state, result.object_state) = resolve_entity_collision(result);
 
     return result;
@@ -187,6 +194,7 @@ ts::world::Collision_result ts::world::detect_scenery_collision(const Entity_sta
     }
 
     result.normal = get_edge_normal(result.global_point, heading, safe_is_wall);
+    result.deflection = result.normal;
     result.subject_state = resolve_scenery_collision(result);
     result.subject_point = result.global_point - Vector2i(collision_point.point);
     
@@ -271,6 +279,7 @@ std::pair<ts::world::Entity_state, ts::world::Entity_state> ts::world::resolve_e
     auto object = collision.object_state.entity;
 
     const auto normal = collision.normal;
+    const auto deflection = collision.deflection;
 
     auto bounce_factor = (subject->elasticity() * object->elasticity());
     auto inverse_bounce = 1.0 - bounce_factor;
@@ -329,8 +338,8 @@ std::pair<ts::world::Entity_state, ts::world::Entity_state> ts::world::resolve_e
     auto relative_offset = subject->position() - object->position();
     auto deflection_boost = normalize(relative_offset) * 10.0;
 
-    result.first.velocity = subject_velocity - normal * subject_speed_1d + normal * new_subject_speed_1d + deflection_boost;
-    result.second.velocity = object_velocity - normal * object_speed_1d + normal * new_object_speed_1d - deflection_boost;
+    result.first.velocity = subject_velocity - deflection * subject_speed_1d + deflection * new_subject_speed_1d + deflection_boost;
+    result.second.velocity = object_velocity - deflection * object_speed_1d + deflection * new_object_speed_1d - deflection_boost;
 
     return result;
 }
