@@ -47,6 +47,8 @@ namespace ts
         static const char players_file[] = "data/players.dat";
         static const char settings_file[] = "settings.ini";
 
+        static const char mouse_cursor_path[] = "data/cursor.png";
+
         static const std::uint32_t update_interval = 20;
     }
 

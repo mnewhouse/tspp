@@ -47,8 +47,10 @@ ts::game::Action_scene::Action_scene(Track_scene track_scene, const resources::V
   car_image_generator_(std::make_unique<Car_image_generator>())
 {
     // Add a view, just in case there won't be any players registered
-    view_context_->add_view();
+    auto view = view_context_->add_view();
     view_context_->arrange_evenly();
+
+    enable_split_screen_ = view->camera.fit_in_screen_zoom_level() < video_settings.split_screen_threshold;
 
     calculate_vertex_bounds();
 }
@@ -120,13 +122,20 @@ void ts::game::Action_scene::add_followed_entity(const world::Entity* entity)
     {
         reassign_screens();
     }
+
+    else
+    {
+        view_context_->clear();
+        auto view = view_context_->add_view();
+        view->camera.set_zoom_level(view->camera.fit_in_screen_zoom_level());
+    }
 }
 
 void ts::game::Action_scene::update_cameras(double frame_time)
 {
     for (auto& view : *view_context_)
     {
-        view.camera.update_view(view.view_port, view_context_->screen_size(), frame_time);
+        view.camera.update_view(view.view_port, frame_time);
     }
 }
 

@@ -22,10 +22,11 @@
 
 #include "world/entity.hpp"
 
-ts::game::Camera::Camera(Vector2u world_size)
+ts::game::Camera::Camera(Vector2u screen_size, Vector2u world_size)
 : mode_(Mode::Fixed),
   camera_target_(nullptr),
-  world_size_(world_size)
+  world_size_(world_size),
+  screen_size_(screen_size)
 {
     set_zoom_level(1.0);
 }
@@ -98,7 +99,12 @@ bool ts::game::Camera::is_area_visible(const Double_rect& area) const
     return intersects(area, visible_area_);
 }
 
-void ts::game::Camera::update_view(Double_rect view_port, Vector2<double> screen_size, double frame_time)
+double ts::game::Camera::fit_in_screen_zoom_level() const
+{
+    return std::min(screen_size_.x / world_size_.x, screen_size_.y / world_size_.y) * 0.5;
+}
+
+void ts::game::Camera::update_view(Double_rect view_port, double frame_time)
 {
     if (camera_target_)
     {
@@ -116,8 +122,8 @@ void ts::game::Camera::update_view(Double_rect view_port, Vector2<double> screen
 
     auto inverse_zoom = 0.5 / zoom_level_;
     
-    view_.setSize(static_cast<float>((view_port.width * screen_size.x) * inverse_zoom), 
-                  static_cast<float>((view_port.height * screen_size.y) * inverse_zoom));
+    view_.setSize(static_cast<float>((view_port.width * screen_size_.x) * inverse_zoom), 
+                  static_cast<float>((view_port.height * screen_size_.y) * inverse_zoom));
 
     auto left = static_cast<float>(view_port.left);
     auto top = static_cast<float>(view_port.top);

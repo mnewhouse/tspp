@@ -68,6 +68,8 @@ namespace ts
             using SFML_Input_interface::handle_event;
 
             std::shared_ptr<graphics::Texture> load_texture(const utf8_string& texture_name);
+            bool load_mouse_cursor(const utf8_string& path);
+            void set_mouse_cursor_visible(bool visible);
 
         private:            
             virtual void process_mouse_move(Vector2i new_position, unsigned int key_modifiers) override;
@@ -82,6 +84,8 @@ namespace ts
 
             void release_destroyed_documents();
             void add_pending_documents();
+
+            void render_mouse_cursor();
 
             struct Callback_guard
             {
@@ -100,6 +104,8 @@ namespace ts
             std::vector<Document*> document_list_;
 
             graphics::Texture_loader texture_loader_;
+            std::shared_ptr<graphics::Texture> mouse_cursor_;
+            bool mouse_cursor_visible_ = false;
 
             std::size_t callback_guard_count_ = 0;
             std::set<utf8_string> destroyed_documents_;

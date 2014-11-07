@@ -42,7 +42,7 @@ namespace ts
                 Fixed
             };
 
-            explicit Camera(Vector2u world_size);
+            explicit Camera(Vector2u screen_size, Vector2u world_size);
 
             const world::Entity* target() const;
             Mode mode() const;
@@ -53,7 +53,7 @@ namespace ts
             void set_rotation(Rotation<double> rotation);
 
             const sf::View& view() const;
-            void update_view(Double_rect view_port, Vector2<double> screen_size, double frame_time);
+            void update_view(Double_rect view_port, double frame_time);
 
             void update_position();
 
@@ -64,6 +64,7 @@ namespace ts
             double zoom_level() const;
 
             bool is_area_visible(const Double_rect& rect) const;
+            double fit_in_screen_zoom_level() const;
 
         private:            
             void clamp_view();
@@ -71,6 +72,8 @@ namespace ts
 
             Mode mode_;
             Double_rect visible_area_;
+            Vector2<double> screen_size_;
+
             const world::Entity* camera_target_;
             Vector2<double> last_position_;
             Vector2<double> world_size_;

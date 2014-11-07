@@ -94,6 +94,8 @@ void ts::game::Game::main()
     render_window.display();
 
     render_window.setKeyRepeatEnabled(false);
+    render_window.setMouseCursorVisible(false);
+    
 
     gui::Context gui_context(&render_window, &resource_store.font_library());
     core::State_machine<Game_state> state_machine;    
@@ -105,8 +107,10 @@ void ts::game::Game::main()
 
     state_machine.update();
 
-    auto current_time = std::chrono::high_resolution_clock::now();
+    gui_context.load_mouse_cursor(config::mouse_cursor_path);
+    gui_context.set_mouse_cursor_visible(true);
 
+    auto current_time = std::chrono::high_resolution_clock::now();
     std::int64_t accumulator = 0;
     bool vertical_sync = video_settings.vertical_sync;
     render_window.setVerticalSyncEnabled(vertical_sync);

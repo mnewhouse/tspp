@@ -30,7 +30,7 @@ namespace ts
     {
         struct View
         {
-            View(Vector2u world_size);
+            View(Vector2u screen_size, Vector2u world_size);
 
             Camera camera;
             Double_rect view_port;

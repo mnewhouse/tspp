@@ -36,6 +36,7 @@ namespace ts
             Vector2u screen_resolution;
             Vector2u current_screen_resolution;
             double zoom_level = 1.0;
+            double split_screen_threshold = 0.7;
         };
     }
 }

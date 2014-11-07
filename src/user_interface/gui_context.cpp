@@ -21,6 +21,8 @@
 #include "gui_context.hpp"
 #include "document.hpp"
 
+#include "graphics/sprite.hpp"
+
 ts::gui::Context::Context(sf::RenderTarget* render_target, const resources::Font_library* font_library)
 : render_target_(render_target),
   font_library_(font_library)
@@ -135,6 +137,8 @@ void ts::gui::Context::render_documents()
             document->render_hierarchy(*render_target_);
         }
     }
+
+    render_mouse_cursor();
 }
 
 ts::Vector2i ts::gui::Context::screen_size() const
@@ -142,6 +146,29 @@ ts::Vector2i ts::gui::Context::screen_size() const
     auto size = render_target_->getSize();
     return { static_cast<std::int32_t>(size.x), static_cast<std::int32_t>(size.y) };
 }
+
+bool ts::gui::Context::load_mouse_cursor(const utf8_string& file_path)
+{
+    mouse_cursor_ = load_texture(file_path);
+    return mouse_cursor_ != nullptr;
+}
+
+void ts::gui::Context::render_mouse_cursor()
+{
+    if (mouse_cursor_ != nullptr && mouse_cursor_visible_)
+    {
+        graphics::Sprite sprite(*mouse_cursor_);
+        sprite.setPosition(static_cast<float>(mouse_position_.x), static_cast<float>(mouse_position_.y));
+
+        render_target_->draw(sprite);
+    }
+}
+
+void ts::gui::Context::set_mouse_cursor_visible(bool visible)
+{
+    mouse_cursor_visible_ = visible;
+}
+
 
 void ts::gui::Context::process_mouse_move(Vector2i new_position, unsigned int key_modifiers)
 {

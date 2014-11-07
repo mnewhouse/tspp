@@ -52,6 +52,8 @@ ts::states::Cup_state_base::~Cup_state_base()
 void ts::states::Cup_state_base::show_gui()
 {
     cup_gui_->show();
+
+    context()->set_mouse_cursor_visible(true);
 }
 
 void ts::states::Cup_state_base::on_activate()
@@ -140,6 +142,7 @@ void ts::states::Cup_state_base::return_to_main_menu()
 void ts::states::Cup_state_base::launch_action(std::unique_ptr<Action_state_base> action_state)
 {
     context()->hide_all();
+    context()->set_mouse_cursor_visible(false);
 
     state_machine()->change_state(std::move(action_state));
 }

@@ -20,8 +20,9 @@
 #include "stdinc.hpp"
 #include "view_context.hpp"
 
-ts::game::View::View(Vector2u world_size)
-: camera(world_size)
+ts::game::View::View(Vector2u screen_size, Vector2u world_size)
+: camera(screen_size, world_size),
+  view_port(0.0, 0.0, 1.0, 1.0)
 {
 }
 
@@ -40,7 +41,7 @@ ts::game::View* ts::game::View_context::add_view()
 {
     if (view_count() < max_views)
     {
-        views_.emplace_back(world_size_);
+        views_.emplace_back(screen_size_, world_size_);
         return &views_.back();
     }
 
