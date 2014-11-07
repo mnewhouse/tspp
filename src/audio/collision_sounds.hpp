@@ -24,10 +24,14 @@
 
 #include "audio_store.hpp"
 
-#include "world/world_listener.hpp"
-
 namespace ts
 {
+    namespace world
+    {
+        class Entity;
+        struct Collision_info;
+    }
+
     namespace audio
     {
         class Sound_effect_controller;
@@ -38,7 +42,8 @@ namespace ts
             Collision_sound_controller(Sound_effect_controller* effect_controller,
                 Audio_handle entity_collision, Audio_handle scenery_collision);
             
-            void play_collision_sound(const world::Collision_result& collision);
+            void play_collision_sound(const world::Entity* subject, const world::Entity* object,
+                                      const world::Collision_info& collision_info);
 
         private:
             Sound_effect_controller* effect_controller_;

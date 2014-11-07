@@ -19,30 +19,26 @@
 
 #pragma once
 
-#ifndef WORLD_LISTENER_HPP
-#define WORLD_LISTENER_HPP
+#ifndef LINE_INTERSECTION_HPP
+#define LINE_INTERSECTION_HPP
+
+#include "vector2.hpp"
 
 namespace ts
 {
-    namespace world
+    template <typename T>
+    bool line_intersection(Vector2<T> a1, Vector2<T> a2, Vector2<T> b1, Vector2<T> b2, 
+                           Vector2<T>& result)
     {
-        class Car;
-        class Entity;
+        auto d = (a1.x - a2.x) * (b1.y - b2.y) - (a1.y - a2.y) * (b1.x - b2.x);
+        if (d == 0) return false;
 
+        auto a = (a1.x * a2.y - a1.y * a2.x);
+        auto b = (b1.x * b2.y - b1.y * b2.x);
 
-        struct Collision_info;
-
-        struct World_listener
-        {
-            virtual void on_start() {}
-
-            virtual void on_tick(std::size_t new_ticks) {};
-            virtual void on_update() {};
-
-            virtual void on_entity_destroy(Entity* entity) {};
-
-            virtual void on_collision(Entity* subject, Entity* object, const Collision_info& collision_info) {};
-        };
+        result.x = ((b1.x - b2.x) * a - (a1.x - a2.x) * b) / d;
+        result.y = ((b1.y - b2.y) * a - (a1.y - a2.y) * b) / d;    
+        return true;
     }
 }
 

@@ -114,7 +114,7 @@ namespace ts
             
             std::vector<const world::Entity*> followed_entities_;
 
-            bool enable_split_screen_ = true;
+            bool enable_split_screen_ = false;
             bool dirty_component_cache_ = true;
             
             std::unique_ptr<Car_image_generator> car_image_generator_;

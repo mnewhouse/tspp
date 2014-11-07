@@ -115,6 +115,16 @@ ts::Vector2u ts::action::Stage::world_size() const
     return world_->track().size();
 }
 
+void ts::action::Stage::add_world_listener(world::World_listener* listener) const
+{
+    world_->add_world_listener(listener);
+}
+
+void ts::action::Stage::remove_world_listener(world::World_listener* listener) const
+{
+    world_->remove_world_listener(listener);
+}
+
 const ts::controls::Control_center& ts::action::Stage::control_center() const
 {
     return *control_center_;

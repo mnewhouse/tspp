@@ -47,7 +47,6 @@ namespace ts
             const Track& track_;
 
             Pattern_loader pattern_loader_;
-            std::map<utf8_string, utf8_string> precomputed_paths_;
         };
     }
 }

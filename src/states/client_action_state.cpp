@@ -21,6 +21,7 @@
 #include "client_action_state.hpp"
 
 #include "client/client.hpp"
+#include "action/stage.hpp"
 
 ts::states::Client_action_state::Client_action_state(game::Loaded_scene loaded_scene, client::Client* client,
                                                      state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
@@ -32,6 +33,8 @@ ts::states::Client_action_state::Client_action_state(game::Loaded_scene loaded_s
 
 ts::states::Client_action_state::~Client_action_state()
 {
+    client_->stage()->remove_world_listener(this);
+
     client_->remove_cup_listener(this);
     client_->end_action();
 }
@@ -49,4 +52,6 @@ void ts::states::Client_action_state::on_activate()
 
     client_->add_cup_listener(this);
     client_->launch_action();
+
+    client_->stage()->add_world_listener(this);
 }

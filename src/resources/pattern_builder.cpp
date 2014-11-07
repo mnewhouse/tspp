@@ -64,21 +64,6 @@ void ts::resources::Pattern_builder::preload_pattern(const utf8_string& path)
     pattern_loader_.load_from_file(path);
 }
 
-/*
-const ts::utf8_string& ts::resources::Pattern_builder::resolve_include_path(const utf8_string& path)
-{
-    auto it = precomputed_paths_.find(path);
-    if (it == precomputed_paths_.end())
-    {
-        auto resolved_path = track_.find_include_path(path);
-        it = precomputed_paths_.emplace(path, std::move(resolved_path)).first;
-    }
-
-    return it->second;
-}
-*/
-
-
 void ts::resources::apply_pattern(Pattern& dest, const Pattern& source, 
                                   Int_rect rect, Vector2d position, Rotation<double> rotation)
 {

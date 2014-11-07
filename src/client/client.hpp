@@ -103,6 +103,7 @@ namespace ts
 
             void launch_action();
             void end_action();
+            const action::Stage* stage() const;
 
             const game::Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback);
 

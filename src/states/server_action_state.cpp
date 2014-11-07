@@ -21,6 +21,7 @@
 #include "server_action_state.hpp"
 
 #include "server/server.hpp"
+#include "action/stage.hpp"
 
 ts::states::Server_action_state::Server_action_state(game::Loaded_scene loaded_scene, server::Server* server, controls::Control_interface* control_interface,
                                                      state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
@@ -31,8 +32,10 @@ ts::states::Server_action_state::Server_action_state(game::Loaded_scene loaded_s
 
 ts::states::Server_action_state::~Server_action_state()
 {
+    server_->stage()->remove_world_listener(this);
+
     server_->remove_cup_listener(this);
-    server_->end_action();
+    server_->end_action();    
 }
 
 void ts::states::Server_action_state::update(std::size_t frame_duration)
@@ -48,4 +51,6 @@ void ts::states::Server_action_state::on_activate()
 
     server_->add_cup_listener(this);
     server_->launch_action();
+
+    server_->stage()->add_world_listener(this);
 }

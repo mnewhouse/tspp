@@ -32,11 +32,8 @@ ts::audio::Collision_sound_controller::Collision_sound_controller(Sound_effect_c
 {
 }
 
-void ts::audio::Collision_sound_controller::play_collision_sound(const world::Collision_result& collision)
+void ts::audio::Collision_sound_controller::play_collision_sound(const world::Entity* subject, const world::Entity* object, const world::Collision_info& collision_info)
 {
-    auto subject = collision.subject_state.entity;
-    auto object = collision.object_state.entity;
-
     const auto& sound_handle = object ? entity_collision_sound_ : scenery_collision_sound_;
     int priority = 1; 
     if (subject->locality() == world::Locality::Local || (object && object->locality() == world::Locality::Local))
@@ -45,8 +42,8 @@ void ts::audio::Collision_sound_controller::play_collision_sound(const world::Co
     }
 
     Sound_properties properties;
-    properties.position = collision.global_point;
-    properties.volume = std::min(static_cast<float>(collision.impact), 200.0f) / 200.0f;
+    properties.position = collision_info.point;
+    properties.volume = std::min(static_cast<float>(collision_info.impact), 200.0f) / 200.0f;
 
     if (sound_handle)
     {

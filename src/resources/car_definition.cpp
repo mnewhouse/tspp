@@ -27,6 +27,7 @@
 #include "pattern.hpp"
 
 #include "world/handling.hpp"
+#include "world/collision_bitmap.hpp"
 
 
 ts::resources::Car_definition ts::resources::load_car_definition(std::istream& stream, const utf8_string& directory)
@@ -71,7 +72,15 @@ ts::resources::Car_definition ts::resources::load_car_definition(std::istream& s
                 car_def.pattern_file = find_include_path(pattern_file, { directory });
                 car_def.pattern_rect = pattern_rect;
 
-                car_def.pattern = std::make_shared<Pattern>(car_def.pattern_file);
+                Pattern pattern(car_def.pattern_file, car_def.pattern_rect);
+
+                std::size_t num_rotations;
+                if (line_stream >> num_rotations)
+                {
+                    car_def.pattern_rotation_count = clamp(num_rotations, 1U, 64U);
+                }
+
+                car_def.collision_bitmap = std::make_shared<world::Collision_bitmap>(pattern, car_def.pattern_rotation_count);
             }
         }
 

@@ -28,6 +28,8 @@
 
 #include "cup/cup_listener.hpp"
 
+#include "world/world_listener.hpp"
+
 namespace ts
 {
     namespace controls
@@ -44,7 +46,7 @@ namespace ts
     namespace states
     {
         class Action_state_base
-            : public gui::State, public cup::Cup_listener
+            : public gui::State, public cup::Cup_listener, public world::World_listener
         {
         public:
             Action_state_base(game::Loaded_scene loaded_scene, controls::Control_interface* control_interface,
@@ -57,6 +59,8 @@ namespace ts
 
             virtual void on_activate() override;
             virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state);
+
+            virtual void on_collision(world::Entity* subject, world::Entity* object, const world::Collision_info& collision_info) override;
         private:            
             game::Loaded_scene scene_;
 

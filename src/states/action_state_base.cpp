@@ -88,3 +88,8 @@ void ts::states::Action_state_base::on_state_change(cup::Cup_state old_state, cu
         state_machine()->change_state();
     }
 }
+
+void ts::states::Action_state_base::on_collision(world::Entity* subject, world::Entity* object, const world::Collision_info& collision_info)
+{
+    scene_.sound_controller->collision_sounds.play_collision_sound(subject, object, collision_info);
+}

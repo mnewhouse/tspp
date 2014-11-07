@@ -45,8 +45,8 @@ namespace ts
     {
         Vector2i result =
         {
-            (point.x * cos - point.y * sin + 0x8000) >> 16,
-            (point.y * cos + sin * point.x + 0x8000) >> 16
+            (point.x * cos - point.y * sin) >> 16,
+            (point.y * cos + sin * point.x) >> 16
         };
 
         return result;

@@ -30,6 +30,8 @@ namespace ts
     {
         class World;
         class Car;
+
+        struct World_listener;
     }
 
     namespace controls
@@ -54,6 +56,9 @@ namespace ts
 
             const world::World& world() const;
             const controls::Control_center& control_center() const;
+
+            void add_world_listener(world::World_listener* listener) const;
+            void remove_world_listener(world::World_listener* listener) const;
 
             Vector2u world_size() const;
             double max_entity_speed() const;

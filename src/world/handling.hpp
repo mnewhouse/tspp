@@ -60,11 +60,13 @@ namespace ts
             
             double grip = 0.0;
             double steering = 0.0;
+            double steering_lock = 0.0;
             double antislide = 0.0;
            
             double drag_factor = 1.0;
-            double roll_resistance = 0.0;
+            double rolling_resistance = 0.0;
             double lateral_friction = 0.0;
+            double turning_resistance = 0.0;
 
             Traction_limit traction_limit;
             Traction_loss traction_loss;

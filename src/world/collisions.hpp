@@ -28,78 +28,32 @@ namespace ts
 {
     namespace world
     {
-        struct Collision_result
+        struct Collision_info
         {
-            bool collided = false;
-            bool rotate = false;
-            bool stuck = false;
-
-            Entity_state subject_state;
-            Entity_state object_state;            
-
-            double valid_time_point = 0.0;
-            double time_point = 0.0;
+            Vector2<std::int32_t> point;
             Vector2<double> normal;
-            Vector2<double> deflection;
-
-            Vector2<std::int32_t> global_point;
-            Vector2<std::int32_t> subject_point;
-            Vector2<std::int32_t> object_point;
-
             double impact = 0.0;
-            double elasticity_factor = 1.0;
-
-            operator bool() const { return collided; }
+            double elasticity_factor = 0.0;
         };
 
-        struct Match_collision
-        {
-        public:
-            Match_collision(const Entity* entity);
-
-            bool operator()(const Collision_result& collision) const;
-
-        private:
-            const Entity* entity_;
-        };
 
         class World;
         class Static_collision_bitmap;
 
         struct Entity_state;
 
-        template <typename InputIt, typename PriorityTest>
-        Collision_result detect_entity_collision(const Entity_state& subject, InputIt it, InputIt end, PriorityTest priority_test, bool collided_before = false);
+        //Entity_state displace_unrotated_entity(const Collision_result& collision_result, const Static_collision_bitmap& scenery);
 
-        Collision_result detect_entity_collision(Entity_state subject, Entity_state object, bool collided_before = false);
-        Collision_result detect_scenery_collision(const Entity_state& entity_state, const world::World& world,
-            const Static_collision_bitmap& scenery);
+        Collision_info resolve_entity_collision(Vector2i collision_point, Entity* subject, Entity* object,
+                                      Vector2i subject_position, Vector2i object_position);
 
-        Entity_state displace_unrotated_entity(const Collision_result& collision_result, const Static_collision_bitmap& scenery);
+        Collision_info resolve_entity_collision(Vector2i collision_point, Entity* subject, Entity* object,
+                                      Vector2i subject_position, Vector2i object_position, Vector2<double> normal);
 
-        
-        std::pair<Entity_state, Entity_state> resolve_entity_collision(const Collision_result& collision);
-        Entity_state resolve_scenery_collision(const Collision_result& collision);
+        Collision_info resolve_scenery_collision(Vector2i collision_point, const Static_collision_bitmap& scenery,
+                                       Entity* subject, Vector2i subject_position, double bounce_factor);
+
     }
-}
-
-template <typename InputIt, typename PriorityTest>
-ts::world::Collision_result ts::world::detect_entity_collision(const Entity_state& subject, InputIt it, InputIt end, 
-                                                               PriorityTest priority_test, bool collided_before)
-{
-    if (it == end) return {};
-
-    auto collision = detect_entity_collision(subject, *it, collided_before);
-    while (++it != end)
-    {
-        auto new_collision = detect_entity_collision(subject, *it, collided_before);
-        if (priority_test(new_collision, collision))
-        {
-            collision = new_collision;
-        }
-    }
-
-    return collision;
 }
 
 

@@ -45,7 +45,7 @@ namespace ts
         class Entity
         {
         public:
-            Entity(World* world, const std::shared_ptr<resources::Pattern>& pattern);
+            Entity(World* world, const std::shared_ptr<Collision_bitmap>& collision_bitmap);
 
             virtual ~Entity() = 0;
 

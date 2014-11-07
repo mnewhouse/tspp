@@ -63,9 +63,6 @@ namespace ts
             const resources::Terrain_definition& terrain_at(Vector2i point) const;
             const resources::Terrain_definition& terrain_at(Vector2i point, std::size_t level) const;
 
-            const std::shared_ptr<Collision_bitmap>& collision_bitmap
-                (const std::shared_ptr<resources::Pattern>& pattern);
-
             const resources::Track& track() const;
             const std::vector<std::unique_ptr<Car>>& car_list() const;
 
@@ -83,14 +80,30 @@ namespace ts
         private:
             void register_entity(Entity* entity);
 
-            void handle_collisions(double frame_duration);
-            void displace_entity(Entity* entity, Vector2<double> new_position);
-            void terrain_transition(Entity* entity, const resources::Terrain_definition& old_terrain,
+            struct Entity_update_state
+            {
+                Entity* entity = nullptr;
+                Entity* collided_with = nullptr;
+                std::size_t collision_count = 0;
+
+                Vector2i current_position;
+                std::size_t level;
+                std::size_t rotation_index;
+            };
+
+            struct Entity_step
+            {
+                Vector2i old_position;
+                Vector2i new_position;
+            };
+
+            void displacement_step(Entity_update_state& entity, Vector2i old_position, Vector2i new_position);
+            void terrain_transition(Entity_update_state& entity, const resources::Terrain_definition& old_terrain,
                                     const resources::Terrain_definition& new_terrain);
 
-            void apply_entity_state(const Entity_state& state);
-
-            bool entity_collides(Entity* entity);
+            void handle_collision(Entity* subject, Entity* object, const Collision_info& collision_info);
+            bool entity_state_collides(const Entity_update_state& entity_state);
+            bool resolve_recurring_collisions(Entity_update_state& subject_state, Entity_update_state& object_state, double frame_duration);
 
             void load_track_objects();
 
@@ -103,16 +116,8 @@ namespace ts
 
             std::vector<World_listener*> world_listeners_;
 
-            struct Entity_position
-            {
-                Entity* entity;
-                Vector2<double> position;
-                std::uint32_t z_level;
-            };
-
-            std::vector<Entity_state> state_buffer_;
-            std::vector<Entity_position> position_buffer_;
-            std::deque<Collision_result> collision_buffer_;
+            std::vector<Entity_update_state> state_buffer_;
+            std::vector<Entity_step> step_buffer_;
 
             std::unique_ptr<resources::Track> track_;
             resources::Pattern terrain_map_;
@@ -122,7 +127,6 @@ namespace ts
 
             Control_point_manager control_point_manager_;
 
-            Collision_bitmap_store dynamic_bitmap_store_;
             Game_timer game_timer_;
         };
 

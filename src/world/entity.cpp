@@ -24,14 +24,14 @@
 
 #include "resources/terrain_definition.hpp"
 
-ts::world::Entity::Entity(World* world, const std::shared_ptr<resources::Pattern>& pattern)
+ts::world::Entity::Entity(World* world, const std::shared_ptr<Collision_bitmap>& collision_bitmap)
     : world_(world),
       position_(0, 0),
       rotation_(),
       z_position_(0),
       velocity_(0, 0),
       angular_velocity_(0),      
-      collision_bitmap_(world->collision_bitmap(pattern))
+      collision_bitmap_(collision_bitmap)
 {
 }
 
@@ -84,6 +84,16 @@ double ts::world::Entity::angular_velocity() const
 void ts::world::Entity::set_velocity(Vector2d velocity)
 {
     velocity_ = velocity;
+}
+
+void ts::world::Entity::apply_force(Vector2<double> force)
+{
+    velocity_ += force / mass();
+}
+
+void ts::world::Entity::apply_torque(double torque)
+{
+    angular_velocity_ += torque / mass();
 }
 
 void ts::world::Entity::set_angular_velocity(double angular_velocity)

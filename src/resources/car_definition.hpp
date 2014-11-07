@@ -32,6 +32,7 @@ namespace ts
     namespace world
     {
         struct Handling_properties;
+        class Collision_bitmap;
     }
 
     namespace resources
@@ -46,8 +47,9 @@ namespace ts
 
             utf8_string pattern_file;
             Int_rect pattern_rect;
+            std::size_t pattern_rotation_count = 64;
 
-            std::shared_ptr<Pattern> pattern;
+            std::shared_ptr<world::Collision_bitmap> collision_bitmap;
             std::shared_ptr<world::Handling_properties> handling;
 
             Int_rect image_rect;

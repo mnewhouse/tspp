@@ -87,6 +87,7 @@ set(SRC src/main.cpp
         src/core/bresenham.hpp
         src/core/config.hpp
         src/core/directive_reader.hpp
+		src/core/line_intersection.hpp
         src/core/pointer_handle.hpp
         src/core/range.hpp
         src/core/rect.hpp

@@ -230,3 +230,8 @@ const ts::game::Stage_loader* ts::client::Client::async_load_stage(const cup::St
 {
     return impl_->stage_interface_.async_load_stage(stage_data, completion_callback);
 }
+
+const ts::action::Stage* ts::client::Client::stage() const
+{
+    return impl_->stage_interface_.stage();
+}

@@ -22,7 +22,7 @@
 #include "world.hpp"
 
 ts::world::Car::Car(World* world, const resources::Car_definition& car_definition)
-    : Entity(world, car_definition.pattern),
+    : Entity(world, car_definition.collision_bitmap),
       car_definition_(car_definition),
       current_traction_(0.0),
       is_reversing_(false)

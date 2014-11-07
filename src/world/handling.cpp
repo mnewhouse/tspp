@@ -31,17 +31,20 @@ std::istream& ts::world::operator>>(std::istream& stream, Handling_properties& p
         std::istringstream line_stream(line);
         if (!read_directive(line_stream, directive)) continue;
 
-        if (directive == "mass") {
+        if (directive == "mass") 
+        {
             line_stream >> properties.mass;
             properties.mass = std::max(1.0, properties.mass);
         }
 
-        else if (directive == "dragfactor") {
+        else if (directive == "dragfactor") 
+        {
             line_stream >> properties.drag_factor;
         }
 
-        else if (directive == "rollresistance") {
-            line_stream >> properties.roll_resistance;
+        else if (directive == "rollingresistance") 
+        {
+            line_stream >> properties.rolling_resistance;
         }
 
         else if (directive == "lateralfriction")
@@ -49,15 +52,28 @@ std::istream& ts::world::operator>>(std::istream& stream, Handling_properties& p
             line_stream >> properties.lateral_friction;
         }
 
-        else if (directive == "steering") {
+        else if (directive == "steering") 
+        {
             line_stream >> properties.steering;
         }
 
-        else if (directive == "braking") {
+        else if (directive == "steeringlock")
+        {
+            line_stream >> properties.steering_lock;
+        }
+
+        else if (directive == "turningresistance")
+        {
+            line_stream >> properties.turning_resistance;
+        }
+
+        else if (directive == "braking") 
+        {
             line_stream >> properties.braking;
         }
 
-        else if (directive == "power") {
+        else if (directive == "power") 
+        {
             if (line_stream >> properties.power)
             {
                 double reverse;
@@ -68,11 +84,13 @@ std::istream& ts::world::operator>>(std::istream& stream, Handling_properties& p
             }
         }
 
-        else if (directive == "grip") {
+        else if (directive == "grip") 
+        {
             line_stream >> properties.grip;
         }
 
-        else if (directive == "antislide") {
+        else if (directive == "antislide") 
+        {
             line_stream >> properties.antislide;
         }
 
@@ -164,7 +182,7 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
 
     if (speed != 0.0) 
     {
-        resistance += -heading_vec * properties.roll_resistance * mass;
+        resistance += -heading_vec * properties.rolling_resistance * mass;
 
         Vector2<double> lateral_vec(-rotation_vec.y, rotation_vec.x);
         if (dot_product(lateral_vec, heading_vec) < 0.0)
@@ -188,8 +206,6 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
         auto force = rotation_vec * force_1d;
 
         acceleration_force += force;
-        //required_traction += std::sqrt((force_1d / speed) * force_1d);
-
         required_traction += force_1d;
     }
 
@@ -201,7 +217,6 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
             auto force = -rotation_vec * force_1d;
 
             acceleration_force += force;
-            // required_traction += std::sqrt((force_1d / speed) * force_1d);
             required_traction += force_1d;
         }
 
@@ -280,22 +295,70 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
     antislide *= 1.0 - (1.0 - current_traction) * (1.0 - traction_loss.antislide_effect);
 
     auto steering = properties.steering;
+    auto steering_lock = properties.steering_lock;
 
     if (speed != 0.0)
     {
-        auto grip = properties.grip; // TODO terrain grip
-        auto grip_steering = std::min(steering, grip / speed);
+        auto grip = properties.grip;
+
+        // If grip / speed < steering_lock, use the former value instead of steering_lock
+        auto grip_steering = std::min(steering_lock, grip / speed);
 
         if (grip != 0.0)
         {
-            steering -= std::min(antislide / grip, 1.0) * (steering - grip_steering);
+            // If antislide > 0, reduce steering so that it actually does antislide.
+            steering_lock -= std::min(antislide / grip, 1.0) * (steering_lock - grip_steering);        
         }
     }
 
+    auto steering_effect = 1.0 - (1.0 - current_traction) * (1.0 - traction_loss.steering_effect);
     steering *= terrain.steering;
-    steering *= 1.0 - (1.0 - current_traction) * (1.0 - traction_loss.steering_effect);
+    steering *= steering_effect;
 
-    auto steering_speed = steering_multiplier * steering;
+    steering_lock *= terrain.steering;
+    steering_lock *= steering_effect;
+
+    auto turning_speed = car.angular_velocity();
+    auto target_turning_speed = steering_multiplier * steering_lock;
+
+    auto new_turning_speed = turning_speed;
+    if (properties.steering == 0.0 && properties.steering_lock != 0.0)
+    {
+        turning_speed = target_turning_speed;
+    }
+
+    else
+    {
+        // Turning resistance moves the turning speed towards zero,
+        // Steering moves the turning speed towards the target turning speed, IF steering is active.
+        auto turning_resistance = properties.turning_resistance * frame_duration;
+        turning_resistance += turning_resistance * terrain.roughness;
+        if (turning_speed >= 0.0) turning_resistance = -turning_resistance;
+
+        auto new_turning_speed = turning_speed;
+        if (turning_speed < target_turning_speed)
+        {
+            new_turning_speed = std::min(turning_speed + steering + turning_resistance, target_turning_speed);
+        }
+
+        else if (turning_speed > target_turning_speed)
+        {
+            new_turning_speed = std::max(turning_speed - steering + turning_resistance, target_turning_speed);
+        }
+
+        if (target_turning_speed < 0.0 && turning_speed < 0.0)
+        {
+            new_turning_speed = std::min(new_turning_speed, 0.0);
+        }
+
+        else if (target_turning_speed > 0.0 && turning_speed > 0.0)
+        {
+            new_turning_speed = std::max(new_turning_speed, 0.0);
+        }
+
+        turning_speed = new_turning_speed;
+    }
+    
 
     auto net_force = acceleration_force + braking_force + resistance;    
     velocity += (net_force * frame_duration) / mass;
@@ -308,7 +371,8 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
     }
     
     auto new_speed = magnitude(velocity);
-    if (new_speed != 0.0) {
+    if (new_speed != 0.0) 
+    {
         auto new_heading = Rotation<double>::radians(std::atan2(velocity.x, -velocity.y));
         auto new_oversteer = rotation - new_heading;
         auto new_reverse_oversteer = reverse_rotation - new_heading;
@@ -326,11 +390,14 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
     }
 
     car.set_current_traction(current_traction);
-    car.set_angular_velocity(steering_speed);
+    car.set_angular_velocity(turning_speed);
     car.set_velocity(velocity);
 }
 
 double ts::world::Handling::top_speed(const Handling_properties& properties)
 {
-    return std::sqrt((properties.power - properties.roll_resistance) * 1000.0 / (0.5 * properties.drag_factor));
+    if (properties.drag_factor == 0.0) return 0;
+   
+    auto squared = (properties.power - properties.rolling_resistance) * 1000.0 / (0.5 * properties.drag_factor);
+    return squared > 0.0 ? std::sqrt(squared) : 0.0;
 }

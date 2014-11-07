@@ -108,8 +108,11 @@ void ts::audio::Engine_sound_controller::update(std::size_t ticks)
         auto car = entry.first;
 
         if (auto& engine_sound = entry.second)
-        {
-            const float pitch_factor = std::min(static_cast<float>(car->speed() / car->top_speed()), 1.1f);
+        {            
+            auto speed = car->speed(), top_speed = car->top_speed();
+            if (top_speed == 0.0) continue;
+
+            const float pitch_factor = std::min(static_cast<float>(speed / top_speed), 1.1f);
             float new_pitch = base_pitch + (1.0f - base_pitch) * pitch_factor;
 
             if (!car->control_state(controls::Control::Accelerate))

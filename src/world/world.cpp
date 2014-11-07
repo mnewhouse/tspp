@@ -43,9 +43,9 @@ namespace ts
         }
 
         inline Vector2<double> clamp_position(Vector2<double> position, const Vector2<double>& world_size);
+        inline Vector2<double> clamp_velocity(Vector2<double> velocity, double max_speed);
     }
 }
-
 
 ts::world::World::World(std::unique_ptr<resources::Track> track, resources::Pattern track_pattern)
 : track_(std::move(track)), 
@@ -55,6 +55,8 @@ ts::world::World::World(std::unique_ptr<resources::Track> track, resources::Patt
   control_point_manager_(track_->control_points().begin(), track_->control_points().end())
 {
     add_world_listener(&control_point_manager_);
+
+    start_game_timer();
 }
 
 ts::world::World::~World()
@@ -68,11 +70,6 @@ ts::world::Car* ts::world::World::create_car(const resources::Car_definition& ca
 
     auto car = &*car_list_.back();
     register_entity(car);
-
-    for (auto listener : world_listeners_)
-    {
-        listener->on_car_create(car);
-    }
 
     return car;
 }
@@ -115,225 +112,117 @@ ts::Vector2<double> ts::world::clamp_position(Vector2<double> position, const Ve
     return position;
 }
 
+ts::Vector2<double> ts::world::clamp_velocity(Vector2<double> velocity, double max_speed)
+{
+    if (magnitude(velocity) > max_speed)
+    {
+        velocity = normalize(velocity) * max_speed;
+    }
+
+    return velocity;
+}
+
 void ts::world::World::update(std::size_t frame_duration)
 {
     double fd = frame_duration * 0.001;
 
     auto entity_count = entity_list_.size();
-
     state_buffer_.resize(entity_count);
-    position_buffer_.resize(entity_count);
-
-    collision_buffer_.clear();
-
     for (std::size_t index = 0; index != entity_count; ++index)
     {
         auto entity = entity_list_[index];
-        auto& new_state = state_buffer_[index];
-        auto& old_position = position_buffer_[index];
-
         entity->update(fd);
 
-        new_state.entity = entity;
-        new_state.position = clamp_position(compute_new_position(*entity, fd), track_->size());
-        new_state.rotation = compute_new_rotation(*entity, fd);
-        new_state.velocity = entity->velocity();
-        new_state.angular_velocity = entity->angular_velocity();
-        new_state.z_position = entity->z_position();
-      
-        old_position.position = entity->position();
-        old_position.z_level = entity->z_level();
-        old_position.entity = entity;    
+        const auto& collision_bitmap = entity->collision_bitmap();
+
+        auto& update_state = state_buffer_[index];
+        update_state.entity = entity;
+        update_state.collided_with = nullptr;
+        update_state.collision_count = 0;
+        update_state.current_position = entity->position();
+        update_state.level = entity->z_level();
+        update_state.rotation_index = collision_bitmap.rotation_index(entity->rotation());
     }
 
-    auto collision_priority_test = [](const Collision_result& a, const Collision_result& b)
+    for (auto& subject_state : state_buffer_)
     {
-        if (a && b) return a.valid_time_point < b.valid_time_point;
+        const auto subject = subject_state.entity;
 
-        return a && !b;
-    };
-    
-    auto insert_collision = [=](const Collision_result& collision)
-    {
-        const auto subject = collision.subject_state.entity;
-        const auto object = collision.object_state.entity;
+        auto target_position = compute_new_position(*subject, fd);
+        auto target_rotation = compute_new_rotation(*subject, fd);
 
-        auto insert_position = std::lower_bound(collision_buffer_.begin(), collision_buffer_.end(), collision, collision_priority_test);
+        const auto& collision_bitmap = subject->collision_bitmap();
+        auto unrotated_index = subject_state.rotation_index;
+        subject_state.rotation_index = collision_bitmap.rotation_index(target_rotation);
 
-        auto conflict_pred = [subject, object](const Collision_result& collision)
+        if (entity_state_collides(subject_state))
         {
-            return Match_collision(subject)(collision) || (object && Match_collision(object)(collision));
-        };
+            target_rotation = subject->rotation();
+            subject_state.rotation_index = unrotated_index;
+        }       
 
-        auto conflict_it = std::find_if(collision_buffer_.begin(), insert_position, conflict_pred);
-        if (conflict_it == insert_position)
+        Vector2i last_point = subject->position();
+
+        step_buffer_.clear();
+        bresenham(subject_state.current_position, Vector2i(target_position),
+                  [this, last_point](Vector2i point) mutable
         {
-            // No conflicts. Proceed with the insertion.
-            insert_position = collision_buffer_.insert(insert_position, collision);
-            
-            // Erase conflicting collisions after insertion position
-            collision_buffer_.erase(std::remove_if(std::next(insert_position), collision_buffer_.end(), conflict_pred), collision_buffer_.end());
-        }
-    };
-
-    for (auto it = state_buffer_.begin(); it != state_buffer_.end(); ++it)
-    {
-        auto entity = it->entity;
-
-        auto entity_collision = detect_entity_collision(*it, std::next(it), state_buffer_.end(), collision_priority_test);
-        auto scenery_collision = detect_scenery_collision(*it, *this, scenery_bitmap_);
-
-        const auto& collision = std::min(entity_collision, scenery_collision, collision_priority_test);
-        if (collision)
-        {
-            insert_collision(collision);
-        }
-    }
-
-    auto get_new_collision = [=](const Entity_state& entity_state, double time_point)
-    {
-        auto scenery_collision = detect_scenery_collision(entity_state, *this, scenery_bitmap_);
-
-        auto entity_collision = detect_entity_collision(entity_state, state_buffer_.begin(), state_buffer_.end(), 
-                                                        collision_priority_test, true);
-
-        auto collision = std::min(entity_collision, scenery_collision, collision_priority_test);        
-        if (collision)
-        {
-            auto time_left = 1.0 - time_point;
-            collision.time_point = time_point + time_left * collision.time_point;
-            collision.valid_time_point = time_point + time_left * std::max(collision.valid_time_point, 0.0);
-
-            if (collision.object_state.entity)
+            if (point != last_point)
             {
-                std::swap(collision.deflection.x, collision.deflection.y);
-                collision.deflection.x = -collision.deflection.x;                
+                Entity_step step;
+                step.old_position = last_point;
+                step.new_position = point;
+                step_buffer_.push_back(step);
             }
-        }
 
-        return collision;
-    };
+            last_point = point;
+        });
 
-    double last_time_point = 0.0;
-    while (!collision_buffer_.empty())
-    {
-        auto collision = collision_buffer_.front();
-        collision_buffer_.pop_front();
-
-        double time_point = std::max(collision.valid_time_point, 0.0);
-        double time_left = 1.0 - time_point;
-        double time_step = time_point - last_time_point;
-        
-        const auto subject = collision.subject_state.entity;
-        const auto object = collision.object_state.entity;
-
-        Entity_state* subject_state = nullptr;
-        Entity_state* object_state = nullptr;
-
-        for (auto& target_state : state_buffer_)
+        for (const auto& step : step_buffer_)
         {
-            auto entity = target_state.entity;
+            subject_state.current_position = step.old_position;
 
-            if (entity == subject || entity == object)
-            {                
-                const auto& resolved_state = (subject == entity ? collision.subject_state : collision.object_state);
-                (subject == entity ? subject_state : object_state) = &target_state;
+            auto collision_point = collision_test(collision_bitmap, scenery_bitmap_, step.new_position,
+                                                  subject_state.rotation_index, subject_state.level);
 
-                target_state = resolved_state;                  
+            if (collision_point)
+            {
+                auto wall_elasticity = terrain_at(collision_point.point, subject_state.level).wall_definition.elasticity;
 
-                if (magnitude(target_state.velocity) > max_entity_speed())
-                {
-                    target_state.velocity = normalize(target_state.velocity) * max_entity_speed();
-                }
-
-                if (!collision.rotate)
-                {
-                    target_state.rotation = entity->rotation();
-                }
-
-                apply_entity_state(target_state);
-
-                target_state.position = clamp_position(compute_new_position(*entity, time_left * fd), world_size_);     
+                auto collision_info = resolve_scenery_collision(collision_point.point, scenery_bitmap_, subject, step.new_position, wall_elasticity);
+                handle_collision(subject, nullptr, collision_info);
             }
 
-            else if (time_step > 0.0)
+            for (auto object_state = state_buffer_.begin(); !collision_point && object_state != state_buffer_.end(); ++object_state)
             {
-                auto time_frame = 1.0 - last_time_point;
-                if (time_frame > 0.0)
+                auto object = object_state->entity;
+                if (object == subject || object_state->level != subject_state.level)
+                    continue;
+
+                const auto& object_bitmap = object->collision_bitmap();
+                if (collision_point = collision_test(collision_bitmap, object_bitmap, step.new_position, object_state->current_position,
+                    subject_state.rotation_index, object_state->rotation_index))
                 {
-                    auto position = interpolate_position(entity->position(), target_state.position, time_step / time_frame);
+                    auto collision_info = resolve_entity_collision(collision_point.point, subject, object, step.new_position, object_state->current_position);
+                    handle_collision(subject, object, collision_info);
 
-                    displace_entity(entity, position);
-
-                    entity->set_rotation(target_state.rotation);
+                    resolve_recurring_collisions(subject_state, *object_state, fd);
+                    resolve_recurring_collisions(*object_state, subject_state, fd);
                 }
+            }
+
+            if (collision_point)
+            {
+                target_position.x = subject_state.current_position.x + (target_position.x - std::floor(target_position.x));
+                target_position.y = subject_state.current_position.y + (target_position.y - std::floor(target_position.y));
+                break;
             }
         }
 
-        if (!collision.rotate)
-        {
-            if (!object)
-            {
-                // Try to rotate the entity by displacing it
-                auto old_state = *subject_state;
+        subject->set_position(target_position);
+        subject->set_rotation(target_rotation);
 
-                *subject_state = displace_unrotated_entity(collision, scenery_bitmap_);
-                apply_entity_state(*subject_state);
-
-                auto new_collision = detect_entity_collision(*subject_state, state_buffer_.begin(), state_buffer_.end(), collision_priority_test);
-                if (new_collision)
-                {
-                    // Displacement cannot happen, revert
-                    *subject_state = old_state;
-                    apply_entity_state(old_state);
-                }
-            }
-        }
-
-        if (!collision.stuck)
-        {
-            // Get new collision
-            if (subject_state)
-            {
-                auto subject_collision = get_new_collision(*subject_state, time_point);
-                if (subject_collision)
-                {
-                    insert_collision(subject_collision);
-                }
-            }
-
-            if (object_state)
-            {
-                auto object_collision = get_new_collision(*object_state, time_point);
-                if (object_collision)
-                {
-                    insert_collision(object_collision);
-                }
-            }
-        }
-
-        for (auto listener : world_listeners_)
-        {
-            listener->on_collision(collision);
-        }
-
-        last_time_point = time_point;
-    }
-
-    // Finally, set the entities' new states
-    for (auto& entity_state : state_buffer_) 
-    {
-        entity_state.position = clamp_position(entity_state.position, world_size_);
-
-        apply_entity_state(entity_state);
-    }
-
-    for (auto& entity_position : position_buffer_)
-    {
-        auto entity = entity_position.entity;
-        auto old_position = entity_position.position;
-
-        control_point_manager_.test_control_point_intersection(entity, entity->position(), old_position);
+        subject_state.current_position = static_cast<Vector2i>(target_position);
     }
 
     for (auto listener : world_listeners_)
@@ -351,24 +240,15 @@ void ts::world::World::update(std::size_t frame_duration)
     }
 }
 
-void ts::world::World::apply_entity_state(const Entity_state& new_state)
-{
-    auto entity = new_state.entity;
 
-    displace_entity(entity, new_state.position);
 
-    entity->set_velocity(new_state.velocity);
-    entity->set_angular_velocity(new_state.angular_velocity);
-
-    entity->set_rotation(new_state.rotation);
-}
-
-void ts::world::World::terrain_transition(Entity* entity, const resources::Terrain_definition& old_terrain,
+void ts::world::World::terrain_transition(Entity_update_state& state, const resources::Terrain_definition& old_terrain,
                                           const resources::Terrain_definition& new_terrain)
 {
     const auto& terrain_library = track_->terrain_library();
+    const auto entity = state.entity;
 
-    auto old_level = entity->z_level();
+    auto old_level = state.level;
     auto new_level = old_level;
 
     auto terrain_above = terrain_library.sub_terrain(new_terrain.id, old_level + 1);
@@ -389,35 +269,45 @@ void ts::world::World::terrain_transition(Entity* entity, const resources::Terra
 
     if (new_level != old_level)
     {
-        auto old_z_position = entity->z_position();
-        entity->set_z_position(new_level);
-
-        if (entity_collides(entity))
+        state.level = new_level;
+        if (entity_state_collides(state))
         {
             // Cannot put the entity on the new level
-            entity->set_z_position(old_z_position);
+            state.level = old_level;
+        }
+
+        else
+        {
+            entity->set_z_position(static_cast<double>(state.level));
         }
     }
 }
 
-bool ts::world::World::entity_collides(Entity* entity)
+void ts::world::World::handle_collision(Entity* subject, Entity* object, const Collision_info& collision_info)
 {
-    const auto& collision_bitmap = entity->collision_bitmap();
-    const auto z_level = entity->z_level();
-    const auto position = entity->position();
-    const auto rotation = entity->rotation();
+    for (auto listener : world_listeners_)
+    {
+        listener->on_collision(subject, object, collision_info);
+    }
+}
 
-    if (collision_test(collision_bitmap, scenery_bitmap_, position, rotation, z_level))
+bool ts::world::World::entity_state_collides(const Entity_update_state& state)
+{
+    const auto entity = state.entity;
+    const auto& collision_bitmap = entity->collision_bitmap();
+
+    if (collision_test(collision_bitmap, scenery_bitmap_, state.current_position, state.rotation_index, state.level))
     {
         return true;
     }
 
-    for (auto other : entity_list_)
+    for (const auto& other_state : state_buffer_)
     {
-        if (other == entity || other->z_level() != z_level) continue;                   
+        auto other = other_state.entity;
+        if (other == entity || other_state.level != state.level) continue;                   
                 
-        if (collision_test(collision_bitmap, other->collision_bitmap(), 
-            position, other->position(), rotation, other->rotation()))
+        if (collision_test(collision_bitmap, other->collision_bitmap(),
+            state.current_position, other_state.current_position, state.rotation_index, other_state.rotation_index))
         {
             return true;
         }
@@ -426,22 +316,84 @@ bool ts::world::World::entity_collides(Entity* entity)
     return false;
 }
 
-void ts::world::World::displace_entity(Entity* entity, Vector2<double> new_position)
+bool ts::world::World::resolve_recurring_collisions(Entity_update_state& subject_state, Entity_update_state& object_state, double frame_duration)
 {
-    bresenham(entity->position(), new_position, [this, entity](Vector2i position)
-    {
-        const auto& old_terrain = terrain_at(entity->position());
-        const auto& new_terrain = terrain_at(position);
+    const auto subject = subject_state.entity;
+    const auto object = object_state.entity;
 
-        if (old_terrain != new_terrain)
+    Vector2i subject_target_position = compute_new_position(*subject, frame_duration);
+    Vector2i object_target_position = compute_new_position(*object, frame_duration);
+
+    auto get_new_step_position = [](Vector2i current_position, Vector2i target_position)
+    {
+        Vector2i offset = target_position - current_position, result = current_position;
+        std::int32_t x_offset = std::abs(offset.x), y_offset = std::abs(offset.y);
+
+        if (x_offset != 0 && x_offset >= y_offset) result.x += offset.x > 0 ? 1 : -1;
+        if (y_offset != 0 && y_offset >= x_offset) result.y += offset.y > 0 ? 1 : -1;
+
+        return result;
+    };
+
+    auto relative_offset = subject_state.current_position - object_state.current_position;
+
+    auto subject_dummy_state = subject_state;
+    subject_dummy_state.current_position = get_new_step_position(subject_state.current_position, subject_target_position);
+
+    auto object_dummy_state = object_state;
+    object_dummy_state.current_position = get_new_step_position(object_state.current_position, object_target_position);
+    
+    const auto& subject_bitmap = subject->collision_bitmap();
+    const auto& object_bitmap = object->collision_bitmap();
+
+    if (collision_test(subject_bitmap, object_bitmap, subject_dummy_state.current_position, object_state.current_position,
+        subject_dummy_state.rotation_index, object_state.rotation_index))
+    {
+        Vector2i avoidance(relative_offset.x >= 0 ? -1 : 1, relative_offset.y >= 0 ? -1 : 1);
+        Vector2i avoidance_attempts[2] = { Vector2i(avoidance.x, 0), Vector2i(0, avoidance.y) };
+        if (std::abs(relative_offset.x) < std::abs(relative_offset.y))
         {
-            terrain_transition(entity, old_terrain, new_terrain);
+            std::swap(avoidance_attempts[0], avoidance_attempts[1]);
         }
 
-        entity->set_position(position);
-    });
+        auto collision_point = collision_test(object_bitmap, scenery_bitmap_, object_dummy_state.current_position, object_dummy_state.rotation_index, object_dummy_state.level);
+        if (entity_state_collides(object_dummy_state))
+        {
+            auto avoidance_result = std::find_if(std::begin(avoidance_attempts), std::end(avoidance_attempts), 
+                                                 [this, object_state](Vector2i attempt)
+            {
+                auto avoidance_state = object_state;
+                avoidance_state.current_position += attempt;
 
-    entity->set_position(new_position);
+                return !entity_state_collides(avoidance_state);
+            });
+
+            if (avoidance_result != std::end(avoidance_attempts))
+            {
+                object_state.current_position += *avoidance_result;
+
+                Vector2<double> new_position = object_state.current_position;
+                new_position.x += object_target_position.x - std::floor(object_target_position.x);
+                new_position.y += object_target_position.y - std::floor(object_target_position.y);
+                object->set_position(new_position);
+            }
+        }
+    }
+
+    return false;
+}
+
+// For a moving entity, we need to pass through all terrains between
+// its old and new position.
+void ts::world::World::displacement_step(Entity_update_state& state, Vector2i old_position, Vector2i new_position)
+{
+    const auto& old_terrain = terrain_at(old_position);
+    const auto& new_terrain = terrain_at(new_position);
+
+    if (old_terrain != new_terrain)
+    {
+        terrain_transition(state, old_terrain, new_terrain);
+    }
 }
 
 double ts::world::World::max_entity_speed()
@@ -475,13 +427,6 @@ void ts::world::World::register_entity(Entity* entity)
     entity_set_.insert(entity);
     entity_list_.push_back(entity);
 }
-
-const std::shared_ptr<ts::world::Collision_bitmap>& ts::world::World::collision_bitmap
-    (const std::shared_ptr<resources::Pattern>& pattern)
-{
-    return dynamic_bitmap_store_[pattern];
-}
-
 
 void ts::world::World::add_world_listener(World_listener* world_listener)
 {
