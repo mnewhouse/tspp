@@ -34,8 +34,6 @@ public:
 
     Message_center* message_center_;
     std::unique_ptr<Stage_conductor> stage_conductor_;
-
-private:
 };
 
 ts::client::Stage_interface::Impl::Impl(Message_center* message_center)
@@ -77,6 +75,8 @@ const ts::action::Stage* ts::client::Stage_interface::stage() const
 
 void ts::client::Stage_interface::clean_stage()
 {
+    impl_->stage_conductor_ = nullptr;
+
     impl_->clean_stage();
 }
 

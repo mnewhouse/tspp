@@ -40,6 +40,7 @@ namespace ts
             Script_resource(utf8_string root_directory, utf8_string name);
 
             const std::vector<utf8_string>& client_scripts() const;
+            const std::vector<utf8_string>& server_scripts() const;
 
             const utf8_string& name() const;
 

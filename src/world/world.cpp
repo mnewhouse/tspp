@@ -148,7 +148,7 @@ void ts::world::World::update(std::size_t frame_duration)
     {
         const auto subject = subject_state.entity;
 
-        auto target_position = compute_new_position(*subject, fd);
+        auto target_position = clamp_position(compute_new_position(*subject, fd), track_->size());
         auto target_rotation = compute_new_rotation(*subject, fd);
 
         const auto& collision_bitmap = subject->collision_bitmap();

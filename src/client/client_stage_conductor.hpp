@@ -54,9 +54,9 @@ namespace ts
             std::unique_ptr<action::Stage_conductor> stage_conductor_;
             std::vector<action::Game_state_message> queued_game_state_;
 
-            std::uint32_t min_advance_time_ = 100;
-            std::uint32_t max_advance_time_ = 200;
-            std::uint32_t advance_time_ = 100;
+            std::int32_t min_advance_time_ = 100;
+            std::int32_t max_advance_time_ = 200;
+            std::int32_t advance_time_ = 100;
         };
     }
 }

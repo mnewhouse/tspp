@@ -48,9 +48,10 @@ void ts::client::Stage_conductor::update(std::size_t frame_duration)
 
         if (old_stage_time >= new_stage_time)
         {
-            auto server_difference = old_stage_time - new_stage_time;
+            std::int32_t server_difference = old_stage_time - new_stage_time;
 
-            if (min_advance_time_ > server_difference && advance_time_ >= frame_duration)
+            if (min_advance_time_ > server_difference - advance_time_ && 
+                advance_time_ > static_cast<std::int32_t>(frame_duration))
             {
                 // Prediction seems too high, adjust
                 advance_time_ -= frame_duration;
@@ -60,6 +61,8 @@ void ts::client::Stage_conductor::update(std::size_t frame_duration)
                     min_advance_time_ -= frame_duration;
                     max_advance_time_ -= frame_duration;
                 }
+
+                std::cout << advance_time_ << std::endl;
             }
         }
 
@@ -76,7 +79,7 @@ void ts::client::Stage_conductor::update(std::size_t frame_duration)
             }                  
         }
 
-        for (std::uint32_t time = 0; time < advance_time_; time += frame_duration)
+        for (std::int32_t time = 0; time < advance_time_; time += frame_duration)
         {
             stage_conductor_->update(frame_duration);
         }

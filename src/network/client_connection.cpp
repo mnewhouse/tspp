@@ -140,6 +140,7 @@ bool ts::network::impl::Client_connection::get_tcp_message(Message& message)
     if (tcp_socket_.receive(packet_buffer_) == sf::Socket::Done)
     {
         message.assign(reinterpret_cast<const std::uint8_t*>(packet_buffer_.getData()), packet_buffer_.getDataSize());
+
         return true;
     }
 
