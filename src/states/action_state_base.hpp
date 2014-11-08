@@ -38,10 +38,11 @@ namespace ts
         class Control_interface;
     }
 
-    namespace messages
+    namespace game
     {
-        class Message;
+        class Chatbox_display;
     }
+
 
     namespace states
     {
@@ -49,7 +50,8 @@ namespace ts
             : public gui::State, public cup::Cup_listener, public world::World_listener
         {
         public:
-            Action_state_base(game::Loaded_scene loaded_scene, controls::Control_interface* control_interface,
+            Action_state_base(game::Loaded_scene loaded_scene, std::unique_ptr<game::Chatbox_display> chatbox_display,
+                              controls::Control_interface* control_interface,
                               state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store);
 
             virtual ~Action_state_base();
@@ -66,6 +68,8 @@ namespace ts
 
             std::unique_ptr<controls::Event_translator> control_event_translator_;
             controls::Control_interface* control_interface_;
+
+            std::unique_ptr<game::Chatbox_display> chatbox_display_;
         };
     }
 }

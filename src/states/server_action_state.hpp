@@ -36,13 +36,18 @@ namespace ts
         class Server;
     }
 
+    namespace client
+    {
+        class Local_client;
+    }
+
     namespace states
     {
         class Server_action_state
             : public Action_state_base
         {
         public:
-            Server_action_state(game::Loaded_scene loaded_scene, server::Server* server, controls::Control_interface* control_interface,
+            Server_action_state(game::Loaded_scene loaded_scene, server::Server* server, client::Local_client* local_client,
                                 state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store);
 
             virtual ~Server_action_state();

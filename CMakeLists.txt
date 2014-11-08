@@ -135,6 +135,8 @@ set(SRC src/main.cpp
         src/game/camera.cpp
         src/game/car_image_generator.hpp
         src/game/car_image_generator.cpp
+		src/game/chatbox_display.hpp
+		src/game/chatbox_display.cpp
         src/game/drawable_entity.hpp
         src/game/drawable_entity.cpp
         src/game/game.hpp

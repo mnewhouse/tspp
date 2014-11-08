@@ -75,6 +75,12 @@ void ts::graphics::Text::set_text(utf8_string text)
     geometry_.dirty = true;
 }
 
+void ts::graphics::Text::set_text(Composite_text text)
+{
+    text_ = std::move(text);
+    geometry_.dirty = true;
+}
+
 void ts::graphics::Text::set_character_size(std::uint32_t character_size)
 {
     character_size_ = character_size;
@@ -189,33 +195,6 @@ void ts::graphics::Text::update_geometry() const
    
     auto word_boundary = text_.begin(), line_boundary = word_boundary;
     std::size_t word_boundary_index = 0;
- 
-    /*
-    auto advance_component_it = [&]()
-    {
-        if (current_component != text_.components().end() && component_it != current_component->text.end())
-        {
-            ++component_it;
-        }
-
-        while (current_component != text_.components().end() && component_it != current_component->text.end())
-        {
-            if (++current_component != text_.components().end())
-            {
-                component_it = current_component->text.begin();
-            }
-        }
-
-        if (current_component != text_.components().end() && component_it != current_component->text.end())
-        {
-            current_color = current_component->color;
-            if (current_color.a == 0)
-            {
-                current_color = color_;
-            }
-        }
-    };
-    */
     
     // Loop through all code points
     for (auto it = text_.begin(), end = text_.end(); it != end; )

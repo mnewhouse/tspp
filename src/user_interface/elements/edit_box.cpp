@@ -138,7 +138,7 @@ void ts::gui::Edit_box::draw(sf::RenderTarget& render_target, sf::RenderStates r
 
     Text_element::draw(render_target, render_states);
 
-    if (cursor_.show)
+    if (active() && cursor_.show)
     {
         sf::Vertex vertices[4];
         vertices[0].position.x = static_cast<float>(char_position.x);

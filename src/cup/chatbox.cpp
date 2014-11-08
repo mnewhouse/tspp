@@ -37,4 +37,23 @@ void ts::cup::Chatbox::dispatch_message(const Composite_message& message)
     {
         listener->on_chat_message(message);
     }
+
+    log_message(message);
+}
+
+void ts::cup::Chatbox::log_message(const Composite_message& message)
+{
+    message_log_.emplace_back();
+    message_log_.back().message = message;
+    message_log_.back().time_stamp = std::chrono::high_resolution_clock::now();
+
+    while (message_log_.size() > max_backlog_size_)
+    {
+        message_log_.pop_front();
+    }
+}
+
+ts::Range<ts::cup::Chatbox::backlog_iterator> ts::cup::Chatbox::backlog() const
+{
+    return Range<backlog_iterator>(message_log_.rbegin(), message_log_.rend());
 }

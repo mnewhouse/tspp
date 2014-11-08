@@ -20,12 +20,18 @@
 #include "stdinc.hpp"
 #include "server_action_state.hpp"
 
+#include "client/local_client.hpp"
+
 #include "server/server.hpp"
 #include "action/stage.hpp"
 
-ts::states::Server_action_state::Server_action_state(game::Loaded_scene loaded_scene, server::Server* server, controls::Control_interface* control_interface,
+#include "game/chatbox_display.hpp"
+
+ts::states::Server_action_state::Server_action_state(game::Loaded_scene loaded_scene, server::Server* server, client::Local_client* local_client,
                                                      state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
-    : Action_state_base(std::move(loaded_scene), control_interface, state_machine, context, resource_store),
+    : Action_state_base(std::move(loaded_scene), 
+          std::make_unique<game::Chatbox_display>(*local_client->chatbox(), local_client->client_interface(), context), 
+          local_client->make_control_interface(server->stage()), state_machine, context, resource_store),
       server_(server)
 {
 }

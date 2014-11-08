@@ -23,6 +23,7 @@
 #include "action/stage.hpp"
 
 #include "game/action_scene.hpp"
+#include "game/chatbox_display.hpp"
 
 #include "controls/control_interface.hpp"
 #include "controls/control_event_translator.hpp"
@@ -31,12 +32,14 @@
 
 #include "resources/settings/input_settings.hpp"
 
-ts::states::Action_state_base::Action_state_base(game::Loaded_scene loaded_scene, controls::Control_interface* control_interface,
-                                                 state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
+ts::states::Action_state_base::Action_state_base(game::Loaded_scene loaded_scene, std::unique_ptr<game::Chatbox_display> chatbox_display,
+                                                 controls::Control_interface* control_interface, state_machine_type* state_machine, 
+                                                 gui::Context* context, resources::Resource_store* resource_store)
 : gui::State(state_machine, context, resource_store),
   scene_(std::move(loaded_scene)),
   control_event_translator_(std::make_unique<controls::Event_translator>(resource_store->input_settings().key_mapping)),
-  control_interface_(control_interface)
+  control_interface_(control_interface),
+  chatbox_display_(std::move(chatbox_display))
 {
     add_render_scene(&*scene_.action_scene);
 }
@@ -48,25 +51,45 @@ ts::states::Action_state_base::~Action_state_base()
 void ts::states::Action_state_base::on_activate()
 {
     scene_.sound_controller->start();
+
+    chatbox_display_->show_chatbox();
 }
 
 void ts::states::Action_state_base::handle_event(const sf::Event& event)
 {
-    // SFML event in
-    control_event_translator_->enqueue_event(event);
-
-    // Control events out
-    controls::Control_event control_event;
-    while (control_event_translator_->poll_event(control_event))
+    
+    if (chatbox_display_->chatbox_input_active())
     {
-        control_interface_->handle_event(control_event);
+        if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Return)
+        {
+            chatbox_display_->send_chat_message();
+        }
     }
 
-    if (event.type == sf::Event::KeyReleased) 
+    else
     {
-        if (event.key.code == sf::Keyboard::Escape) 
+        // SFML event in       
+        control_event_translator_->enqueue_event(event);
+
+        // Control events out
+        controls::Control_event control_event;
+        while (control_event_translator_->poll_event(control_event))
         {
-            state_machine()->change_state();
+            control_interface_->handle_event(control_event);
+        }
+     
+        if (event.type == sf::Event::KeyReleased)
+        {
+            if (event.key.code == sf::Keyboard::Escape)
+            {
+                state_machine()->change_state();
+            }
+
+            else if (event.key.code == sf::Keyboard::T)
+            {
+                chatbox_display_->toggle_chatbox_input(true);
+            }
+            
         }
     }
 }
@@ -78,6 +101,8 @@ void ts::states::Action_state_base::update(std::size_t frame_duration)
 
     scene_.action_scene->update_entities(frame_duration);
     scene_.action_scene->update(frame_duration);
+
+    chatbox_display_->update();
 }
 
 void ts::states::Action_state_base::on_state_change(cup::Cup_state old_state, cup::Cup_state new_state)

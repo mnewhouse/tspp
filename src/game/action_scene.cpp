@@ -123,7 +123,7 @@ void ts::game::Action_scene::add_followed_entity(const world::Entity* entity)
         reassign_screens();
     }
 
-    else
+    else if (followed_entities_.size() >= 2)
     {
         view_context_->clear();
         auto view = view_context_->add_view();

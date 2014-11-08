@@ -53,6 +53,9 @@ namespace ts
             virtual Vector2<double> content_size() const override;
 
             void set_text(utf8_string text);
+            void set_text(graphics::Composite_text text);
+
+            const graphics::Composite_text& formatted_text() const;
             const utf8_string& text() const;
             const graphics::Text& text_item() const;
 

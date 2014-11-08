@@ -30,6 +30,12 @@ namespace ts
     {
         struct Chatbox_listener;
 
+        struct Chatbox_log_entry
+        {
+            Composite_message message;
+            std::chrono::high_resolution_clock::time_point time_stamp;
+        };
+
         class Chatbox
         {
         public:
@@ -38,8 +44,20 @@ namespace ts
             void add_chatbox_listener(Chatbox_listener* listener);
             void remove_chatbox_listener(Chatbox_listener* listener);
 
+            void set_max_backlog_size(std::size_t size);
+            std::size_t max_backlog_size() const;
+
+            using backlog_iterator = std::deque<Chatbox_log_entry>::const_reverse_iterator;
+            Range<backlog_iterator> backlog() const;
+
+
         private:
+            void log_message(const Composite_message& message);
+
             std::vector<Chatbox_listener*> listeners_;
+
+            std::size_t max_backlog_size_ = 256;
+            std::deque<Chatbox_log_entry> message_log_;
         };
     }
 }

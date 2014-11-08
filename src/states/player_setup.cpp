@@ -125,7 +125,7 @@ void ts::states::Player_setup_menu::update_selection()
         else
         {
             color_elem->set_visible(false);
-            text_elem->set_text({});
+            text_elem->set_text(utf8_string());
         }
     }
 }

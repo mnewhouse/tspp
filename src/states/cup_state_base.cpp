@@ -25,6 +25,7 @@
 #include "cup/cup.hpp"
 
 #include "game/loading_sequence.hpp"
+#include "game/chatbox_display.hpp"
 
 namespace ts
 {
@@ -40,7 +41,7 @@ ts::states::Cup_state_base::Cup_state_base(const client::Client_interface* clien
   : gui::State(state_machine, context, resource_store),
     client_interface_(client_interface),
     cup_gui_(std::make_unique<Cup_GUI>(client_interface, context, resource_store)),
-    loading_sequence_(std::make_unique<game::Loading_sequence>(resource_store))    
+    loading_sequence_(std::make_unique<game::Loading_sequence>(resource_store))
 {
     cup_gui_->set_cup_state_text(to_string(client_interface->cup()->cup_state()));
 }

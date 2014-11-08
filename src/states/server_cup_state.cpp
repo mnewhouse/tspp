@@ -95,7 +95,7 @@ void ts::states::Server_cup_state::on_initialize(const cup::Stage_data& stage_da
 
 std::unique_ptr<ts::states::Action_state_base> ts::states::Server_cup_state::make_action_state(game::Loaded_scene loaded_scene)
 {
-    return std::make_unique<Server_action_state>(std::move(loaded_scene), &server_, local_client_.make_control_interface(server_.stage()),
+    return std::make_unique<Server_action_state>(std::move(loaded_scene), &server_, &local_client_,
                                                  state_machine(), context(), resource_store());
 }
 

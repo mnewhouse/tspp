@@ -55,6 +55,13 @@ void ts::gui::Text_element::set_text(utf8_string text)
     dirty_layout();
 }
 
+void ts::gui::Text_element::set_text(graphics::Composite_text text)
+{
+    text_item_.set_text(std::move(text));
+
+    dirty_layout();
+}
+
 void ts::gui::Text_element::draw(sf::RenderTarget& render_target, sf::RenderStates render_states) const
 {
     render_states.transform.translate(static_cast<float>(offset_.x), static_cast<float>(offset_.y));

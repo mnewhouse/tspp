@@ -41,6 +41,8 @@ namespace ts
             Text(utf8_string text, Font_face font, std::uint32_t character_size);
 
             void set_text(utf8_string text);
+            void set_text(Composite_text text);
+
             void set_color(sf::Color color);
             void set_character_size(std::uint32_t character_size);
             void set_font(Font_face font);
@@ -61,6 +63,7 @@ namespace ts
 
             double line_height() const;
             const utf8_string& text() const;
+            const Composite_text& formatted_text() const;
             sf::Color color() const;
 
         private:

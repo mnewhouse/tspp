@@ -21,11 +21,16 @@
 #include "client_action_state.hpp"
 
 #include "client/client.hpp"
+
 #include "action/stage.hpp"
+
+#include "game/chatbox_display.hpp"
 
 ts::states::Client_action_state::Client_action_state(game::Loaded_scene loaded_scene, client::Client* client,
                                                      state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
-    : Action_state_base(std::move(loaded_scene), client->make_control_interface(), state_machine, context, resource_store),
+    : Action_state_base(std::move(loaded_scene), 
+           std::make_unique<game::Chatbox_display>(*client->chatbox(), client->client_interface(), context),
+           client->make_control_interface(), state_machine, context, resource_store),
       client_(client) 
 {    
 }
