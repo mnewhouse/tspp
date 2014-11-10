@@ -42,6 +42,7 @@ namespace ts
             Creating_world,
             Building_pattern,
             Creating_entities,
+            Loading_scripts,
             Complete
         };
 
@@ -55,14 +56,15 @@ namespace ts
             Stage_loader(const Stage_loader&) = delete;
             Stage_loader& operator=(const Stage_loader&) = delete;
 
-            void async_load(const action::Stage_data& stage_data);
+            using Script_loader_function = std::function<void(action::Stage*)>;
+            void async_load(const action::Stage_data& stage_data, Script_loader_function script_loader);
 
             // Inherited function: poll()
             // Throws resources::Pattern_load_error or resources::Broken_track_exception.
             using State = Stage_loader_state;
 
         private:
-            std::unique_ptr<action::Stage> load_world(const action::Stage_data& stage_data);
+            std::unique_ptr<action::Stage> load_stage(const action::Stage_data& stage_data, const Script_loader_function& script_loader);
         };
 
         utf8_string to_string(Stage_loader_state state);

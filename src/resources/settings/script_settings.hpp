@@ -31,6 +31,7 @@ namespace ts
         public:
             void enable_script(utf8_string script_name);
             void disable_script(const utf8_string& script_name);
+            bool is_script_enabled(const utf8_string& script_name) const;
 
             const std::vector<utf8_string>& loaded_scripts() const;
 

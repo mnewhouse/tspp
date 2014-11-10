@@ -19,41 +19,38 @@
 
 #pragma once
 
-#ifndef LOADED_SCENE_HPP
-#define LOADED_SCENE_HPP
+#ifndef SCRIPT_CLIENT_INTERFACE_HPP
+#define SCRIPT_CLIENT_INTERFACE_HPP
+
+#include "world_interface.hpp"
+
+#include "script/script_engine.hpp"
 
 namespace ts
 {
+    namespace game
+    {
+        class Action_scene;
+    }
+
     namespace action
     {
         class Stage;
     }
 
-    namespace audio
-    {
-        struct Sound_controller;
-    }
-
     namespace script_api
     {
-        class Client_interface;
-    }
-
-    namespace game
-    {
-        class Action_scene;
-
-        struct Loaded_scene
+        class Server_interface
+            : private script::Engine
         {
-            Loaded_scene();
-            ~Loaded_scene();
+        public:
+            Server_interface(const action::Stage* stage);
 
-            Loaded_scene(Loaded_scene&&);
-            Loaded_scene& operator=(Loaded_scene&&);
+            using Engine::create_module;
+            using Engine::register_console;
 
-            std::unique_ptr<Action_scene> action_scene;
-            std::unique_ptr<audio::Sound_controller> sound_controller;
-            std::unique_ptr<script_api::Client_interface> script_interface;
+        private:
+            World_interface world_interface_;
         };
     }
 }

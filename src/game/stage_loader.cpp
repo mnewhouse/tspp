@@ -34,18 +34,18 @@ ts::game::Stage_loader::~Stage_loader()
 {
 }
 
-void ts::game::Stage_loader::async_load(const action::Stage_data& stage_data)
+void ts::game::Stage_loader::async_load(const action::Stage_data& stage_data, Script_loader_function script_loader)
 {
     auto func = [=]()
     {
-        return load_world(stage_data);
+        return load_stage(stage_data, script_loader);
     };
 
     set_state(Stage_loader_state::None);
     Generic_loader::async_load(func);
 }
 
-std::unique_ptr<ts::action::Stage> ts::game::Stage_loader::load_world(const action::Stage_data& stage_data)
+std::unique_ptr<ts::action::Stage> ts::game::Stage_loader::load_stage(const action::Stage_data& stage_data, const Script_loader_function& script_loader)
 {
     set_state(State::Preprocessing);
     auto track = std::make_unique<resources::Track>(stage_data.track);
@@ -67,6 +67,12 @@ std::unique_ptr<ts::action::Stage> ts::game::Stage_loader::load_world(const acti
     set_state(State::Creating_entities);
     auto stage = std::make_unique<action::Stage>(std::move(world_ptr), stage_data);
 
+    if (script_loader)
+    {
+        set_state(State::Loading_scripts);
+        script_loader(stage.get());
+    }
+
     set_state(State::Complete);
     return stage;
 }
@@ -86,6 +92,9 @@ ts::utf8_string ts::game::to_string(Stage_loader_state state)
 
     case Stage_loader_state::Creating_entities:
         return "Creating entities...";
+
+    case Stage_loader_state::Loading_scripts:
+        return "Loading scripts...";
 
     default:
         return "";

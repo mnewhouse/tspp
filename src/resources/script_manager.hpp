@@ -35,11 +35,13 @@ namespace ts
             Script_manager(const utf8_string& root_directory);
 
             Script_handle get_script_by_name(const utf8_string& name) const;
+            const std::vector<Script_handle>& scripts() const;
 
         private:
             void load_resources(const utf8_string& root_directory);
 
             std::map<utf8_string, Script_resource> loaded_scripts_;
+            std::vector<Script_handle> script_list_;
         };
     }
 }

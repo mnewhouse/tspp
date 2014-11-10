@@ -29,7 +29,8 @@
 ts::action::Stage::Stage(std::unique_ptr<world::World> world, const Stage_data& stage_data)
 : world_(std::move(world)),
   control_center_(std::make_unique<controls::Control_center>()),
-  track_handle_(stage_data.track)
+  track_handle_(stage_data.track),
+  script_resources_(stage_data.script_resources)
 {
     create_stage_entities(stage_data);
 }
@@ -102,6 +103,7 @@ ts::action::Stage_data ts::action::Stage::stage_data() const
         result.cars.push_back(car_data);
     }
 
+    result.script_resources = script_resources_;
     return result;
 }
 
@@ -164,4 +166,14 @@ bool ts::action::Stage::is_car_controlled(const world::Car* car) const
 void ts::action::Stage::launch_game()
 {
     world_->launch_game();
+}
+
+std::uint32_t ts::action::Stage::game_time() const
+{
+    return world_->game_time();
+}
+
+void ts::action::Stage::start_game_timer() const
+{
+    world_->start_game_timer();
 }

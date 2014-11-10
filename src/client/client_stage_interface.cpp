@@ -65,7 +65,7 @@ ts::client::Stage_interface::~Stage_interface()
 
 const ts::game::Stage_loader* ts::client::Stage_interface::async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback)
 {
-    return impl_->async_load_stage(stage_data, completion_callback);
+    return impl_->async_load_stage(stage_data, nullptr, completion_callback);
 }
 
 const ts::action::Stage* ts::client::Stage_interface::stage() const

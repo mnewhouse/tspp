@@ -42,7 +42,10 @@ namespace ts
         {
         public:
             using Completion_callback = void(const action::Stage*);
-            const Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<Completion_callback> completion_callback);
+            using Script_loader_function = void(const action::Stage*);
+
+            const Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<Script_loader_function> script_loader,
+                                                 std::function<Completion_callback> completion_callback);
             void poll_loader();
 
             void clean_stage();

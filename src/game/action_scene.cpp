@@ -123,11 +123,16 @@ void ts::game::Action_scene::add_followed_entity(const world::Entity* entity)
         reassign_screens();
     }
 
-    else if (followed_entities_.size() >= 2)
+    else if (followed_entities_.size() >= 1)
     {
         view_context_->clear();
         auto view = view_context_->add_view();
         view->camera.set_zoom_level(view->camera.fit_in_screen_zoom_level());
+
+        if (followed_entities_.size() == 1)
+        {
+            view->camera.set_target(followed_entities_.front());
+        }
     }
 }
 

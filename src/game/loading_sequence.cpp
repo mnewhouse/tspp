@@ -23,6 +23,8 @@
 #include "resources/resource_store.hpp"
 #include "resources/track_handle.hpp"
 
+#include "action/stage.hpp"
+
 ts::game::Loading_sequence::Loading_sequence(const resources::Resource_store* resource_store)
 : resource_store_(resource_store)
 {
@@ -32,15 +34,18 @@ void ts::game::Loading_sequence::poll()
 {
     scene_loader_.poll();
     audio_loader_.poll();
+    script_loader_.poll();
 }
 
 void ts::game::Loading_sequence::async_load(const action::Stage* stage)
 {
     loaded_scene_ = Loaded_scene();
+    exception_ptr_ = nullptr;
+    stage_ = stage;
 
     scene_loader_.set_completion_handler([this]()
     {
-        test_readiness();
+        load_scripts_if_ready();
     });
 
     scene_loader_.set_state_change_handler([this](Scene_loader_state new_state)
@@ -50,7 +55,7 @@ void ts::game::Loading_sequence::async_load(const action::Stage* stage)
 
     audio_loader_.set_completion_handler([this]()
     {
-        test_readiness();
+        load_scripts_if_ready();
     });
 
     scene_loader_.async_load(stage, resource_store_->video_settings());
@@ -59,18 +64,57 @@ void ts::game::Loading_sequence::async_load(const action::Stage* stage)
 
 bool ts::game::Loading_sequence::is_complete() const
 {
-    return scene_loader_.is_completed() && audio_loader_.is_completed();
+    return loaded_scene_.action_scene && loaded_scene_.sound_controller && loaded_scene_.script_interface;
 }
 
 bool ts::game::Loading_sequence::is_loading() const
 {
-    return is_complete() || scene_loader_.is_loading() || audio_loader_.is_loading();
+    return is_complete() || scene_loader_.is_loading() || audio_loader_.is_loading() || script_loader_.is_loading();
 }
 
-void ts::game::Loading_sequence::test_readiness()
+void ts::game::Loading_sequence::load_scripts_if_ready()
 {
-    if (is_complete() && completion_handler_)
+    if (scene_loader_.is_completed() && audio_loader_.is_completed())
     {
+        try
+        {
+            loaded_scene_.action_scene = scene_loader_.transfer_result();
+            loaded_scene_.sound_controller = audio_loader_.transfer_result();
+
+            script_loader_.set_completion_handler([this]()
+            {
+                handle_completion();
+            });
+
+            script_loader_.set_state_change_handler([this](Script_loader_state new_state)
+            {
+                state_change(to_string(new_state));
+            });
+
+            script_loader_.async_load(stage_->stage_data().script_resources, stage_, loaded_scene_.action_scene.get());
+        }
+
+        catch (...)
+        {
+            exception_ptr_ = std::current_exception();
+        }
+    }
+}
+
+void ts::game::Loading_sequence::handle_completion()
+{
+    if (completion_handler_)
+    {
+        try
+        {
+            loaded_scene_.script_interface = script_loader_.transfer_result();
+        }
+
+        catch (...)
+        {
+            exception_ptr_ = std::current_exception();
+        }
+
         auto completion_handler = std::move(completion_handler_);
         completion_handler();
     }
@@ -86,8 +130,10 @@ void ts::game::Loading_sequence::state_change(const utf8_string& state)
 
 ts::game::Loaded_scene ts::game::Loading_sequence::transfer_result()
 {
-    loaded_scene_.action_scene = scene_loader_.transfer_result();
-    loaded_scene_.sound_controller = audio_loader_.transfer_result();
+    if (exception_ptr_)
+    {
+        std::rethrow_exception(exception_ptr_);
+    }
 
     return std::move(loaded_scene_);
 }

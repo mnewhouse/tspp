@@ -79,6 +79,9 @@ namespace ts
             std::uint32_t stage_time() const;
             void set_stage_time(std::uint32_t);
 
+            std::uint32_t game_time() const;
+            void start_game_timer() const;
+
             world::Car* get_car_by_id(std::uint16_t car_id) const;
             bool is_car_controlled(const world::Car* car) const;
 
@@ -89,6 +92,7 @@ namespace ts
             std::unordered_map<std::uint16_t, world::Car*> car_lookup_;
 
             resources::Track_handle track_handle_;
+            std::vector<resources::Script_handle> script_resources_;
 
             std::unique_ptr<world::World> world_;     
             std::unique_ptr<controls::Control_center> control_center_;

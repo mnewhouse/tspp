@@ -36,6 +36,11 @@ ts::resources::Script_handle ts::resources::Script_manager::get_script_by_name(c
     return Script_handle(&it->second);
 }
 
+const std::vector<ts::resources::Script_handle>& ts::resources::Script_manager::scripts() const
+{
+    return script_list_;
+}
+
 void ts::resources::Script_manager::load_resources(const utf8_string& root_directory)
 {
     boost::filesystem::path directory_path = root_directory.string();
@@ -50,8 +55,13 @@ void ts::resources::Script_manager::load_resources(const utf8_string& root_direc
 
             try
             {
-                loaded_scripts_.emplace(std::piecewise_construct, std::forward_as_tuple(resource_name),
-                                        std::forward_as_tuple(path.string(), resource_name));
+                auto emplace_result = loaded_scripts_.emplace(std::piecewise_construct, std::forward_as_tuple(resource_name),
+                                                              std::forward_as_tuple(path.string(), resource_name));
+
+                if (emplace_result.second)
+                {
+                    script_list_.emplace_back(&emplace_result.first->second);
+                }
             }
 
             catch (const Resource_config_exception& error)

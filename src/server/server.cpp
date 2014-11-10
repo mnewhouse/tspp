@@ -25,6 +25,8 @@
 #include "server_load_errors.hpp"
 #include "resource_download_server.hpp"
 
+#include "resources/active_resources.hpp"
+
 #include "cup/cup_controller.hpp"
 
 #include "network/server_connection.hpp"
@@ -66,8 +68,7 @@ public:
 
     Client_map client_map_;
     Stage_interface stage_interface_;
-    Interaction_interface interaction_interface_;
-    
+    Interaction_interface interaction_interface_;    
 
     Resource_download_server download_server_;
 

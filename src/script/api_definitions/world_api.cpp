@@ -20,9 +20,10 @@
 #include "stdinc.hpp"
 #include "world_api.hpp"
 
+#include "action/stage.hpp"
+
 #include "script/argument_stream.hpp"
 #include "script/script_userdata.hpp"
-#include "world/world.hpp"
 
 namespace ts
 {
@@ -41,10 +42,10 @@ namespace ts
     }
 }
 
-ts::script::API_definition ts::script_api::world_api(world::World* world)
+ts::script::API_definition ts::script_api::stage_api(const action::Stage* stage)
 {
     API_definition api_def;
-    api_def.interfaces.push_back(make_interface(world));
+    api_def.interfaces.push_back(make_interface(stage));
     api_def.static_functions.assign(std::begin(world_functions), std::end(world_functions));
 
     return api_def;
@@ -52,15 +53,15 @@ ts::script::API_definition ts::script_api::world_api(world::World* world)
 
 SQInteger ts::script_api::getGameTime(HSQUIRRELVM vm)
 {
-    auto world = get_interface<world::World>(vm);
-    sq_pushinteger(vm, world->game_time());
+    auto stage = get_interface<action::Stage>(vm);
+    sq_pushinteger(vm, stage->game_time());
     return 1;
 }
 
 
 SQInteger ts::script_api::startGameTimer(HSQUIRRELVM vm)
 {
-    auto world = get_interface<world::World>(vm);
-    world->start_game_timer();
+    auto stage = get_interface<action::Stage>(vm);
+    stage->start_game_timer();
     return 1;
 }

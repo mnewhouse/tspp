@@ -26,14 +26,14 @@
 
 namespace ts
 {
-    namespace world
+    namespace action
     {
-        class World;
+        class Stage;
     }
 
     namespace script_api
     {
-        script::API_definition world_api(world::World* world);
+        script::API_definition stage_api(const action::Stage* stage);
     }
 }
 

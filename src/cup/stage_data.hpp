@@ -27,6 +27,7 @@
 #include "resources/car_handle.hpp"
 #include "resources/track_handle.hpp"
 #include "resources/player_definition.hpp"
+#include "resources/script_resource.hpp"
 
 namespace ts
 {
@@ -45,6 +46,8 @@ namespace ts
         {
             resources::Track_handle track;
             std::vector<Car_data> cars;
+
+            std::vector<resources::Script_handle> script_resources;
         };
 
     }

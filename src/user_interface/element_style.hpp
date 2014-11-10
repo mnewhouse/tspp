@@ -44,6 +44,7 @@ namespace ts
             const StyleType& default_style() const;
 
             const StyleType& current_style() const;
+            bool has_style(const StateType& state) const;
 
         private:
             std::vector<StateType> states_;
@@ -77,6 +78,12 @@ template <typename StateType, typename StyleType>
 const StyleType& ts::gui::Element_style<StateType, StyleType>::current_style() const
 {
     return *current_style_;
+}
+
+template <typename StateType, typename StyleType>
+bool ts::gui::Element_style<StateType, StyleType>::has_style(const StateType& state) const
+{
+    return style_map_.find(state) != style_map_.end();
 }
 
 template <typename StateType, typename StyleType>

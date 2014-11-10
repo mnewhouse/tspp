@@ -17,45 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
+#include "stdinc.hpp"
+#include "server_script_interface.hpp"
 
-#ifndef LOADED_SCENE_HPP
-#define LOADED_SCENE_HPP
+#include "script/api_definitions/utility_classes.hpp"
+#include "script/api_definitions/world_api.hpp"
+#include "script/api_definitions/event_api.hpp"
 
-namespace ts
+#include "action/stage.hpp"
+
+ts::script_api::Server_interface::Server_interface(const action::Stage* stage)
+: world_interface_(this)
 {
-    namespace action
-    {
-        class Stage;
-    }
+    register_api(script_api::utility_classes());
+    register_api(script_api::event_api());
+    register_api(script_api::stage_api(stage));
 
-    namespace audio
-    {
-        struct Sound_controller;
-    }
-
-    namespace script_api
-    {
-        class Client_interface;
-    }
-
-    namespace game
-    {
-        class Action_scene;
-
-        struct Loaded_scene
-        {
-            Loaded_scene();
-            ~Loaded_scene();
-
-            Loaded_scene(Loaded_scene&&);
-            Loaded_scene& operator=(Loaded_scene&&);
-
-            std::unique_ptr<Action_scene> action_scene;
-            std::unique_ptr<audio::Sound_controller> sound_controller;
-            std::unique_ptr<script_api::Client_interface> script_interface;
-        };
-    }
+    stage->add_world_listener(&world_interface_);
 }
-
-#endif

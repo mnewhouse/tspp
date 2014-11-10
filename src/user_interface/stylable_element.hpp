@@ -114,7 +114,20 @@ void ts::gui::Stylable_element<StyleType>::on_state_change(const State_list& sta
 
     else
     {
-        styler_.state_change(states.back(), apply);
+        auto it = std::find_if(states.rbegin(), states.rend(), [this](const State_name& state_name)
+        {
+            return styler_.has_style(state_name);
+        });
+
+        if (it != states.rend())
+        {
+            styler_.state_change(*it, apply);
+        }
+
+        else
+        {
+            styler_.state_change(apply);
+        }
     }
 }
 

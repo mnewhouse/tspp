@@ -27,10 +27,12 @@
 #include "gui_definitions/window_template.hpp"
 
 #include "resources/car_store.hpp"
+#include "resources/script_manager.hpp"
 
 #include "resources/settings/track_settings.hpp"
 #include "resources/settings/car_settings.hpp"
 #include "resources/settings/network_settings.hpp"
+#include "resources/settings/script_settings.hpp"
 
 ts::states::Cup_setup_menu::Cup_setup_menu(Main_menu* main_menu)
 : main_menu_(main_menu),
@@ -40,6 +42,7 @@ ts::states::Cup_setup_menu::Cup_setup_menu(Main_menu* main_menu)
 
     track_setup_menu_ = std::make_unique<Track_setup_menu>(this);
     car_setup_menu_ = std::make_unique<Car_setup_menu>(this);
+    resource_setup_menu_ = std::make_unique<Resource_setup_menu>(this);
 
     check_startability();
 }
@@ -62,6 +65,7 @@ void ts::states::Cup_setup_menu::start_cup()
 
     track_setup_menu_->hide();
     car_setup_menu_->hide();
+    resource_setup_menu_->hide();
 }
 
 void ts::states::Cup_setup_menu::return_to_main_menu()
@@ -124,6 +128,7 @@ void ts::states::Cup_setup_menu::hide()
 void ts::states::Cup_setup_menu::show_track_setup()
 {
     car_setup_menu_->hide();
+    resource_setup_menu_->hide();
 
     track_setup_menu_->show();
 }
@@ -131,8 +136,17 @@ void ts::states::Cup_setup_menu::show_track_setup()
 void ts::states::Cup_setup_menu::show_car_setup()
 {
     track_setup_menu_->hide();
+    resource_setup_menu_->hide();
 
     car_setup_menu_->show();
+}
+
+void ts::states::Cup_setup_menu::show_resource_setup()
+{
+    track_setup_menu_->hide();
+    car_setup_menu_->hide();
+
+    resource_setup_menu_->show();
 }
 
 ts::gui::Element* ts::states::Cup_setup_menu::create_containment_window(gui::Document* document, utf8_string title)
@@ -219,7 +233,7 @@ void ts::states::Cup_setup_menu::create_navigation_document(gui::Context* contex
     resources->add_event_handler(on_click,
         [this](const gui::Element& element)
     {
-
+        show_resource_setup();
     });
 
 
@@ -1098,4 +1112,140 @@ void ts::states::Car_setup_menu::show()
 void ts::states::Car_setup_menu::hide()
 {
     car_setup_document_->set_visible(false);
+}
+
+
+ts::states::Resource_setup_menu::Resource_setup_menu(Cup_setup_menu* cup_setup_menu)
+{
+    create_resource_setup_document(cup_setup_menu);
+}
+
+void ts::states::Resource_setup_menu::create_resource_setup_document(Cup_setup_menu* cup_setup_menu)
+{
+    auto context = cup_setup_menu->context();
+    auto resource_store = cup_setup_menu->resource_store();
+
+    resource_setup_document_ = context->create_document("resource-setup");    
+
+    auto window = cup_setup_menu->create_containment_window(resource_setup_document_.get(), "Resource Setup");
+    auto window_size = window->size();
+
+    auto& font_library = context->font_library();
+
+    gui::Text_style text_style;
+    text_style.font = font_library.font_by_name(gui::fonts::Sans);
+    text_style.character_size = 15;
+    text_style.color = sf::Color(255, 255, 255);
+
+    auto hover_style = text_style;
+    hover_style.color = sf::Color(255, 150, 0);
+
+    // Resource list
+    // Resource configuration
+    // Default gamemode
+    // Force gamemode
+
+
+    Vector2i scroll_pane_size(360, static_cast<std::int32_t>(window_size.y) - 120);
+    auto list_scroll_pane = window->create_child<gui::Scroll_pane>(scroll_pane_size, gui::Scroll_pane_style());
+    list_scroll_pane->set_position({ 40.0, 60.0 });
+
+    gui::Vertical_list_style list_style;
+    list_style.row_size = { 200, 0 };
+    list_style.row_spacing = 2.0;
+    //list_style.item_style = gui::make_background_style<gui::Plain_background>(sf::Color(255, 255, 255, 15));
+    //list_style.alternate_style = gui::make_background_style<gui::Plain_background>(sf::Color(255, 255, 255, 30));    
+    
+    auto resource_list = list_scroll_pane->create_child<gui::Vertical_list<gui::Element>>(list_style);
+    auto text_background = gui::make_background_style<gui::Plain_background>(sf::Color(255, 255, 255, 20));
+    auto hover_background = gui::make_background_style<gui::Plain_background>(sf::Color(255, 255, 255, 40));
+
+    auto selector_red_background = gui::make_background_style<gui::Plain_background>(sf::Color(220, 0, 0, 150));
+    auto selector_green_background = gui::make_background_style<gui::Plain_background>(sf::Color(0, 220, 0, 150));
+
+
+    const auto& script_manager = resource_store->script_manager();
+
+    for (const auto& resource : script_manager.scripts())
+    {
+        auto script_settings = &resource_store->script_settings();
+
+        auto row = resource_list->create_row();
+        auto text = row->create_child<gui::Text_element>(resource->name(), text_style);
+        text->set_size({ 300.0, 22.0 });
+        text->set_offset({ 3.0, -3.0 });
+        text->set_background_style(text_background);
+        text->register_background_style(gui::states::hover, hover_background);
+
+        auto selector = row->create_child<gui::Element>(Vector2i(14, 14));
+        selector->set_position({ 310.0, 4.0 });
+        selector->set_background_style(selector_red_background);
+        selector->register_background_style(gui::states::selected, selector_green_background);
+        selector->add_event_handler(gui::events::on_click, [=](const gui::Element& element)
+        {
+            const auto& resource_name = resource->name();
+            bool enabled = script_settings->is_script_enabled(resource_name);
+
+            selector->set_state(gui::states::selected, !enabled);
+            enabled ? script_settings->disable_script(resource_name) : 
+                      script_settings->enable_script(resource_name);
+        });
+
+        auto selector_hoverer = selector->create_child<gui::Element>(Vector2<double>(1.0, 1.0), gui::relative);
+        selector_hoverer->register_background_style(gui::states::hover, hover_background);
+
+        auto expansion = row->create_child<gui::Element>();
+
+        text->add_event_handler(gui::events::on_click, [=](const gui::Element& element)
+        {
+            expansion->set_visible(!expansion->visible());
+        });
+
+        expansion->set_visible(false);        
+    }
+
+    gui::Vertical_list_style options_list_style;
+    options_list_style.item_style = gui::make_background_style<gui::Plain_background>(sf::Color(255, 255, 255, 15));
+    options_list_style.alternate_style = options_list_style.item_style;
+    options_list_style.row_size = { 360.0, 25.0 };
+
+    auto settings_string_style = text_style;
+    settings_string_style.color = sf::Color(150, 150, 150);
+
+    auto settings_string = window->create_child<gui::Text_element>("Settings", settings_string_style);
+    settings_string->set_position({ 80.0, window_size.y - 140.0 });
+
+    auto options_list = window->create_child<gui::Vertical_list<gui::Element>>(options_list_style);
+    options_list->set_position({ 40.0, window_size.y - 110.0 });
+
+    auto default_gamemode_row = options_list->create_row();
+    default_gamemode_row->create_child<gui::Text_element>("Default Gamemode:", text_style);
+    
+    auto force_default_row = options_list->create_row();
+    force_default_row->create_child<gui::Text_element>("Force Gamemode:", text_style);
+
+    gui::Option_set_style option_set_style;
+    option_set_style.text_area_size = Vector2i(40, 20);
+    option_set_style.arrow_area_size = Vector2i(20, 20);
+    option_set_style.text_style = text_style;
+    option_set_style.text_hover_style = hover_style;
+
+    auto force_default_options = force_default_row->create_child<gui::Option_set<bool>>(option_set_style);
+    force_default_options->add_option(true, "On");
+    force_default_options->add_option(false, "Off");
+
+    force_default_options->set_position({ 240.0, 0.0 });
+    
+
+    
+}
+
+void ts::states::Resource_setup_menu::show()
+{
+    resource_setup_document_->set_visible(true);
+}
+
+void ts::states::Resource_setup_menu::hide()
+{
+    resource_setup_document_->set_visible(false);
 }

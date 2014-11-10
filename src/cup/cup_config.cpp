@@ -24,7 +24,8 @@
 
 ts::cup::Cup_config::Cup_config(resources::Resource_store* resource_store)
 : car_settings_(&resource_store->car_settings()),
-  track_settings_(&resource_store->track_settings())
+  track_settings_(&resource_store->track_settings()),
+  script_settings_(&resource_store->script_settings())
 {
 }
 
@@ -40,4 +41,9 @@ const ts::resources::Car_settings& ts::cup::Cup_config::car_settings() const
 const ts::resources::Track_settings& ts::cup::Cup_config::track_settings() const
 {
     return *track_settings_;
+}
+
+const ts::resources::Script_settings& ts::cup::Cup_config::script_settings() const
+{
+    return *script_settings_;
 }

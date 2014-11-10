@@ -20,7 +20,7 @@
 #include "stdinc.hpp"
 #include "stage_interface.hpp"
 
-const ts::game::Stage_loader* ts::game::Stage_interface::async_load_stage(const cup::Stage_data& stage_data, 
+const ts::game::Stage_loader* ts::game::Stage_interface::async_load_stage(const cup::Stage_data& stage_data, std::function<Script_loader_function> script_loader,
                                                                           std::function<Completion_callback> completion_callback)
 {
     stage_loader_.set_completion_handler([this, completion_callback]()
@@ -29,7 +29,7 @@ const ts::game::Stage_loader* ts::game::Stage_interface::async_load_stage(const 
         completion_callback(stage_.get());
     });
 
-    stage_loader_.async_load(stage_data);
+    stage_loader_.async_load(stage_data, script_loader);
     return &stage_loader_;
 }
 

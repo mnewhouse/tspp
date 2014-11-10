@@ -23,6 +23,10 @@
 #include "cup_controller.hpp"
 #include "cup.hpp"
 
+#include "resources/resource_store.hpp"
+#include "resources/script_manager.hpp"
+#include "resources/settings/script_settings.hpp"
+
 ts::cup::Stage_data ts::cup::assemble_stage(const Cup_controller& cup_controller)
 {
     Stage_data stage_data;
@@ -54,5 +58,17 @@ ts::cup::Stage_data ts::cup::assemble_stage(const Cup_controller& cup_controller
     }
 
     stage_data.track = cup_controller.current_track();
+
+    const auto& script_manager = cup_controller.resource_store().script_manager();
+    const auto& script_settings = cup_controller.script_settings();
+
+    for (auto resource_name : script_settings.loaded_scripts())
+    {
+        if (auto resource = script_manager.get_script_by_name(resource_name))
+        {
+            stage_data.script_resources.push_back(resource);
+        }
+    }
+    
     return stage_data;
 }

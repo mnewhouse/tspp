@@ -26,6 +26,7 @@
 
 #include "game/loading_sequence.hpp"
 #include "game/chatbox_display.hpp"
+#include "game/stage_loader.hpp"
 
 namespace ts
 {

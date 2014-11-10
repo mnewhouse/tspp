@@ -24,23 +24,7 @@
 
 #include "game/stage_interface.hpp"
 
-#include "cup/stage_assembler.hpp"
-#include "cup/cup_listener.hpp"
-#include "cup/cup_controller.hpp"
-
-#include "resources/pattern.hpp"
-#include "resources/track_loader.hpp"
-
-namespace ts
-{
-    namespace server
-    {
-        namespace impl
-        {
-            class Script_loader;
-        }
-    }
-}
+#include "script/interfaces/server_script_interface.hpp"
 
 class ts::server::Stage_interface::Impl
     : public game::Stage_interface
@@ -52,9 +36,12 @@ public:
     void launch_action();
     void update(std::size_t frame_duration);
 
+    void load_scripts(const cup::Stage_data& stage_data, const action::Stage* stage);
+
     Message_center* message_center_;
 
     std::unique_ptr<Stage_conductor> stage_conductor_;
+    std::unique_ptr<script_api::Server_interface> script_interface_;
 };
 
 ts::server::Stage_interface::Impl::Impl(Message_center* message_center)
@@ -64,6 +51,20 @@ ts::server::Stage_interface::Impl::Impl(Message_center* message_center)
 
 ts::server::Stage_interface::Impl::~Impl()
 {
+}
+
+void ts::server::Stage_interface::Impl::load_scripts(const cup::Stage_data& stage_data, const action::Stage* stage)
+{
+    script_interface_ = std::make_unique<script_api::Server_interface>(stage);
+
+    for (auto resource : stage_data.script_resources)
+    {
+        auto module = script_interface_->create_module(resource->name());
+        for (const auto& file : resource->server_scripts())
+        {
+            module->do_file(file);
+        }
+    }
 }
 
 void ts::server::Stage_interface::Impl::update(std::size_t frame_duration)
@@ -92,7 +93,12 @@ ts::server::Stage_interface::~Stage_interface()
 
 const ts::game::Stage_loader* ts::server::Stage_interface::async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback)
 {
-    return impl_->async_load_stage(stage_data, completion_callback);
+    auto script_loader = [=](const action::Stage* stage)
+    {
+        impl_->load_scripts(stage_data, stage);
+    };
+
+    return impl_->async_load_stage(stage_data, script_loader, completion_callback);
 }
 
 void ts::server::Stage_interface::launch_action()
@@ -102,8 +108,10 @@ void ts::server::Stage_interface::launch_action()
 
 void ts::server::Stage_interface::clean_stage()
 {
-    impl_->clean_stage();
     impl_->stage_conductor_ = nullptr;
+    impl_->script_interface_ = nullptr;
+
+    impl_->clean_stage();    
 }
 
 void ts::server::Stage_interface::update(std::size_t frame_duration)

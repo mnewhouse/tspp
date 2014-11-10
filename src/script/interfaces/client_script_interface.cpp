@@ -29,15 +29,15 @@
 
 
 
-#include "world/world.hpp"
+#include "action/stage.hpp"
 
-ts::script_api::Client_interface::Client_interface(world::World* world, game::Action_scene* action_scene)
+ts::script_api::Client_interface::Client_interface(const action::Stage* stage, game::Action_scene* action_scene)
 : world_interface_(this)
 {
     register_api(script_api::utility_classes());
     register_api(script_api::event_api());
-    register_api(script_api::world_api(world));
+    register_api(script_api::stage_api(stage));
     register_api(script_api::view_api(action_scene));
 
-    world->add_world_listener(&world_interface_);
+    stage->add_world_listener(&world_interface_);
 }

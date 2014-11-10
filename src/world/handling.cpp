@@ -338,12 +338,14 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
         auto new_turning_speed = turning_speed;
         if (turning_speed < target_turning_speed)
         {
-            new_turning_speed = std::min(turning_speed + steering + turning_resistance, target_turning_speed);
+            new_turning_speed = std::min(turning_speed + steering * frame_duration + turning_resistance, 
+                                         target_turning_speed);
         }
 
         else if (turning_speed > target_turning_speed)
         {
-            new_turning_speed = std::max(turning_speed - steering + turning_resistance, target_turning_speed);
+            new_turning_speed = std::max(turning_speed - steering * frame_duration + turning_resistance,
+                                         target_turning_speed);
         }
 
         if (target_turning_speed < 0.0 && turning_speed < 0.0)

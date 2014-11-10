@@ -22,7 +22,7 @@
 
 #include "scene_loader.hpp"
 #include "audio_loader.hpp"
-#include "stage_loader.hpp"
+#include "client_script_loader.hpp"
 #include "loaded_scene.hpp"
 
 namespace ts
@@ -59,19 +59,25 @@ namespace ts
             bool is_loading() const;
 
         private:
-            void test_readiness();
+            void load_scripts_if_ready();
             void load_scene();
+
+            void handle_completion();
             void state_change(const utf8_string& new_state);
 
             Scene_loader scene_loader_;
             Audio_loader audio_loader_;
+            Client_script_loader script_loader_;
 
             Loaded_scene loaded_scene_;
 
+            const action::Stage* stage_;
             const resources::Resource_store* resource_store_;
 
             std::function<void()> completion_handler_;     
             std::function<void(const utf8_string& new_state)> state_change_handler_;
+
+            std::exception_ptr exception_ptr_;
         };
     }
 }

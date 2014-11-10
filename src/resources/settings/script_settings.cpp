@@ -37,3 +37,13 @@ void ts::resources::Script_settings::disable_script(const utf8_string& script_na
         loaded_scripts_.erase(it);
     }
 }
+
+bool ts::resources::Script_settings::is_script_enabled(const utf8_string& script_name) const
+{
+    return std::find(loaded_scripts_.begin(), loaded_scripts_.end(), script_name) != loaded_scripts_.end();
+}
+
+const std::vector<ts::utf8_string>& ts::resources::Script_settings::loaded_scripts() const
+{
+    return loaded_scripts_;
+}

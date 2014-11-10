@@ -62,7 +62,7 @@ namespace ts
 
             template <typename T>
             Generic_interface(Interface<T> interface)
-                : Pointer_handle(interface.get()),
+                : Pointer_handle(const_cast<std::remove_const_t<T>*>(interface.get())),
                   interface_tag_(impl::interface_tag<T>())
             {}
 

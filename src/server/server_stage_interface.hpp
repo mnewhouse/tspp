@@ -27,6 +27,7 @@ namespace ts
     namespace cup
     {
         struct Stage_data;
+        class Cup_controller;
     }
 
     namespace game

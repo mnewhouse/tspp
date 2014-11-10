@@ -19,12 +19,13 @@
 
 #pragma once
 
-#ifndef LOCAL_CUP_HPP
-#define LOCAL_CUP_HPP
+#ifndef CUP_CONFIG_HPP
+#define CUP_CONFIG_HPP
 
 #include "resources/settings_copy.hpp"
 #include "resources/settings/track_settings.hpp"
 #include "resources/settings/car_settings.hpp"
+#include "resources/settings/script_settings.hpp"
 
 namespace ts
 {
@@ -46,6 +47,7 @@ namespace ts
 
             const resources::Car_settings& car_settings() const;
             const resources::Track_settings& track_settings() const;
+            const resources::Script_settings& script_settings() const;
 
         private:
             resources::Resource_store* resource_store_;
@@ -55,9 +57,11 @@ namespace ts
 
             using Car_settings = resources::Car_settings;
             using Track_settings = resources::Track_settings;
+            using Script_settings = resources::Script_settings;
 
             Settings_copy<Car_settings> car_settings_;
             Settings_copy<Track_settings> track_settings_;
+            Settings_copy<Script_settings> script_settings_;
         };
     }
 }

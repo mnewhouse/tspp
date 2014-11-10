@@ -37,7 +37,9 @@ namespace ts
     {
         class Track_setup_menu;
         class Car_setup_menu;
+        class Resource_setup_menu;
         class Network_menu;
+        
 
         class Cup_setup_menu
         {
@@ -62,11 +64,13 @@ namespace ts
             void return_to_main_menu();
             void show_track_setup();
             void show_car_setup();
+            void show_resource_setup();
 
             void create_navigation_document(gui::Context* context);
 
             std::unique_ptr<Track_setup_menu> track_setup_menu_;
             std::unique_ptr<Car_setup_menu> car_setup_menu_;
+            std::unique_ptr<Resource_setup_menu> resource_setup_menu_;
 
             Network_menu* network_menu_ = nullptr;
             Main_menu* main_menu_ = nullptr;
@@ -168,6 +172,20 @@ namespace ts
             gui::Text_element* car_mode_setting_string_;
 
             gui::Document_handle car_setup_document_;
+        };
+
+        class Resource_setup_menu
+        {
+        public:
+            Resource_setup_menu(Cup_setup_menu* cup_setup_menu);
+
+            void show();
+            void hide();
+
+        private:
+            void create_resource_setup_document(Cup_setup_menu* cup_setup_menu);
+
+            gui::Document_handle resource_setup_document_;
         };
     }
 }

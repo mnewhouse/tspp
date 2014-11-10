@@ -34,6 +34,8 @@ namespace ts
     {
         struct Resource_store;
 
+        class Script_settings;
+
         class Track_settings;
         class Track_handle;
     }
@@ -70,9 +72,14 @@ namespace ts
             const resources::Car_settings& car_settings() const;
             resources::Car_mode car_mode() const;
 
+           
+
             const std::vector<resources::Track_handle>& track_list() const;
             const resources::Track_settings& track_settings() const;
             resources::Track_handle current_track() const;
+
+            const resources::Resource_store& resource_store() const;
+            const resources::Script_settings& script_settings() const;
 
             std::size_t stage_count() const;
             std::size_t cup_progress() const;

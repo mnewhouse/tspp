@@ -142,6 +142,16 @@ ts::resources::Track_handle ts::cup::Cup_controller::current_track() const
     return tracks[progress];
 }
 
+const ts::resources::Resource_store& ts::cup::Cup_controller::resource_store() const
+{
+    return *impl_->resource_store_;
+}
+
+const ts::resources::Script_settings& ts::cup::Cup_controller::script_settings() const
+{
+    return impl_->cup_config_.script_settings();
+}
+
 ts::cup::Player_handle ts::cup::Cup_controller::add_player(const Player& player, Player_id player_id)
 {
     return impl_->cup_.add_player(player, player_id);

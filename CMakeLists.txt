@@ -137,6 +137,8 @@ set(SRC src/main.cpp
         src/game/car_image_generator.cpp
 		src/game/chatbox_display.hpp
 		src/game/chatbox_display.cpp
+		src/game/client_script_loader.hpp
+		src/game/client_script_loader.cpp
         src/game/drawable_entity.hpp
         src/game/drawable_entity.cpp
         src/game/game.hpp
@@ -346,6 +348,8 @@ set(SRC src/main.cpp
         src/script/interfaces/client_script_interface.cpp
 		src/script/interfaces/screen_interface.hpp
 		src/script/interfaces/screen_interface.cpp
+		src/script/interfaces/server_script_interface.hpp
+		src/script/interfaces/server_script_interface.cpp
         src/script/interfaces/world_interface.hpp
         src/script/interfaces/world_interface.cpp
 

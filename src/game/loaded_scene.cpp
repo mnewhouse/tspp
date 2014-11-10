@@ -23,6 +23,8 @@
 
 #include "audio/sound_controller.hpp"
 
+#include "script/interfaces/client_script_interface.hpp"
+
 ts::game::Loaded_scene::Loaded_scene()
 {
 }
@@ -33,7 +35,8 @@ ts::game::Loaded_scene::~Loaded_scene()
 
 ts::game::Loaded_scene::Loaded_scene(Loaded_scene&& other)
 : action_scene(std::move(other.action_scene)),
-  sound_controller(std::move(other.sound_controller))
+  sound_controller(std::move(other.sound_controller)),
+  script_interface(std::move(other.script_interface))
 {
 }
 
@@ -41,6 +44,7 @@ ts::game::Loaded_scene& ts::game::Loaded_scene::operator=(Loaded_scene&& rhs)
 {
     action_scene = std::move(rhs.action_scene);
     sound_controller = std::move(rhs.sound_controller);
+    script_interface = std::move(rhs.script_interface);
 
     return *this;
 }

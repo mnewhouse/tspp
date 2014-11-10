@@ -48,7 +48,7 @@ void ts::gui::Element::set_element_id(utf8_string id)
 
 void ts::gui::Element::set_size(Vector2<double> size)
 {
-    if (size_ != size || relative_sizing_)
+    if (std::abs(size.x - size_.x) >= 0.01 || std::abs(size.y - size_.y) >= 0.01 || relative_sizing_)
     {
         size_ = size;
         relative_sizing_ = false;
@@ -96,7 +96,21 @@ void ts::gui::Element::state_change()
 
     else
     {
-        styler_.state_change(active_states_.back(), apply_func);
+        const auto& states = active_states_;
+        auto it = std::find_if(states.rbegin(), states.rend(), [this](const State_name& state_name)
+        {
+            return styler_.has_style(state_name);
+        });
+
+        if (it != states.rend())
+        {
+            styler_.state_change(*it, apply_func);
+        }
+
+        else
+        {
+            styler_.state_change(apply_func);
+        }
     }
 
     on_state_change(active_states_);
@@ -224,7 +238,7 @@ ts::Vector2<double> ts::gui::Element::offset() const
 
 void ts::gui::Element::set_position(Vector2<double> position)
 {
-    if (position_ != position || relative_positioning_)
+    if (std::abs(position_.x - position.x) >= 0.01 || std::abs(position_.y - position.y) >= 0.01 || relative_positioning_)
     {
         position_ = position;
         relative_positioning_ = false;
@@ -235,7 +249,7 @@ void ts::gui::Element::set_position(Vector2<double> position)
 
 void ts::gui::Element::set_position(Vector2<double> position, relative_t)
 {
-    if (position_ != position || !relative_positioning_)
+    if (std::abs(position_.x - position.x) >= 0.001 || std::abs(position_.y - position.y) >= 0.001 || !relative_positioning_)
     {
         position_ = position;
         relative_positioning_ = true;
@@ -758,6 +772,8 @@ ts::Vector2<double> ts::gui::Element::child_bounds() const
 
     for (auto& child : children_)
     {
+        if (!child->visible()) continue;
+
         auto child_bounds = child->position() + child->size();
 
         if (child_bounds.x > bounds.x) bounds.x = child_bounds.x;
@@ -822,6 +838,8 @@ void ts::gui::Element::perform_layout_update()
     {
         trigger_event(events::on_resize, *this, old_size, layout_.size);
     }
+
+    state_change();
 }
 
 void ts::gui::Element::apply_centering()
