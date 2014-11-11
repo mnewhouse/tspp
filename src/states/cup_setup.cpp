@@ -1191,6 +1191,8 @@ void ts::states::Resource_setup_menu::create_resource_setup_document(Cup_setup_m
                       script_settings->enable_script(resource_name);
         });
 
+        selector->set_state(gui::states::selected, script_settings->is_script_enabled(resource->name()));
+
         auto selector_hoverer = selector->create_child<gui::Element>(Vector2<double>(1.0, 1.0), gui::relative);
         selector_hoverer->register_background_style(gui::states::hover, hover_background);
 

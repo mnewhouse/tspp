@@ -356,7 +356,22 @@ std::istream& ts::resources::operator>>(std::istream& stream, Player_settings& p
 }
 
 std::istream& ts::resources::operator>>(std::istream& stream, Script_settings& script_settings)
-{
+{    
+    for (std::string line, directive, script_name; directive != "end" && std::getline(stream, line);)
+    {
+        std::istringstream line_stream(line);
+        if (!read_directive(line_stream, directive)) continue;
+
+        if (directive == "enabledscript")
+        {
+            line_stream >> std::ws;
+            if (std::getline(line_stream, script_name))
+            {
+                script_settings.enable_script(script_name);
+            }            
+        }
+    }
+
     return stream;
 }
 
@@ -456,5 +471,10 @@ std::ostream& ts::resources::operator<<(std::ostream& stream, const Player_setti
 
 std::ostream& ts::resources::operator<<(std::ostream& stream, const Script_settings& script_settings)
 {
+    for (const auto& script_name : script_settings.loaded_scripts())
+    {
+        stream << "EnabledScript " << script_name << std::endl;
+    }
+
     return stream;
 }
