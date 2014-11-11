@@ -102,7 +102,7 @@ void ts::client::Resource_downloader::handle_file_info_message(const Message& me
 
         auto file_count = file_info.size();
 
-        cup::Composite_message chat_message;
+        cup::Chat_message chat_message;
         chat_message.append("About to receive ", sf::Color(255, 150, 0));
         chat_message.append(std::to_string(file_count), sf::Color(255, 220, 50));
         if (download_info.resource_type == Resource_type::Track)
@@ -134,7 +134,7 @@ void ts::client::Resource_downloader::handle_refusal_message(const Message& mess
     download_map_.erase(refusal.download_key);
 
     // Download refused.
-    cup::Composite_message chat_message;
+    cup::Chat_message chat_message;
     chat_message.append("Error: download failed.", sf::Color(200, 0, 0));
 
     message_buffer_.message = cup::make_chatbox_output_message(chat_message);    
@@ -179,7 +179,7 @@ void ts::client::Resource_downloader::handle_eof_message(const Message& message)
         // Increment file index
         ++download_info.current_file_;
 
-       cup::Composite_message chat_message;
+       cup::Chat_message chat_message;
        chat_message.append("Downloaded file ", sf::Color(255, 150, 0));
        chat_message.append(file_name, sf::Color(255, 220, 50));
        chat_message.append(".", sf::Color(255, 150, 0));
@@ -261,7 +261,7 @@ void ts::client::Resource_downloader::request_track(const resources::Track_ident
     // And send the request
     message_center_->dispatch_message(message_buffer_);
 
-    cup::Composite_message chat_message;
+    cup::Chat_message chat_message;
     chat_message.append("Trying to download track ", sf::Color(255, 150, 0));
     chat_message.append(track_identifier.track_name, sf::Color(255, 220, 50));
     chat_message.append("...", sf::Color(255, 150, 0));
@@ -284,7 +284,7 @@ void ts::client::Resource_downloader::request_car(const resources::Car_identifie
     message_buffer_.message = downloads::make_car_download_request(key, car_identifier);
     message_center_->dispatch_message(message_buffer_);
 
-    cup::Composite_message chat_message;
+    cup::Chat_message chat_message;
     chat_message.append("Trying to download car ", sf::Color(255, 150, 0));
     chat_message.append(car_identifier.car_name, sf::Color(255, 220, 50));
     chat_message.append("...", sf::Color(255, 150, 0));

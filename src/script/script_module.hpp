@@ -72,7 +72,7 @@ namespace ts
         Module* get_module_by_vm(HSQUIRRELVM vm);
 
         SQInteger error_handler(HSQUIRRELVM vm);
-        SQInteger compile_error_handler(HSQUIRRELVM vm);
+        void compile_error_handler(HSQUIRRELVM vm, const SQChar* desc, const SQChar* source, SQInteger line, SQInteger column);
     }
 }
 

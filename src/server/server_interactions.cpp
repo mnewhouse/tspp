@@ -47,7 +47,7 @@ public:
     void add_interaction_listener(Interaction_listener* listener);
     void remove_interaction_listener(Interaction_listener* listener);
 
-    void broadcast_chat_message(const cup::Composite_message& message);
+    void broadcast_chat_message(const cup::Chat_message& message);
 
 private:
     virtual void handle_message(const Client_message& client_message) override;
@@ -63,7 +63,6 @@ private:
     void handle_chat_message(const Client_message& client_message);
 
     void disconnect_client(const Generic_client& client);
-    utf8_string client_name(const Generic_client& client) const;
 
     void broadcast_cup_progress();
 
@@ -201,7 +200,7 @@ void ts::server::Interaction_interface::Impl::handle_registration_request(const 
             player_def.handle = player_handle->handle;
 
             // Send a nice chat message about this player
-            cup::Composite_message display_message;
+            cup::Chat_message display_message;
             display_message.append(player_def.nickname, sf::Color(200, 250, 0));
             display_message.append(" has joined the game, ", sf::Color(0, 220, 0));
 
@@ -291,8 +290,8 @@ void ts::server::Interaction_interface::Impl::handle_quit_message(const Client_m
 
     else
     {
-        cup::Composite_message displayed_message;
-        displayed_message.append(client_name(client), sf::Color(200, 250, 0));
+        cup::Chat_message displayed_message;
+        displayed_message.append(client_map_->client_name(client), sf::Color(200, 250, 0));
         displayed_message.append(" has left the game.", sf::Color(0, 220, 0));
 
         Client_message out;
@@ -309,7 +308,7 @@ void ts::server::Interaction_interface::Impl::handle_chat_message(const Client_m
     const auto& message = message_definition.message;
     if (!command_center_->has_command_prefix(message))
     {
-        auto displayed_message = cup::format_chat_message(client_name(client_message.client), message);
+        auto displayed_message = cup::format_chat_message(client_map_->client_name(client_message.client), message);
         broadcast_chat_message(displayed_message);
     }
 
@@ -319,7 +318,7 @@ void ts::server::Interaction_interface::Impl::handle_chat_message(const Client_m
     }
 }
 
-void ts::server::Interaction_interface::Impl::broadcast_chat_message(const cup::Composite_message& displayed_message)
+void ts::server::Interaction_interface::Impl::broadcast_chat_message(const cup::Chat_message& displayed_message)
 {
     Client_message out_message;
     out_message.message = cup::make_chatbox_output_message(displayed_message);
@@ -398,7 +397,7 @@ void ts::server::Interaction_interface::Impl::broadcast_cup_progress()
     out_message.message = cup::make_cup_progress_message(progress, track_identifier);
     message_center_->dispatch_message(out_message);
 
-    cup::Composite_message displayed_message;
+    cup::Chat_message displayed_message;
     displayed_message.append("Track ", sf::Color(163, 218, 255));
 
     utf8_string progress_string = std::to_string(progress + 1);
@@ -429,8 +428,8 @@ void ts::server::Interaction_interface::Impl::handle_ready_signal(const Client_m
         // We're not waiting for this particular client anymore
         awaiting_clients_.erase(message.client);
 
-        cup::Composite_message displayed_message;
-        displayed_message.append(client_name(message.client), sf::Color(255, 220, 50));
+        cup::Chat_message displayed_message;
+        displayed_message.append(client_map_->client_name(message.client), sf::Color(255, 220, 50));
         displayed_message.append(" ready for action.", sf::Color(255, 150, 0));
 
         Client_message out_message;
@@ -477,30 +476,6 @@ void ts::server::Interaction_interface::Impl::handle_car_selection(const Client_
         awaiting_clients_.erase(client);
         advance_if_ready();
     }
-}
-
-
-ts::utf8_string ts::server::Interaction_interface::Impl::client_name(const Generic_client& client) const
-{
-    auto players = client_map_->get_players_by_client(client);
-    if (players.begin() != players.end())
-    {
-        return (*players.begin())->nickname;
-    }
-
-    else
-    {
-        switch (client.type())
-        {
-        case Generic_client::Handle:
-            return client.remote_handle().remote_address().toString();
-
-        case Generic_client::Local:
-            return "Server Admin";
-        }
-    }
-
-    return utf8_string();
 }
 
 void ts::server::Interaction_interface::Impl::add_interaction_listener(Interaction_listener* listener)

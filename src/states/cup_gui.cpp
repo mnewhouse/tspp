@@ -134,7 +134,7 @@ public:
     void set_loading_progress(double progress);
     void set_loading_progress_text(utf8_string text);
 
-    void output_chat_message(const cup::Composite_message& message);     
+    void output_chat_message(const cup::Chat_message& message);     
 
 private:
     virtual void handle_message(const client::Server_message& message) override;
@@ -231,7 +231,7 @@ void ts::states::impl::Cup_GUI::handle_load_error_message(const client::Message&
 {
     auto error_message = cup::parse_load_error_message(message);
 
-    cup::Composite_message composite_message;
+    cup::Chat_message composite_message;
     composite_message.append("Error loading stage: " + error_message.error_string, sf::Color(220, 0, 0));
 
     output_chat_message(composite_message);
@@ -358,7 +358,7 @@ bool ts::states::Cup_GUI::quit_event_pending() const
     return impl_->quit_event_pending();
 }
 
-void ts::states::Cup_GUI::output_chat_message(const cup::Composite_message& message)
+void ts::states::Cup_GUI::output_chat_message(const cup::Chat_message& message)
 {
     impl_->output_chat_message(message);
 }
@@ -379,7 +379,7 @@ void ts::states::impl::Cup_GUI::confirm_car_selection()
     apply_car_selection();
 }
 
-void ts::states::impl::Cup_GUI::output_chat_message(const cup::Composite_message& message)
+void ts::states::impl::Cup_GUI::output_chat_message(const cup::Chat_message& message)
 {
     chatbox_->create_row(message, chatbox_text_style_);
 }

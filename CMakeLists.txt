@@ -311,6 +311,7 @@ set(SRC src/main.cpp
         src/script/event_manager.cpp
         src/script/execution_context.hpp
         src/script/execution_context.cpp
+		src/script/member_function.hpp
         src/script/object_handle.hpp
         src/script/object_handle.cpp
         src/script/script_api.hpp
@@ -340,6 +341,8 @@ set(SRC src/main.cpp
        
 	    src/script/api_definitions/chatbox_api.hpp
 		src/script/api_definitions/chatbox_api.cpp
+		src/script/api_definitions/color_api.hpp
+		src/script/api_definitions/color_api.cpp
 	    src/script/api_definitions/command_api.hpp
 		src/script/api_definitions/command_api.cpp
         src/script/api_definitions/entity_api.hpp

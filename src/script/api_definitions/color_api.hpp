@@ -19,18 +19,44 @@
 
 #pragma once
 
-#ifndef CHATBOX_LISTENER_HPP
-#define CHATBOX_LISTENER_HPP
+#ifndef COLOR_API_HPP
+#define COLOR_API_HPP
 
-#include "chat_message.hpp"
+#include "script/script_api.hpp"
+
+#include <SFML/Graphics/Color.hpp>
 
 namespace ts
 {
-    namespace cup
+    namespace script_api
     {
-        struct Chatbox_listener
+        namespace classes
         {
-            virtual void on_chat_message(const Chat_message& message) = 0;
+            static const char Color[] = "Color";
+        }
+
+        namespace members
+        {
+            namespace color
+            {
+                static const char r[] = "r";
+                static const char g[] = "g";
+                static const char b[] = "b";
+                static const char a[] = "a";
+            };
+        }
+
+        script::API_definition color_api();
+
+        struct Color_reader
+        {
+        public:
+            Color_reader(sf::Color& result);
+
+            bool operator()(HSQUIRRELVM vm, SQInteger index) const;
+
+        private:
+            sf::Color& result_;
         };
     }
 }

@@ -31,7 +31,7 @@ void ts::cup::Chatbox::remove_chatbox_listener(Chatbox_listener* listener)
     listeners_.erase(std::remove(listeners_.begin(), listeners_.end(), listener), listeners_.end());
 }
 
-void ts::cup::Chatbox::dispatch_message(const Composite_message& message)
+void ts::cup::Chatbox::dispatch_message(const Chat_message& message)
 {
     for (auto listener : listeners_)
     {
@@ -41,7 +41,7 @@ void ts::cup::Chatbox::dispatch_message(const Composite_message& message)
     log_message(message);
 }
 
-void ts::cup::Chatbox::log_message(const Composite_message& message)
+void ts::cup::Chatbox::log_message(const Chat_message& message)
 {
     message_log_.emplace_back();
     message_log_.back().message = message;

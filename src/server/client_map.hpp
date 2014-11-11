@@ -56,6 +56,8 @@ namespace ts
             const std::vector<Generic_client>& client_list() const;
             bool client_exists(const Generic_client& client) const;
 
+            utf8_string client_name(const Generic_client& client) const;
+
         private:
             std::unordered_map<Generic_client, std::vector<cup::Player_handle>> player_mapping_;
             std::vector<Generic_client> client_list_;

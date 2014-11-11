@@ -40,7 +40,6 @@ ts::script::API_definition ts::script_api::utility_classes()
     rect.add_member(members::rect::top);
     rect.add_member(members::rect::width);
     rect.add_member(members::rect::height);
-
     api_def.classes.push_back(rect);
 
     Class_definition vector2;

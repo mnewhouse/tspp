@@ -21,6 +21,7 @@
 #define SCRIPT_CLASS_DEFINITION_HPP
 
 #include "squirrel_include.hpp"
+#include "member_function.hpp"
 #include "object_handle.hpp"
 
 namespace ts
@@ -47,7 +48,13 @@ namespace ts
                 members.emplace_back(name, is_static);
             }
 
+            void add_member_function(const char* name, SQFUNCTION function, bool is_static = false)
+            {
+                member_functions.emplace_back(name, function, is_static);
+            }
+
             std::vector<Class_member> members;
+            std::vector<Member_function_definition> member_functions;
         };
 
         void register_class_definition(HSQUIRRELVM vm, const Class_definition& class_def);

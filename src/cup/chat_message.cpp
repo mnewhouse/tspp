@@ -20,7 +20,8 @@
 #include "stdinc.hpp"
 #include "chat_message.hpp"
 
-ts::cup::Composite_message ts::cup::format_chat_message(const utf8_string& sender, const utf8_string& message)
+ts::cup::Chat_message ts::cup::format_chat_message(const utf8_string& sender, const utf8_string& message)
 {
-    return Chat_message("<" + sender + "> ", sf::Color(191, 228, 255)) + Chat_message(message, sf::Color(255, 255, 255));
+    return Chat_message_component("<" + sender + "> ", sf::Color(191, 228, 255)) + 
+           Chat_message_component(message, sf::Color(255, 255, 255));
 }

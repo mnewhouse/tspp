@@ -27,8 +27,6 @@
 #include "server_cup_script.hpp"
 #include "command_center.hpp"
 
-#include "resources/active_resources.hpp"
-
 #include "cup/cup_controller.hpp"
 
 #include "network/server_connection.hpp"

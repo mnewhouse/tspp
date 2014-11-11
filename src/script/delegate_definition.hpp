@@ -23,19 +23,13 @@
 #define SCRIPT_DELEGATE_DEFINITION_HPP
 
 #include "squirrel_include.hpp"
+#include "member_function.hpp"
 #include "script_table.hpp"
 
 namespace ts
 {
     namespace script
     {
-        struct Member_function_definition
-        {
-            const char* name;
-            SQFUNCTION function;
-        };
-
-
         struct Delegate_definition
         {
             std::vector<Member_function_definition> member_functions;

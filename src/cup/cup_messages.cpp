@@ -503,7 +503,7 @@ ts::cup::Chat_message_definition ts::cup::parse_chat_message(const Message& mess
     return result;
 }
 
-ts::cup::Message ts::cup::make_chatbox_output_message(const Composite_message& message)
+ts::cup::Message ts::cup::make_chatbox_output_message(const Chat_message& message)
 {
     Message result(Message_type::chatbox_output);
 
@@ -527,7 +527,7 @@ ts::cup::Chatbox_output_message ts::cup::parse_chatbox_output_message(const Mess
     std::uint32_t num_components = 0;
     if (message_reader >> result.message_type >> num_components)
     {
-        Chat_message component;
+        Chat_message_component component;
         for (std::uint32_t n = 0; n != num_components && message_reader >> component.color >> component.text; ++n)
         {
             result.message.append(component);

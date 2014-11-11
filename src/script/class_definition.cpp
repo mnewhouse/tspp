@@ -30,7 +30,7 @@ void ts::script::register_class_definition(HSQUIRRELVM vm, const Class_definitio
 {
     Stack_guard stack_guard(vm);
 
-    sq_pushconsttable(vm);
+    sq_pushregistrytable(vm);
     sq_pushuserpointer(vm, &class_table_key);
     if (SQ_FAILED(sq_get(vm, -2)))
     {
@@ -45,22 +45,30 @@ void ts::script::register_class_definition(HSQUIRRELVM vm, const Class_definitio
     sq_push(vm, -2);
     sq_newslot(vm, -4, SQFalse);
 
-    sq_pushstring(vm, class_def.class_name, -1);
-    sq_push(vm, -3);
-    sq_newslot(vm, -5, SQFalse); // const table
-
     for (const auto& member : class_def.members)
     {
         sq_pushstring(vm, member.name, -1);
         sq_pushnull(vm);
         sq_newslot(vm, -3, member.is_static);
     }
+
+    for (const auto& member_function : class_def.member_functions)
+    {
+        sq_pushstring(vm, member_function.name, -1);
+        sq_newclosure(vm, member_function.function, 0);
+        sq_newslot(vm, -3, member_function.is_static);
+    }
+
+    sq_pushroottable(vm);
+    sq_pushstring(vm, class_def.class_name, -1);
+    sq_push(vm, -3);
+    sq_newslot(vm, -3, SQFalse);   
 }
 
 ts::script::Object_handle ts::script::get_class_by_name(HSQUIRRELVM vm, const char* class_name)
 {
     Stack_guard stack_guard(vm);
-    sq_pushconsttable(vm);
+    sq_pushregistrytable(vm);
     sq_pushuserpointer(vm, &class_table_key);
     if (SQ_SUCCEEDED(sq_get(vm, -2)))
     {

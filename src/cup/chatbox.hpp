@@ -32,14 +32,14 @@ namespace ts
 
         struct Chatbox_log_entry
         {
-            Composite_message message;
+            Chat_message message;
             std::chrono::high_resolution_clock::time_point time_stamp;
         };
 
         class Chatbox
         {
         public:
-            void dispatch_message(const Composite_message& message);
+            void dispatch_message(const Chat_message& message);
 
             void add_chatbox_listener(Chatbox_listener* listener);
             void remove_chatbox_listener(Chatbox_listener* listener);
@@ -52,7 +52,7 @@ namespace ts
 
 
         private:
-            void log_message(const Composite_message& message);
+            void log_message(const Chat_message& message);
 
             std::vector<Chatbox_listener*> listeners_;
 

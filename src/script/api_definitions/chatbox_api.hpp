@@ -36,6 +36,26 @@ namespace ts
     namespace script_api
     {
         script::API_definition server_chatbox_api(server::Message_center* message_center);
+
+        namespace classes
+        {
+            static const char ChatMessage[] = "ChatMessage";
+            static const char ChatMessageComponent[] = "ChatMessageComponent";
+        }
+
+        namespace members
+        {
+            namespace chat_message
+            {
+                static const char components[] = "components";
+            }
+
+            namespace chat_message_component
+            {
+                static const char color[] = "color";
+                static const char sub_string[] = "sub_string";
+            }
+        }
     }
 }
 

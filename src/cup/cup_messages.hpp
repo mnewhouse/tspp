@@ -165,7 +165,7 @@ namespace ts
         struct Chatbox_output_message
         {
             std::uint32_t message_type = 0;
-            Composite_message message;
+            Chat_message message;
         };
 
         struct Action_initialization_message
@@ -236,7 +236,7 @@ namespace ts
         Message make_car_selection_initiation_message(const resources::Car_settings& car_settings);
         Car_information_message parse_car_selection_initiation_message(const Message& message);
 
-        Message make_chatbox_output_message(const Composite_message& composite_message);
+        Message make_chatbox_output_message(const Chat_message& chat_message);
         Chatbox_output_message parse_chatbox_output_message(const Message& message);
 
         Message make_action_initialization_message(const Stage_data& stage_data);

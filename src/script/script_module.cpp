@@ -79,6 +79,7 @@ ts::script::Module::Module(Engine* engine)
 
     sq_newclosure(vm_, error_handler, 0);
     sq_seterrorhandler(vm_);
+    sq_setcompilererrorhandler(vm_, compile_error_handler);
 
     sq_pushroottable(vm_);
     sqstd_register_mathlib(vm_);
@@ -183,7 +184,7 @@ SQInteger ts::script::error_handler(HSQUIRRELVM vm)
     return 0;
 }
 
-SQInteger ts::script::compile_error_handler(HSQUIRRELVM vm)
+void ts::script::compile_error_handler(HSQUIRRELVM vm, const SQChar* desc, const SQChar* source, SQInteger line, SQInteger column)
 {
-    return 0;
+    std::cout << desc << " on line " << line << std::endl;
 }

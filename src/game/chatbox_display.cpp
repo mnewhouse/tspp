@@ -36,13 +36,13 @@
 
 struct ts::game::Chatbox_display::Displayed_message
 {
-    Displayed_message(const cup::Composite_message& message, 
+    Displayed_message(const cup::Chat_message& message, 
         std::chrono::high_resolution_clock::time_point time_point = std::chrono::high_resolution_clock::now())
     : message(message),
       time_point(time_point)
     {}
 
-    cup::Composite_message message;
+    cup::Chat_message message;
     std::chrono::high_resolution_clock::time_point time_point;
 };
 

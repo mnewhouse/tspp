@@ -28,11 +28,11 @@ namespace ts
 {
     namespace cup    
     {
-        using Chat_message = graphics::Colored_text;
-        using Composite_message = graphics::Composite_text;
+        using Chat_message_component = graphics::Colored_text;
+        using Chat_message = graphics::Composite_text;
         using Message_color = sf::Color;
 
-        Composite_message format_chat_message(const utf8_string& sender, const utf8_string& message);
+        Chat_message format_chat_message(const utf8_string& sender, const utf8_string& message);
     }
 }
 #endif

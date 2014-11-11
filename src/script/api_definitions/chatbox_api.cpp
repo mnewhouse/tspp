@@ -19,6 +19,7 @@
 
 #include "stdinc.hpp"
 #include "chatbox_api.hpp"
+#include "color_api.hpp"
 
 #include "script/argument_stream.hpp"
 #include "script/script_utility.hpp"
@@ -41,6 +42,37 @@ namespace ts
                 { "outputChatMessage", outputChatMessage }
             };
         }
+
+        namespace chat_message
+        {
+            SQInteger append(HSQUIRRELVM vm);
+
+            const Member_function_definition member_functions[] =
+            {
+                { "append", append }
+            };
+        }
+
+        
+        struct Chat_message_reader
+        {
+            Chat_message_reader(cup::Chat_message& result);
+
+            bool operator()(HSQUIRRELVM vm, SQInteger index) const;
+
+        private:
+            cup::Chat_message& result_;
+        };
+
+        struct Chat_message_component_reader
+        {
+            Chat_message_component_reader(cup::Chat_message_component& result);
+
+            bool operator()(HSQUIRRELVM vm, SQInteger index) const;
+
+        private:
+            cup::Chat_message_component& result_;
+        };
     }
 }
 
@@ -50,23 +82,35 @@ ts::script::API_definition ts::script_api::server_chatbox_api(server::Message_ce
     result.interfaces.push_back(make_interface(message_center));
     result.static_functions.assign(std::begin(chatbox_server::static_functions), std::end(chatbox_server::static_functions));
 
+    Class_definition chat_message_definition;
+    chat_message_definition.class_name = classes::ChatMessage;
+    chat_message_definition.add_member(members::chat_message::components);
+    chat_message_definition.member_functions.assign(std::begin(chat_message::member_functions), std::end(chat_message::member_functions));
+    result.classes.push_back(chat_message_definition);
+
+    Class_definition chat_message_component_definition;
+    chat_message_component_definition.class_name = classes::ChatMessageComponent;
+    chat_message_component_definition.add_member(members::chat_message_component::sub_string);
+    chat_message_component_definition.add_member(members::chat_message_component::color);
+    result.classes.push_back(chat_message_component_definition);
+
     return result;
 }
 
 SQInteger ts::script_api::chatbox_server::outputChatMessage(HSQUIRRELVM vm)
 {
-    utf8_string_view chat_message;
+    cup::Chat_message chat_message;
 
     Argument_stream argument_stream(vm);
     argument_stream(ignore_argument);
-    argument_stream(String_reader(chat_message));
+    argument_stream(Chat_message_reader(chat_message));
 
     if (argument_stream)
     {
         auto message_center = get_interface<server::Message_center>(vm);
         
         server::Client_message message;
-        message.message = cup::make_chatbox_output_message(utf8_string(chat_message));
+        message.message = cup::make_chatbox_output_message(chat_message);
         message.message_type = server::Message_type::Reliable;
 
         message_center->dispatch_message(message);
@@ -78,4 +122,143 @@ SQInteger ts::script_api::chatbox_server::outputChatMessage(HSQUIRRELVM vm)
     }
 
     return 0;
+}
+
+SQInteger ts::script_api::chat_message::append(HSQUIRRELVM vm)
+{
+    Object_handle object, color;
+    utf8_string_view sub_string;
+
+    Argument_stream argument_stream(vm);
+    argument_stream(Instance_reader(classes::ChatMessage, object));
+    argument_stream(Tostring_reader(sub_string));
+    argument_stream(Instance_reader(classes::Color, color), arg::optional);
+
+    if (argument_stream)
+    {
+        auto component_class = get_class_by_name(vm, classes::ChatMessageComponent);
+        component_class.push();
+
+        sq_createinstance(vm, -1);
+        sq_pushstring(vm, members::chat_message_component::sub_string, -1);
+        sq_pushstring(vm, sub_string.data(), sub_string.size());
+        sq_set(vm, -3);
+
+        sq_pushstring(vm, members::chat_message_component::color, -1);
+        color.push();
+        sq_set(vm, -3);
+
+        object.push();
+        sq_pushstring(vm, members::chat_message::components, -1);
+
+        if (SQ_SUCCEEDED(sq_get(vm, -2)))
+        {
+            if (sq_gettype(vm, -1) != OT_ARRAY)
+            {
+                sq_pop(vm, 1);
+                sq_newarray(vm, 0);
+            }
+
+            sq_push(vm, -3);
+            sq_arrayappend(vm, -2);
+            sq_pushstring(vm, members::chat_message::components, -1);
+            sq_push(vm, -2);
+            sq_set(vm, -4);
+        }        
+    }
+
+    else
+    {
+        report_argument_errors(get_module_by_vm(vm), argument_stream);
+    }
+
+    object.push();
+    return 1;
+}
+
+ts::script_api::Chat_message_component_reader::Chat_message_component_reader(cup::Chat_message_component& result)
+: result_(result)
+{
+}
+
+bool ts::script_api::Chat_message_component_reader::operator()(HSQUIRRELVM vm, SQInteger index) const
+{
+    Object_handle component_instance;
+    Stack_guard stack_guard(vm);
+
+    if (Instance_reader(classes::ChatMessageComponent, component_instance)(vm, index))
+    {
+        component_instance.push();
+        sq_pushstring(vm, members::chat_message_component::sub_string, -1);
+
+        utf8_string_view sub_string;
+        sf::Color color;
+
+        if (SQ_SUCCEEDED(sq_get(vm, -2)) && Tostring_reader(sub_string)(vm, -1))
+        {
+            std::cout << sub_string << std::endl;
+
+            component_instance.push();
+            sq_pushstring(vm, members::chat_message_component::color, -1);
+            if (SQ_SUCCEEDED(sq_get(vm, -2)) && Color_reader(color)(vm, -1))
+            {
+                result_.text = sub_string;
+                result_.color = color;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+ts::script_api::Chat_message_reader::Chat_message_reader(cup::Chat_message& result)
+: result_(result)
+{
+}
+
+bool ts::script_api::Chat_message_reader::operator()(HSQUIRRELVM vm, SQInteger index) const
+{
+    utf8_string_view string_result;
+    if (String_reader(string_result)(vm, index))
+    {
+        result_ = utf8_string(string_result);
+        return true;
+    }
+
+    Object_handle chat_message;
+    if (Instance_reader(classes::ChatMessage, chat_message)(vm, index))
+    {
+        Stack_guard stack_guard(vm);
+        chat_message.push();
+        sq_pushstring(vm, members::chat_message::components, -1);
+        if (SQ_SUCCEEDED(sq_get(vm, -2)))
+        {
+            result_ = {};
+            if (sq_gettype(vm, -1) != OT_ARRAY)
+            {
+                // Return an empty message
+                return true;
+            }
+
+            SQInteger num_components = sq_getsize(vm, -1);
+            for (SQInteger component_index = 0; component_index < num_components; ++component_index)
+            {
+                Stack_guard loop_guard(vm);
+                sq_pushinteger(vm, component_index);
+                sq_get(vm, -2);
+
+                cup::Chat_message_component component;
+
+                if (Chat_message_component_reader(component)(vm, -1))
+                {
+                    result_.append(component);
+                }
+            }
+
+            return true;
+        }        
+    }
+
+    return false;
 }

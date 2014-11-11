@@ -19,18 +19,24 @@
 
 #pragma once
 
-#ifndef CHATBOX_LISTENER_HPP
-#define CHATBOX_LISTENER_HPP
+#ifndef SCRIPT_MEMBER_FUNCTION_DEFINITION_HPP
+#define SCRIPT_MEMBER_FUNCTION_DEFINITION_HPP
 
-#include "chat_message.hpp"
+#include "squirrel_include.hpp"
 
 namespace ts
 {
-    namespace cup
+    namespace script
     {
-        struct Chatbox_listener
+        struct Member_function_definition
         {
-            virtual void on_chat_message(const Chat_message& message) = 0;
+            Member_function_definition(const char* name, SQFUNCTION function, bool is_static = false)
+                : name(name), function(function), is_static(is_static)
+            {}
+
+            const char* name;
+            SQFUNCTION function;
+            bool is_static;
         };
     }
 }

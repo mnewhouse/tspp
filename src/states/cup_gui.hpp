@@ -68,7 +68,7 @@ namespace ts
             void set_loading_progress(double progress);
             void set_loading_progress_text(utf8_string text);
 
-            void output_chat_message(const cup::Composite_message& message);
+            void output_chat_message(const cup::Chat_message& message);
 
             bool quit_event_pending() const;
 

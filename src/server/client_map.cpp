@@ -84,3 +84,27 @@ bool ts::server::Client_map::client_exists(const Generic_client& client) const
 {
     return player_mapping_.find(client) != player_mapping_.end();
 }
+
+
+ts::utf8_string ts::server::Client_map::client_name(const Generic_client& client) const
+{
+    auto players = get_players_by_client(client);
+    if (players.begin() != players.end())
+    {
+        return (*players.begin())->nickname;
+    }
+
+    else
+    {
+        switch (client.type())
+        {
+        case Generic_client::Handle:
+            return client.remote_handle().remote_address().toString();
+
+        case Generic_client::Local:
+            return "Server Admin";
+        }
+    }
+
+    return utf8_string();
+}

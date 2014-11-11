@@ -267,7 +267,7 @@ void ts::client::Interaction_interface::Impl::initialize_action(const cup::Actio
 
 void ts::client::Interaction_interface::Impl::handle_server_quit_message(const Message& message)
 {
-    cup::Composite_message displayed_message;
+    cup::Chat_message displayed_message;
     displayed_message.append("Server quitting.", sf::Color(200, 0, 0));
     
     Server_message out_message;
