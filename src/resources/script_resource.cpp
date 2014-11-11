@@ -42,6 +42,11 @@ const std::vector<ts::utf8_string>& ts::resources::Script_resource::server_scrip
     return server_script_files_;
 }
 
+const std::vector<ts::utf8_string>& ts::resources::Script_resource::cup_scripts() const
+{
+    return cup_script_files_;
+}
+
 ts::resources::Resource_config_exception::Resource_config_exception(const utf8_string& resource_name)
 : runtime_error("could not load '" + std::string(config_file_name) + "' in resource '" + resource_name.string() + "'")
 {
@@ -93,6 +98,19 @@ void ts::resources::Script_resource::load_resource_config(std::istream& stream)
                 auto path = root_path / script_path;
 
                 server_script_files_.push_back(path.string());
+            }
+        }
+
+        else if (directive == "cupscript")
+        {
+            std::string script_path;
+            line_stream >> std::ws;
+
+            if (std::getline(line_stream, script_path))
+            {
+                auto path = root_path / script_path;
+
+                cup_script_files_.push_back(path.string());
             }
         }
     }

@@ -41,6 +41,7 @@ namespace ts
 
             const std::vector<utf8_string>& client_scripts() const;
             const std::vector<utf8_string>& server_scripts() const;
+            const std::vector<utf8_string>& cup_scripts() const;
 
             const utf8_string& name() const;
 
@@ -54,7 +55,6 @@ namespace ts
 
             std::vector<utf8_string> client_script_files_;
             std::vector<utf8_string> server_script_files_;
-
             std::vector<utf8_string> cup_script_files_;
         };
 

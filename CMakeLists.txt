@@ -275,12 +275,17 @@ set(SRC src/main.cpp
 
 		src/server/client_map.hpp
 		src/server/client_map.cpp
+		src/server/command_center.hpp
+		src/server/command_center.cpp
+		src/server/command_handler.hpp
 		src/server/generic_client.hpp
 		src/server/generic_client.cpp
 		src/server/resource_download_server.hpp
 		src/server/resource_download_server.cpp
 		src/server/server.hpp
 		src/server/server.cpp
+		src/server/server_cup_script.hpp
+		src/server/server_cup_script.cpp
 		src/server/server_interaction_listener.hpp
 		src/server/server_interaction_listener.cpp
 		src/server/server_interactions.hpp
@@ -333,6 +338,10 @@ set(SRC src/main.cpp
         src/script/userdata_impl.hpp
         src/script/userdata_traits.hpp
        
+	    src/script/api_definitions/chatbox_api.hpp
+		src/script/api_definitions/chatbox_api.cpp
+	    src/script/api_definitions/command_api.hpp
+		src/script/api_definitions/command_api.cpp
         src/script/api_definitions/entity_api.hpp
         src/script/api_definitions/entity_api.cpp
         src/script/api_definitions/event_api.hpp
@@ -346,6 +355,8 @@ set(SRC src/main.cpp
         
         src/script/interfaces/client_script_interface.hpp
         src/script/interfaces/client_script_interface.cpp
+		src/script/interfaces/cup_script_interface.hpp
+		src/script/interfaces/cup_script_interface.cpp
 		src/script/interfaces/screen_interface.hpp
 		src/script/interfaces/screen_interface.cpp
 		src/script/interfaces/server_script_interface.hpp

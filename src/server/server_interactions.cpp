@@ -22,6 +22,7 @@
 #include "server_interaction_listener.hpp"
 #include "client_map.hpp"
 #include "server_stage_interface.hpp"
+#include "command_center.hpp"
 
 #include "cup/cup.hpp"
 #include "cup/cup_listener.hpp"
@@ -39,7 +40,7 @@ class ts::server::Interaction_interface::Impl
 {
 public:
     Impl(Message_center* message_center, Client_map* client_map, 
-         cup::Cup_controller* cup_controller, const Stage_interface* stage_interface);
+         cup::Cup_controller* cup_controller, const Stage_interface* stage_interface, const Command_center* command_center);
 
     ~Impl();
 
@@ -75,14 +76,16 @@ private:
     Message_center* message_center_;
     cup::Cup_controller* cup_controller_;
     const Stage_interface* stage_interface_;
+    const Command_center* command_center_;
 
     std::vector<Interaction_listener*> listeners_;
     std::unordered_set<Generic_client> awaiting_clients_;
 };
 
 ts::server::Interaction_interface::Interaction_interface(Message_center* message_center, Client_map* client_map, 
-                                                         cup::Cup_controller* cup_controller, const Stage_interface* stage_interface)
-: impl_(std::make_unique<Impl>(message_center, client_map, cup_controller, stage_interface))
+                                                         cup::Cup_controller* cup_controller, const Stage_interface* stage_interface,
+                                                         const Command_center* command_center)
+: impl_(std::make_unique<Impl>(message_center, client_map, cup_controller, stage_interface, command_center))
 {
 }
 
@@ -91,12 +94,14 @@ ts::server::Interaction_interface::~Interaction_interface()
 }
 
 ts::server::Interaction_interface::Impl::Impl(Message_center* message_center, Client_map* client_map, 
-                                              cup::Cup_controller* cup_controller, const Stage_interface* stage_interface)
+                                              cup::Cup_controller* cup_controller, const Stage_interface* stage_interface,
+                                              const Command_center* command_center)
 : Message_listener(message_center),
   client_map_(client_map),
   message_center_(message_center),
   cup_controller_(cup_controller),
-  stage_interface_(stage_interface)
+  stage_interface_(stage_interface),
+  command_center_(command_center)
 {
     cup_controller_->add_cup_listener(this);
 }
@@ -301,9 +306,17 @@ void ts::server::Interaction_interface::Impl::handle_quit_message(const Client_m
 void ts::server::Interaction_interface::Impl::handle_chat_message(const Client_message& client_message)
 {
     auto message_definition = cup::parse_chat_message(client_message.message);    
-    auto displayed_message = cup::format_chat_message(client_name(client_message.client), message_definition.message);
+    const auto& message = message_definition.message;
+    if (!command_center_->has_command_prefix(message))
+    {
+        auto displayed_message = cup::format_chat_message(client_name(client_message.client), message);
+        broadcast_chat_message(displayed_message);
+    }
 
-    broadcast_chat_message(displayed_message);
+    else
+    {
+        command_center_->handle_client_message(client_message.client, message);
+    }
 }
 
 void ts::server::Interaction_interface::Impl::broadcast_chat_message(const cup::Composite_message& displayed_message)

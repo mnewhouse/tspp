@@ -88,6 +88,7 @@ namespace ts
         bool valid() const;
 
         using iterator = utf8::iterator<std::string::const_iterator>;
+        using const_iterator = iterator;
         using value_type = iterator::value_type;
 
         iterator begin() const;
@@ -110,6 +111,8 @@ namespace ts
 
         bool empty() const;
         void clear();
+
+
 
         void pop_back();
         void push_back(utf8::uint32_t code_point);

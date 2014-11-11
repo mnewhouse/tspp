@@ -19,40 +19,30 @@
 
 #pragma once
 
-#ifndef SERVER_INTERACTIONS_HPP
-#define SERVER_INTERACTIONS_HPP
+#ifndef CUP_SCRIPT_INTERFACE_HPP
+#define CUP_SCRIPT_INTERFACE_HPP
 
-#include "server_messages.hpp"
+#include "script/script_engine.hpp"
+
+#include "server/server_messages.hpp"
 
 namespace ts
 {
-    namespace cup
-    {
-        class Cup_controller;
-    }
-
     namespace server
     {
-        class Client_map;
-        class Interaction_listener;
-        class Stage_interface;
         class Command_center;
+    }
 
-        class Interaction_interface
+    namespace script_api
+    {
+        class Cup_interface
+            : private script::Engine
         {
         public:
-            Interaction_interface(Message_center* message_center, Client_map* client_map, cup::Cup_controller* cup_controller,
-                                  const Stage_interface* stage_interface, const Command_center* command_center);
+            Cup_interface(server::Message_center* message_center, server::Command_center* command_center);
 
-            ~Interaction_interface();
-
-            void add_interaction_listener(Interaction_listener* listener);
-            void remove_interaction_listener(Interaction_listener* listener);
-
-        private:
-            class Impl;
-
-            std::unique_ptr<Impl> impl_;
+            using Engine::create_module;
+            using Engine::register_console;
         };
     }
 }

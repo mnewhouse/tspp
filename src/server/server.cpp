@@ -24,6 +24,8 @@
 #include "server_stage_interface.hpp"
 #include "server_load_errors.hpp"
 #include "resource_download_server.hpp"
+#include "server_cup_script.hpp"
+#include "command_center.hpp"
 
 #include "resources/active_resources.hpp"
 
@@ -68,12 +70,15 @@ public:
 
     Client_map client_map_;
     Stage_interface stage_interface_;
+    Command_center command_center_;
     Interaction_interface interaction_interface_;    
 
-    Resource_download_server download_server_;
+    Resource_download_server download_server_;    
 
     using Local_client_link = std::function<void(const Client_message&)>;
     Local_client_link local_client_link_;
+
+    Cup_script_interface cup_script_interface_;
 };
 
 ts::server::Server_message_dispatcher::Server_message_dispatcher(impl::Server* server, Message_center* message_center)
@@ -94,8 +99,10 @@ ts::server::impl::Server::Server(resources::Resource_store* resource_store)
   message_dispatcher_(this, &message_center_),
   client_map_(&cup_controller_, &server_connection_),
   stage_interface_(&message_center_),
-  interaction_interface_(&message_center_, &client_map_, &cup_controller_, &stage_interface_),  
-  download_server_(&message_center_, resource_store)
+  command_center_(),
+  interaction_interface_(&message_center_, &client_map_, &cup_controller_, &stage_interface_, &command_center_),
+  download_server_(&message_center_, resource_store),  
+  cup_script_interface_(&message_center_, &command_center_, &cup_controller_)
 {
 }
 

@@ -19,8 +19,8 @@
 
 #pragma once
 
-#ifndef SERVER_INTERACTIONS_HPP
-#define SERVER_INTERACTIONS_HPP
+#ifndef SERVER_CUP_SCRIPT_HPP
+#define SERVER_CUP_SCRIPT_HPP
 
 #include "server_messages.hpp"
 
@@ -33,25 +33,16 @@ namespace ts
 
     namespace server
     {
-        class Client_map;
-        class Interaction_listener;
-        class Stage_interface;
         class Command_center;
 
-        class Interaction_interface
+        class Cup_script_interface
         {
         public:
-            Interaction_interface(Message_center* message_center, Client_map* client_map, cup::Cup_controller* cup_controller,
-                                  const Stage_interface* stage_interface, const Command_center* command_center);
-
-            ~Interaction_interface();
-
-            void add_interaction_listener(Interaction_listener* listener);
-            void remove_interaction_listener(Interaction_listener* listener);
+            Cup_script_interface(Message_center* message_center, Command_center* command_center, cup::Cup_controller* cup_controller);
+            ~Cup_script_interface();
 
         private:
-            class Impl;
-
+            struct Impl;
             std::unique_ptr<Impl> impl_;
         };
     }

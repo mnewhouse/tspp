@@ -31,17 +31,6 @@ std::int32_t ts::script::Execution_context::push_arguments() const
     return 0;
 }
 
-std::int32_t ts::script::Execution_context::push(const std::vector<Value>& values) const
-{
-    std::int32_t result = 0;
-    for (const auto& value : values)
-    {
-        result += push(value);
-    }
-
-    return result;
-}
-
 
 std::int32_t ts::script::Execution_context::push(const Value& value) const
 {

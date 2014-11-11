@@ -250,7 +250,7 @@ void ts::world::Handling::update(const Handling_properties& properties, Car& car
                                     std::cos(oversteer.radians()) : std::cos(reverse_oversteer.radians()));
     }
 
-    auto required_lateral_traction = (steering_multiplier != 0.0 ? properties.steering * terrain.steering * speed : 0.0);
+    auto required_lateral_traction = (steering_multiplier != 0.0 ? properties.steering_lock * terrain.steering * speed : 0.0);
 
     auto total_required_traction = 0.0;
     if (traction_limit.accelerate != 0.0 && traction_limit.lateral != 0.0)

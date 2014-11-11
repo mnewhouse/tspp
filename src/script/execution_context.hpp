@@ -42,7 +42,9 @@ namespace ts
             std::int32_t push_arguments() const;
 
             std::int32_t push(const Value& value) const;
-            std::int32_t push(const std::vector<Value>& values) const;
+
+            template <typename T>
+            std::int32_t push(const std::vector<T>& values) const;
 
             HSQUIRRELVM vm_;
         };
@@ -65,6 +67,18 @@ std::int32_t ts::script::Execution_context::push_arguments(T&& value, Args&&... 
 {
     auto result = push(std::forward<T>(value));
     return push_arguments(std::forward<Args>(args)...) + result;
+}
+
+template <typename T>
+std::int32_t ts::script::Execution_context::push(const std::vector<T>& values) const
+{
+    std::int32_t result = 0;
+    for (const auto& value : values)
+    {
+        result += push(value);
+    }
+
+    return result;
 }
 
 #endif
