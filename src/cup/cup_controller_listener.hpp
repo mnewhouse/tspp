@@ -19,33 +19,19 @@
 
 #pragma once
 
-#ifndef CUP_SCRIPT_INTERFACE_HPP
-#define CUP_SCRIPT_INTERFACE_HPP
+#ifndef CUP_CONTROLLER_LISTENER_HPP
+#define CUP_CONTROLLER_LISTENER_HPP     
 
-#include "script/script_engine.hpp"
-
-#include "server/server_messages.hpp"
+#include "resources/script_resource.hpp"
 
 namespace ts
 {
-    namespace server
+    namespace cup
     {
-        class Command_center;
-        class Client_map;
-    }
-
-    namespace script_api
-    {
-        class Cup_interface
-            : private script::Engine
+        struct Cup_controller_listener
         {
-        public:
-            Cup_interface(server::Message_center* message_center, server::Command_center* command_center, server::Client_map* client_map);
-
-            using Engine::create_module;
-            using Engine::get_module_by_name;
-            using Engine::unload_module;
-            using Engine::register_console;
+            virtual void on_resource_start(resources::Script_handle resource) {}
+            virtual void on_resource_stop(resources::Script_handle resource) {}
         };
     }
 }

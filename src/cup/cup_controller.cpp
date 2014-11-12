@@ -19,12 +19,16 @@
 
 #include "stdinc.hpp"
 #include "cup_controller.hpp"
+#include "cup_controller_listener.hpp"
 #include "cup.hpp"
 #include "cup_config.hpp"
 
 #include "resources/resource_store.hpp"
 #include "resources/car_handle.hpp"
 #include "resources/car_store.hpp"
+#include "resources/script_manager.hpp"
+#include "resources/script_resource.hpp"
+#include "resources/track_metadata.hpp"
 
 struct ts::cup::Cup_controller::Impl
 {
@@ -38,13 +42,28 @@ struct ts::cup::Cup_controller::Impl
     void launch_action();
     void end_action();
 
+    void process_new_track();
+    void set_gamemode(resources::Script_handle gamemode);
+
+    void stop_resource(resources::Script_handle resource);
+    void start_resource(resources::Script_handle resource);
+
+    void load_script_settings();
+
     Cup cup_;
     Cup_config cup_config_;
 
     const resources::Resource_store* resource_store_;
+
     std::vector<resources::Car_handle> selected_cars_;
     std::unordered_map<Player_handle, resources::Car_handle> car_mapping_;
+
     std::vector<Stage_player> stage_players_;
+
+    std::vector<resources::Script_handle> loaded_resources_;
+    resources::Script_handle current_gamemode_;
+    
+    std::vector<Cup_controller_listener*> listeners_;
 };
 
 ts::cup::Cup_controller::Impl::Impl(resources::Resource_store* resource_store)
@@ -52,6 +71,7 @@ ts::cup::Cup_controller::Impl::Impl(resources::Resource_store* resource_store)
   cup_config_(resource_store),
   resource_store_(resource_store)
 {
+    load_script_settings();
 }
 
 ts::cup::Cup_controller::Cup_controller(resources::Resource_store* resource_store)
@@ -152,6 +172,11 @@ const ts::resources::Script_settings& ts::cup::Cup_controller::script_settings()
     return impl_->cup_config_.script_settings();
 }
 
+const std::vector<ts::resources::Script_handle>& ts::cup::Cup_controller::loaded_resources() const
+{
+    return impl_->loaded_resources_;
+}
+
 ts::cup::Player_handle ts::cup::Cup_controller::add_player(const Player& player, Player_id player_id)
 {
     return impl_->cup_.add_player(player, player_id);
@@ -205,6 +230,18 @@ void ts::cup::Cup_controller::remove_cup_listener(Cup_listener* listener)
     impl_->cup_.remove_cup_listener(listener);
 }
 
+void ts::cup::Cup_controller::add_cup_controller_listener(Cup_controller_listener* listener)
+{
+    impl_->listeners_.push_back(listener);
+}
+
+void ts::cup::Cup_controller::remove_cup_controller_listener(Cup_controller_listener* listener)
+{
+    auto& listeners = impl_->listeners_;
+    listeners.erase(std::remove(listeners.begin(), listeners.end(), listener), listeners.end());
+}
+
+
 void ts::cup::Cup_controller::advance()
 {
     switch (cup_state())
@@ -256,7 +293,6 @@ void ts::cup::Cup_controller::Impl::preinitialize_action()
     const auto& car_settings = cup_config_.car_settings();
     const auto& car_store = resource_store_->car_store();
     const auto car_mode = car_settings.car_mode();
-
 
     // Store selected cars away, so that it doesn't bug out when 
     // cars are added or removed during car selection.
@@ -356,5 +392,71 @@ void ts::cup::Cup_controller::Impl::end_action()
     {
         // And the sequence continues
         cup_.set_cup_state(Cup_state::Cup);
+    }
+}
+
+void ts::cup::Cup_controller::Impl::load_script_settings()
+{
+    const auto& script_manager = resource_store_->script_manager();
+    const auto& script_settings = cup_config_.script_settings();
+
+    for (const auto& resource_name : script_settings.loaded_scripts())
+    {
+        if (auto resource = script_manager.get_script_by_name(resource_name))
+        {
+            loaded_resources_.push_back(resource);
+        }
+    }
+}
+
+void ts::cup::Cup_controller::Impl::start_resource(resources::Script_handle resource)
+{
+    for (auto listener : listeners_)
+    {
+        listener->on_resource_start(resource);
+    }
+}
+
+void ts::cup::Cup_controller::Impl::stop_resource(resources::Script_handle resource)
+{
+    for (auto listener : listeners_)
+    {
+        listener->on_resource_stop(resource);
+    }
+}
+
+void ts::cup::Cup_controller::Impl::set_gamemode(resources::Script_handle gamemode)
+{
+    if (std::find(loaded_resources_.begin(), loaded_resources_.end(), current_gamemode_) == loaded_resources_.end())
+    {
+        // Stop old gamemode
+        stop_resource(current_gamemode_);
+    }
+
+    if (std::find(loaded_resources_.begin(), loaded_resources_.end(), gamemode) == loaded_resources_.end())
+    {
+        start_resource(gamemode);
+    }
+
+    current_gamemode_ = gamemode;
+}
+
+void ts::cup::Cup_controller::Impl::process_new_track()
+{
+    const auto& tracks = cup_config_.track_settings().selected_tracks();
+    auto cup_progress = cup_.cup_progress();
+
+    if (cup_progress < tracks.size())
+    {
+        const auto& current_track = tracks[cup_progress];
+        const auto& script_manager = resource_store_->script_manager();
+        const auto& script_settings = resource_store_->script_settings();
+
+        auto metadata = resources::load_track_metadata(current_track);
+        auto new_gamemode = script_manager.get_script_by_name(metadata.gamemode);
+        if (new_gamemode && !script_settings.force_default_gamemode())
+        {
+            set_gamemode(new_gamemode);
+        }
     }
 }

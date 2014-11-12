@@ -21,6 +21,7 @@
 #include "world_interface.hpp"
 
 #include "script/script_engine.hpp"
+#include "script/script_module.hpp"
 
 ts::script_api::World_interface::World_interface(script::Engine* engine)
 : engine_(engine)

@@ -25,6 +25,7 @@
 #include "game/stage_interface.hpp"
 
 #include "script/interfaces/server_script_interface.hpp"
+#include "script/script_module.hpp"
 
 class ts::server::Stage_interface::Impl
     : public game::Stage_interface

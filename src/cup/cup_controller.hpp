@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #ifndef CUP_CONTROLLER_HPP
@@ -27,6 +26,7 @@
 
 #include "resources/settings/car_settings.hpp"
 #include "resources/car_handle.hpp"
+#include "resources/script_resource.hpp"
 
 namespace ts
 {
@@ -46,6 +46,7 @@ namespace ts
         class Cup_config;
         struct Cup_listener;
         struct Stage_data;
+        struct Cup_controller_listener;
 
         struct Stage_player
         {
@@ -65,14 +66,15 @@ namespace ts
             void add_cup_listener(Cup_listener* listener);
             void remove_cup_listener(Cup_listener* listener);
 
+            void add_cup_controller_listener(Cup_controller_listener* listener);
+            void remove_cup_controller_listener(Cup_controller_listener* listener);
+
             void advance();            
             cup::Cup_state cup_state() const;
 
             const std::vector<resources::Car_identifier>& car_list() const;
             const resources::Car_settings& car_settings() const;
-            resources::Car_mode car_mode() const;
-
-           
+            resources::Car_mode car_mode() const;           
 
             const std::vector<resources::Track_handle>& track_list() const;
             const resources::Track_settings& track_settings() const;
@@ -80,6 +82,7 @@ namespace ts
 
             const resources::Resource_store& resource_store() const;
             const resources::Script_settings& script_settings() const;
+            const std::vector<resources::Script_handle>& loaded_resources() const;
 
             std::size_t stage_count() const;
             std::size_t cup_progress() const;

@@ -47,3 +47,23 @@ const std::vector<ts::utf8_string>& ts::resources::Script_settings::loaded_scrip
 {
     return loaded_scripts_;
 }
+
+void ts::resources::Script_settings::set_default_gamemode(utf8_string default_gamemode)
+{
+    default_gamemode_ = std::move(default_gamemode);
+}
+
+const ts::utf8_string& ts::resources::Script_settings::default_gamemode() const
+{
+    return default_gamemode_;
+}
+
+bool ts::resources::Script_settings::force_default_gamemode() const
+{
+    return force_default_gamemode_;
+}
+
+void ts::resources::Script_settings::force_default_gamemode(bool force)
+{
+    force_default_gamemode_ = force;
+}

@@ -32,6 +32,10 @@ const ts::utf8_string& ts::script::Module_handle::module_name() const
     return *module_name_;
 }
 
+ts::script::Engine::Engine()
+{
+}
+
 ts::script::Engine::~Engine()
 {
 }
@@ -61,6 +65,26 @@ ts::script::Module_handle ts::script::Engine::create_module(utf8_string module_n
     }
 
     return Module_handle(&module, &name);
+}
+
+ts::script::Module_handle ts::script::Engine::get_module_by_name(const utf8_string& module_name)
+{
+    auto it = module_map_.find(module_name);
+    if (it == module_map_.end())
+    {
+        return Module_handle();
+    }
+
+    return Module_handle(&it->second, &it->first);
+}
+
+void ts::script::Engine::unload_module(Module_handle module)
+{
+    auto it = module_map_.find(module.module_name());
+    if (it != module_map_.end())
+    {
+        module_map_.erase(it);
+    }
 }
 
 void ts::script::Engine::write_console_line(const utf8_string& line, Error_level error_level)

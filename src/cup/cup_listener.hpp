@@ -26,6 +26,11 @@
 
 namespace ts
 {
+    namespace resources
+    {
+        struct Track_metadata;
+    }
+
     namespace cup
     {
         struct Stage_data;

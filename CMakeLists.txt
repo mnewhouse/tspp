@@ -116,6 +116,7 @@ set(SRC src/main.cpp
 		src/cup/cup_config.cpp
 		src/cup/cup_controller.hpp
 		src/cup/cup_controller.cpp
+		src/cup/cup_controller_listener.hpp
 		src/cup/cup_listener.hpp
 		src/cup/cup_messages.hpp
 		src/cup/cup_messages.cpp
@@ -248,6 +249,8 @@ set(SRC src/main.cpp
 		src/resources/track_identifier.hpp
 		src/resources/track_loader.hpp
 		src/resources/track_loader.cpp
+		src/resources/track_metadata.hpp
+		src/resources/track_metadata.cpp
         src/resources/track_store.hpp
         src/resources/track_store.cpp
         src/resources/wall_definition.hpp

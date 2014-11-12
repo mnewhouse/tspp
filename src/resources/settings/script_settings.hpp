@@ -35,8 +35,16 @@ namespace ts
 
             const std::vector<utf8_string>& loaded_scripts() const;
 
+            void set_default_gamemode(utf8_string default_gamemode);
+            const utf8_string& default_gamemode() const;
+
+            bool force_default_gamemode() const;
+            void force_default_gamemode(bool force);
+
         private:
             std::vector<utf8_string> loaded_scripts_;
+            utf8_string default_gamemode_;
+            bool force_default_gamemode_ = false;
         };
     }
 }

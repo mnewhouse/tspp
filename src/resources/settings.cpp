@@ -357,7 +357,7 @@ std::istream& ts::resources::operator>>(std::istream& stream, Player_settings& p
 
 std::istream& ts::resources::operator>>(std::istream& stream, Script_settings& script_settings)
 {    
-    for (std::string line, directive, script_name; directive != "end" && std::getline(stream, line);)
+    for (std::string line, directive, param; directive != "end" && std::getline(stream, line);)
     {
         std::istringstream line_stream(line);
         if (!read_directive(line_stream, directive)) continue;
@@ -365,10 +365,28 @@ std::istream& ts::resources::operator>>(std::istream& stream, Script_settings& s
         if (directive == "enabledscript")
         {
             line_stream >> std::ws;
-            if (std::getline(line_stream, script_name))
+            if (std::getline(line_stream, param))
             {
-                script_settings.enable_script(script_name);
+                script_settings.enable_script(param);
             }            
+        }
+
+        else if (directive == "defaultgamemode")
+        {
+            line_stream >> std::ws;
+            if (std::getline(line_stream, param))
+            {
+                script_settings.set_default_gamemode(std::move(param));
+            }
+        }
+
+        else if (directive == "forcegamemode")
+        {
+            std::int32_t force = 0;
+            if (line_stream >> force)
+            {
+                script_settings.force_default_gamemode(force != 0);
+            }
         }
     }
 
@@ -471,6 +489,9 @@ std::ostream& ts::resources::operator<<(std::ostream& stream, const Player_setti
 
 std::ostream& ts::resources::operator<<(std::ostream& stream, const Script_settings& script_settings)
 {
+    stream << "DefaultGamemode " << script_settings.default_gamemode() << std::endl;
+    stream << "ForceGamemode " << +script_settings.force_default_gamemode() << std::endl;
+
     for (const auto& script_name : script_settings.loaded_scripts())
     {
         stream << "EnabledScript " << script_name << std::endl;

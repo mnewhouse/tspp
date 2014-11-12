@@ -25,12 +25,13 @@
 #include "squirrel_include.hpp"
 #include "script_api.hpp"
 #include "script_console.hpp"
-#include "script_module.hpp"
 
 namespace ts
 {
     namespace script
     {
+        class Module;
+
         struct Module_handle
             : private Pointer_handle<Module>
         {
@@ -50,13 +51,15 @@ namespace ts
         class Engine
         {
         public:
-            Engine() = default;
+            Engine();
             ~Engine();
 
             Engine(const Engine&) = delete;
             Engine& operator=(const Engine&) = delete;
 
             Module_handle create_module(utf8_string module_name);
+            Module_handle get_module_by_name(const utf8_string& module_name);
+            void unload_module(Module_handle module_handle);
 
             void register_api(const API_definition& api_definition);
 

@@ -21,44 +21,69 @@
 #include "server_cup_script.hpp"
 
 #include "cup/cup_controller.hpp"
+#include "cup/cup_controller_listener.hpp"
 
 #include "resources/resource_store.hpp"
 #include "resources/script_manager.hpp"
 #include "resources/settings/script_settings.hpp"
 
 #include "script/interfaces/cup_script_interface.hpp"
+#include "script/script_module.hpp"
 
 struct ts::server::Cup_script_interface::Impl
+    : public cup::Cup_controller_listener
 {
     Impl(Message_center* message_center, Command_center* command_center, 
          cup::Cup_controller* cup_controller, Client_map* client_map);
 
+    ~Impl();
+
     void load_script_modules(const cup::Cup_controller* cup_controller);
+
     void load_script_module(const resources::Script_handle& script_handle);
+    void unload_script_module(const resources::Script_handle& script_handle);
+
+    virtual void on_resource_start(resources::Script_handle resource) override;
+    virtual void on_resource_stop(resources::Script_handle resource) override;
 
     script_api::Cup_interface script_interface_;
+    cup::Cup_controller* cup_controller_;
+
+    resources::Script_handle current_gamemode_;
 };
 
 ts::server::Cup_script_interface::Impl::Impl(Message_center* message_center, Command_center* command_center, 
                                              cup::Cup_controller* cup_controller, Client_map* client_map)
-: script_interface_(message_center, command_center, client_map)
+: script_interface_(message_center, command_center, client_map),
+  cup_controller_(cup_controller)
 {
+    cup_controller->add_cup_controller_listener(this);
+
     script_interface_.register_console(script::Stdout_console());
 
     load_script_modules(cup_controller);
 }
 
+ts::server::Cup_script_interface::Impl::~Impl()
+{
+    cup_controller_->remove_cup_controller_listener(this);
+}
+
+void ts::server::Cup_script_interface::Impl::on_resource_start(resources::Script_handle resource)
+{
+    load_script_module(resource);
+}
+
+void ts::server::Cup_script_interface::Impl::on_resource_stop(resources::Script_handle resource)
+{
+    unload_script_module(resource);
+}
+
 void ts::server::Cup_script_interface::Impl::load_script_modules(const cup::Cup_controller* cup_controller)
 {
-    const auto& script_manager = cup_controller->resource_store().script_manager();
-    const auto& script_settings = cup_controller->script_settings();
-
-    for (const auto& script_name : script_settings.loaded_scripts())
+    for (const auto& resource : cup_controller_->loaded_resources())
     {
-        if (auto script_handle = script_manager.get_script_by_name(script_name))
-        {
-            load_script_module(script_handle);            
-        }
+        load_script_module(resource);
     }
 }
 
@@ -70,6 +95,14 @@ void ts::server::Cup_script_interface::Impl::load_script_module(const resources:
     {
         module->do_file(file_name);
     }
+}
+
+void ts::server::Cup_script_interface::Impl::unload_script_module(const resources::Script_handle& script_handle)
+{
+    if (auto module = script_interface_.get_module_by_name(script_handle->name()))
+    {
+        script_interface_.unload_module(module);
+    }    
 }
 
 ts::server::Cup_script_interface::Cup_script_interface(Message_center* message_center, Command_center* command_center, 

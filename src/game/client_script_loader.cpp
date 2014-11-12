@@ -21,6 +21,7 @@
 #include "client_script_loader.hpp"
 
 #include "script/script_engine.hpp"
+#include "script/script_module.hpp"
 
 
 void ts::game::Client_script_loader::async_load(std::vector<resources::Script_handle> scripts, const action::Stage* stage, Action_scene* action_scene)
