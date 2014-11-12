@@ -25,12 +25,15 @@
 #include "script/api_definitions/color_api.hpp"
 #include "script/api_definitions/command_api.hpp"
 #include "script/api_definitions/chatbox_api.hpp"
+#include "script/api_definitions/client_api.hpp"
 
-ts::script_api::Cup_interface::Cup_interface(server::Message_center* message_center, server::Command_center* command_center)
+ts::script_api::Cup_interface::Cup_interface(server::Message_center* message_center, server::Command_center* command_center, 
+                                             server::Client_map* client_map)
 {
     register_api(script_api::utility_classes());
     register_api(script_api::event_api());
     register_api(script_api::color_api());
+    register_api(script_api::client_api(client_map));
     register_api(script_api::command_api(command_center));
     register_api(script_api::server_chatbox_api(message_center));
 }

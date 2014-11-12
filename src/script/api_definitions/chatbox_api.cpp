@@ -46,10 +46,12 @@ namespace ts
         namespace chat_message
         {
             SQInteger append(HSQUIRRELVM vm);
+            SQInteger constructor(HSQUIRRELVM vm);
 
             const Member_function_definition member_functions[] =
             {
-                { "append", append }
+                { "append", append },
+                { "constructor", constructor }
             };
         }
 
@@ -100,10 +102,12 @@ ts::script::API_definition ts::script_api::server_chatbox_api(server::Message_ce
 SQInteger ts::script_api::chatbox_server::outputChatMessage(HSQUIRRELVM vm)
 {
     cup::Chat_message chat_message;
+    Userdata<server::Generic_client> client_udata;
 
-    Argument_stream argument_stream(vm);
+    Argument_stream argument_stream(vm, "outputChatMessage");
     argument_stream(ignore_argument);
     argument_stream(Chat_message_reader(chat_message));
+    argument_stream(Userdata_reader<server::Generic_client>(client_udata), arg::optional);
 
     if (argument_stream)
     {
@@ -113,9 +117,84 @@ SQInteger ts::script_api::chatbox_server::outputChatMessage(HSQUIRRELVM vm)
         message.message = cup::make_chatbox_output_message(chat_message);
         message.message_type = server::Message_type::Reliable;
 
+        if (client_udata)
+        {
+            message.client = *client_udata;
+        }
+
         message_center->dispatch_message(message);
     }
 
+    else
+    {
+        report_argument_errors(get_module_by_vm(vm), argument_stream);
+    }
+
+    return 0;
+}
+
+
+SQInteger ts::script_api::chat_message::constructor(HSQUIRRELVM vm)
+{
+    Object_handle instance, color;
+    utf8_string_view string;
+
+    Stack_guard stack_guard(vm);
+
+    Argument_stream argument_stream(vm, "ChatMessage::constructor");
+    argument_stream(Instance_reader(classes::ChatMessage, instance));
+    argument_stream(Tostring_reader(string), arg::optional);
+    argument_stream(Instance_reader(classes::Color, color), arg::optional);
+
+    if (argument_stream)
+    {
+        auto component_class = get_class_by_name(vm, classes::ChatMessageComponent);
+        auto color_class = get_class_by_name(vm, classes::Color);
+        component_class.push();
+        color_class.push();
+
+        sq_createinstance(vm, -2);
+        sq_pushstring(vm, members::chat_message_component::sub_string, -1);
+        sq_pushstring(vm, string.data(), string.size());
+        sq_set(vm, -3);
+
+        sq_pushstring(vm, members::chat_message_component::color, -1);
+        if (color)
+        {            
+            color.push();
+        }
+
+        else
+        {
+            // Construct new color instance
+            sq_createinstance(vm, -3);
+
+            Stack_guard call_guard(vm);
+            sq_pushstring(vm, "constructor", -1);
+            if (SQ_SUCCEEDED(sq_get(vm, -5)))
+            {
+                // And call the constructor.
+                sq_push(vm, -2);
+                sq_pushinteger(vm, 255);
+                sq_pushinteger(vm, 255);
+                sq_pushinteger(vm, 255);
+                sq_pushinteger(vm, 255);
+                sq_call(vm, 5, SQFalse, SQTrue);
+            }
+        }
+
+        sq_set(vm, -3);        
+
+        sq_newarray(vm, 0);
+        sq_push(vm, -2);
+        sq_arrayappend(vm, -2);
+
+        instance.push();
+        sq_pushstring(vm, members::chat_message::components, -1);
+        sq_push(vm, -3);
+        sq_set(vm, -3);       
+    }
+    
     else
     {
         report_argument_errors(get_module_by_vm(vm), argument_stream);
@@ -129,7 +208,7 @@ SQInteger ts::script_api::chat_message::append(HSQUIRRELVM vm)
     Object_handle object, color;
     utf8_string_view sub_string;
 
-    Argument_stream argument_stream(vm);
+    Argument_stream argument_stream(vm, "ChatMessage::append");
     argument_stream(Instance_reader(classes::ChatMessage, object));
     argument_stream(Tostring_reader(sub_string));
     argument_stream(Instance_reader(classes::Color, color), arg::optional);
@@ -196,8 +275,6 @@ bool ts::script_api::Chat_message_component_reader::operator()(HSQUIRRELVM vm, S
 
         if (SQ_SUCCEEDED(sq_get(vm, -2)) && Tostring_reader(sub_string)(vm, -1))
         {
-            std::cout << sub_string << std::endl;
-
             component_instance.push();
             sq_pushstring(vm, members::chat_message_component::color, -1);
             if (SQ_SUCCEEDED(sq_get(vm, -2)) && Color_reader(color)(vm, -1))

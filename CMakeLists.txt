@@ -341,6 +341,8 @@ set(SRC src/main.cpp
        
 	    src/script/api_definitions/chatbox_api.hpp
 		src/script/api_definitions/chatbox_api.cpp
+		src/script/api_definitions/client_api.hpp
+		src/script/api_definitions/client_api.cpp
 		src/script/api_definitions/color_api.hpp
 		src/script/api_definitions/color_api.cpp
 	    src/script/api_definitions/command_api.hpp

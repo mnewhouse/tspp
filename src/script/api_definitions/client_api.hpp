@@ -19,32 +19,21 @@
 
 #pragma once
 
-#ifndef CUP_SCRIPT_INTERFACE_HPP
-#define CUP_SCRIPT_INTERFACE_HPP
+#ifndef CLIENT_API_HPP
+#define CLIENT_API_HPP
 
-#include "script/script_engine.hpp"
-
-#include "server/server_messages.hpp"
+#include "script/script_api.hpp"
 
 namespace ts
 {
     namespace server
     {
-        class Command_center;
         class Client_map;
     }
 
     namespace script_api
     {
-        class Cup_interface
-            : private script::Engine
-        {
-        public:
-            Cup_interface(server::Message_center* message_center, server::Command_center* command_center, server::Client_map* client_map);
-
-            using Engine::create_module;
-            using Engine::register_console;
-        };
+        script::API_definition client_api(server::Client_map* client_map);
     }
 }
 

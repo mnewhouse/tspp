@@ -110,7 +110,7 @@ SQInteger ts::script_api::commands::addCommandHandler(HSQUIRRELVM vm)
     utf8_string_view command_name;
     Function handler_function;
 
-    Argument_stream argument_stream(vm);
+    Argument_stream argument_stream(vm, "addCommandHandler");
     argument_stream(ignore_argument);
     argument_stream(String_reader(command_name));
     argument_stream(Function_reader(handler_function));
@@ -138,7 +138,7 @@ SQInteger ts::script_api::commands::removeCommandHandler(HSQUIRRELVM vm)
 {
     Userdata<Command_handle> command_udata;
 
-    Argument_stream argument_stream(vm);
+    Argument_stream argument_stream(vm, "removeCommandHandler");
     argument_stream(ignore_argument);
     argument_stream(Userdata_reader<Command_handle>(command_udata));
 

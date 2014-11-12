@@ -57,6 +57,7 @@ namespace ts
             bool client_exists(const Generic_client& client) const;
 
             utf8_string client_name(const Generic_client& client) const;
+            sf::IpAddress client_address(const Generic_client& client) const;
 
         private:
             std::unordered_map<Generic_client, std::vector<cup::Player_handle>> player_mapping_;

@@ -108,3 +108,19 @@ ts::utf8_string ts::server::Client_map::client_name(const Generic_client& client
 
     return utf8_string();
 }
+
+
+sf::IpAddress ts::server::Client_map::client_address(const Generic_client& client) const
+{
+    switch (client.type())
+    {
+    case Generic_client::Handle:
+        return client.remote_handle().remote_address();
+
+    case Generic_client::Address:
+        return client.remote_address().address;
+
+    default:
+        return sf::IpAddress::getLocalAddress();
+    }
+}

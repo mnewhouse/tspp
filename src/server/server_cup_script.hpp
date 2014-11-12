@@ -34,11 +34,13 @@ namespace ts
     namespace server
     {
         class Command_center;
+        class Client_map;
 
         class Cup_script_interface
         {
         public:
-            Cup_script_interface(Message_center* message_center, Command_center* command_center, cup::Cup_controller* cup_controller);
+            Cup_script_interface(Message_center* message_center, Command_center* command_center, 
+                                 cup::Cup_controller* cup_controller, Client_map* client_map);
             ~Cup_script_interface();
 
         private:

@@ -63,11 +63,11 @@ SQInteger ts::script_api::members::color::constructor(HSQUIRRELVM vm)
 
     Stack_guard stack_guard(vm);
 
-    Argument_stream argument_stream(vm);
+    Argument_stream argument_stream(vm, "Color::constructor");
     argument_stream(Instance_reader(classes::Color, color_instance));
-    argument_stream(Numeric_reader(red));
-    argument_stream(Numeric_reader(green));
-    argument_stream(Numeric_reader(blue));
+    argument_stream(Numeric_reader(red), arg::optional);
+    argument_stream(Numeric_reader(green), arg::optional);
+    argument_stream(Numeric_reader(blue), arg::optional);
     argument_stream(Numeric_reader(alpha), arg::optional);
 
     if (argument_stream)

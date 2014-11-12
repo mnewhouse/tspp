@@ -30,7 +30,8 @@
 
 struct ts::server::Cup_script_interface::Impl
 {
-    Impl(Message_center* message_center, Command_center* command_center, cup::Cup_controller* cup_controller);
+    Impl(Message_center* message_center, Command_center* command_center, 
+         cup::Cup_controller* cup_controller, Client_map* client_map);
 
     void load_script_modules(const cup::Cup_controller* cup_controller);
     void load_script_module(const resources::Script_handle& script_handle);
@@ -38,8 +39,9 @@ struct ts::server::Cup_script_interface::Impl
     script_api::Cup_interface script_interface_;
 };
 
-ts::server::Cup_script_interface::Impl::Impl(Message_center* message_center, Command_center* command_center, cup::Cup_controller* cup_controller)
-: script_interface_(message_center, command_center)
+ts::server::Cup_script_interface::Impl::Impl(Message_center* message_center, Command_center* command_center, 
+                                             cup::Cup_controller* cup_controller, Client_map* client_map)
+: script_interface_(message_center, command_center, client_map)
 {
     script_interface_.register_console(script::Stdout_console());
 
@@ -71,8 +73,8 @@ void ts::server::Cup_script_interface::Impl::load_script_module(const resources:
 }
 
 ts::server::Cup_script_interface::Cup_script_interface(Message_center* message_center, Command_center* command_center, 
-                                                       cup::Cup_controller* cup_controller)
-: impl_(std::make_unique<Impl>(message_center, command_center, cup_controller))
+                                                       cup::Cup_controller* cup_controller, Client_map* client_map)
+: impl_(std::make_unique<Impl>(message_center, command_center, cup_controller, client_map))
 {
 }
 
