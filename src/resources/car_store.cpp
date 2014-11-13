@@ -52,7 +52,7 @@ void ts::resources::Car_store::load_car_file(const boost::filesystem::path& file
     boost::filesystem::ifstream stream(file_path, std::ifstream::in);
     if (stream) 
     {
-        for (auto& car_def : load_car_definitions(stream, directory)) 
+        for (auto& car_def : load_car_definitions(stream, file_path.string())) 
         {
             auto car_name = to_lower(car_def.car_name);
             

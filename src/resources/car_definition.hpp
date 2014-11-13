@@ -64,8 +64,7 @@ namespace ts
             utf8_string engine_sample;
         };
 
-        Car_definition load_car_definition(std::istream& stream, const utf8_string& directory);
-        std::vector<Car_definition> load_car_definitions(std::istream& stream, const utf8_string& directory);
+        std::vector<Car_definition> load_car_definitions(std::istream& stream, const utf8_string& file_path);
 
     }
 

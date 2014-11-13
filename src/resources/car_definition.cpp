@@ -30,6 +30,14 @@
 #include "world/collision_bitmap.hpp"
 
 
+namespace ts
+{
+    namespace resources
+    {
+        Car_definition load_car_definition(std::istream& stream, const utf8_string& directory);
+    }
+}
+
 ts::resources::Car_definition ts::resources::load_car_definition(std::istream& stream, const utf8_string& directory)
 {
     Car_definition car_def;
@@ -111,9 +119,10 @@ ts::resources::Car_definition ts::resources::load_car_definition(std::istream& s
     return car_def;
 }
 
-std::vector<ts::resources::Car_definition> ts::resources::load_car_definitions(std::istream& stream, const utf8_string& directory)
+std::vector<ts::resources::Car_definition> ts::resources::load_car_definitions(std::istream& stream, const utf8_string& file_path)
 {
     std::vector<Car_definition> result;
+    const utf8_string directory = boost::filesystem::path(file_path.string()).parent_path().string();
 
     for (std::string line, directive; std::getline(stream, line); )
     {
@@ -131,6 +140,7 @@ std::vector<ts::resources::Car_definition> ts::resources::load_car_definitions(s
             {
                 result.push_back(load_car_definition(stream, directory));
                 result.back().car_name = car_name;
+                result.back().file_path = file_path;
             }
 
             catch (const std::exception&) 

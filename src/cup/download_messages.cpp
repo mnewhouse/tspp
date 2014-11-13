@@ -80,8 +80,7 @@ ts::downloads::Car_download_request ts::downloads::parse_car_download_request(co
 
     Car_download_request request;
     std::uint32_t message_type;
-
-    message_reader >> message_type >> request.car_identifier.car_name;
+    message_reader >> message_type >> request.download_key >> request.car_identifier.car_name;
 
     return request;
 }

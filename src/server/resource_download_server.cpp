@@ -566,7 +566,7 @@ ts::downloads::Resource_assets ts::server::load_car_assets(std::size_t resource_
             if (is_builtin_asset(*file_ptr)) continue;
 
             auto contents = core::read_file_contents(*file_ptr);
-            auto base_name = boost::filesystem::basename(file_ptr->string());
+            auto base_name = boost::filesystem::path(file_ptr->string()).leaf().string();
 
             result.file_info_.emplace_back();
             result.file_info_.back().file_name = std::move(base_name);

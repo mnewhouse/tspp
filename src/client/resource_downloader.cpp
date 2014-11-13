@@ -97,6 +97,7 @@ void ts::client::Resource_downloader::handle_file_info_message(const Message& me
         const auto& file_info = download_info.file_info_;
         for (auto& file : file_info)
         {
+            std::cout << file.file_name << std::endl;
             download_info.total_size_ += file.file_size;
         }
 

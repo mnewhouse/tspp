@@ -49,6 +49,7 @@ namespace ts
 
             void request_track(const resources::Track_identifier& track_identifier);
             void request_car(const resources::Car_identifier& car_identifier);
+            void request_resource(const utf8_string& resource_name);
 
             virtual void handle_message(const Server_message& message) override;
 
