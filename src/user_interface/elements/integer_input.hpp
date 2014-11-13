@@ -44,6 +44,7 @@ namespace ts
             std::int32_t min = 0;
             std::int32_t max = -1;
             std::int32_t value = 0;
+            std::int32_t increment = 1;
         };
 
         class Integer_input
@@ -63,6 +64,7 @@ namespace ts
 
         private:
             void update_value(std::int32_t value);
+            std::int32_t get_increment_delta() const;
 
             virtual void apply_style(const Integer_input_style& style) override {}
 

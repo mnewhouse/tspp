@@ -21,6 +21,9 @@
 #include "settings_menu.hpp"
 #include "main_menu.hpp"
 
+#include "resources/settings.hpp"
+#include "resources/settings_copy.hpp"
+
 #include "gui_definitions/window_template.hpp"
 
 #include "user_interface/elements/elements.hpp"
@@ -34,13 +37,97 @@ namespace ts
     }
 }
 
+
+class ts::states::Control_settings_menu
+{
+public:
+    Control_settings_menu(gui::Context* context, resources::Input_settings* input_settings);
+
+    void show();
+    void hide();
+
+private:
+    void create_document(gui::Context* context);
+    void set_current_slot(controls::Slot new_slot);
+
+    gui::Context* context_;
+    void assign_key_to_pending_control(sf::Keyboard::Key key);
+    void cancel_control_assignment();
+    void start_control_assignment(gui::Text_element* key_text, controls::Control control);
+
+    void load_key_binds(const resources::Input_settings& input_settings, controls::Slot slot);
+
+    resources::Settings_copy<resources::Input_settings> input_settings_;
+
+    struct Key_bind_text
+    {
+        gui::Text_element* accelerate = nullptr;
+        gui::Text_element* brake = nullptr;
+        gui::Text_element* left = nullptr;
+        gui::Text_element* right = nullptr;
+        gui::Text_element* fire = nullptr;
+    };
+
+    gui::Integer_input* slot_selection_ = nullptr;
+    Key_bind_text key_bind_text_;
+    controls::Control input_control_ = controls::Control::None;
+    gui::Text_element* input_key_text_ = nullptr;
+    controls::Slot current_slot_ = controls::invalid_slot;
+            
+
+    gui::Document_handle document_;
+};
+
+class ts::states::Video_settings_menu
+{
+public:
+    Video_settings_menu(gui::Context* context, resources::Video_settings* video_settings);
+
+    void show();
+    void hide();
+
+private:
+    void create_document(gui::Context* context);
+
+    gui::Context* context_;
+    resources::Settings_copy<resources::Video_settings> video_settings_;
+    gui::Document_handle document_;            
+
+    using resolution_option_set_type = gui::Option_set<std::pair<std::int32_t, std::int32_t>, gui::option_set::no_wrap>;
+    resolution_option_set_type* resolution_option_set_ = nullptr;
+
+    gui::Option_set<bool>* full_screen_option_set_ = nullptr;
+    gui::Option_set<bool>* vsync_option_set_ = nullptr;
+};
+
+class ts::states::Network_settings_menu
+{
+public:
+    Network_settings_menu(gui::Context* context, resources::Network_settings* network_settings);
+
+    void show();
+    void hide();
+
+private:
+    void create_document(gui::Context* context);
+
+    gui::Context* context_;
+    resources::Settings_copy<resources::Network_settings> network_settings_;
+    gui::Document_handle document_;
+};
+
 ts::states::Settings_menu::Settings_menu(Main_menu* main_menu)
 : main_menu_(main_menu),
   settings_(&main_menu->resource_store()->settings()),
 
   settings_navigation_(create_navigation(main_menu->context())),
   control_settings_(std::make_unique<Control_settings_menu>(main_menu->context(), &settings_->input_settings)),
-  video_settings_(std::make_unique<Video_settings_menu>(main_menu->context(), &settings_->video_settings))
+  video_settings_(std::make_unique<Video_settings_menu>(main_menu->context(), &settings_->video_settings)),
+  network_settings_(std::make_unique<Network_settings_menu>(main_menu->context(), &settings_->network_settings))
+{
+}
+
+ts::states::Settings_menu::~Settings_menu()
 {
 }
 
@@ -114,6 +201,12 @@ ts::gui::Document_handle ts::states::Settings_menu::create_navigation(gui::Conte
         show_video_settings();
     });
 
+    network->add_event_handler(gui::events::on_click,
+                               [this](const gui::Element&)
+    {
+        show_network_settings();
+    });
+
     back->add_event_handler(gui::events::on_click, 
                             [this](const gui::Element&)
     {
@@ -142,6 +235,7 @@ void ts::states::Settings_menu::hide_all_submenus()
 {
     control_settings_->hide();
     video_settings_->hide();
+    network_settings_->hide();
 }
 
 void ts::states::Settings_menu::show_key_setup()
@@ -156,6 +250,13 @@ void ts::states::Settings_menu::show_video_settings()
     hide_all_submenus();
 
     video_settings_->show();
+}
+
+void ts::states::Settings_menu::show_network_settings()
+{
+    hide_all_submenus();
+
+    network_settings_->show();
 }
 
 void ts::states::Settings_menu::return_to_main_menu()
@@ -516,9 +617,7 @@ void ts::states::Video_settings_menu::create_document(gui::Context* context)
 {
     document_ = context->create_document("video-settings");
 
-    auto window = create_generic_settings_window(context, document_.get(), "Video Settings");
-
-    
+    auto window = create_generic_settings_window(context, document_.get(), "Video Settings");   
     auto window_size = window->size();
 
     const auto& font_library = context->font_library();
@@ -609,5 +708,132 @@ void ts::states::Video_settings_menu::create_document(gui::Context* context)
     {
         video_settings_->vertical_sync = vsync_enabled;
     });
+}
 
+ts::states::Network_settings_menu::Network_settings_menu(gui::Context* context, resources::Network_settings* network_settings)
+: context_(context),
+  network_settings_(network_settings)
+{
+    create_document(context);
+}
+
+void ts::states::Network_settings_menu::show()
+{
+    document_->set_visible(true);
+}
+
+void ts::states::Network_settings_menu::hide()
+{
+    document_->set_visible(false);
+}
+
+void ts::states::Network_settings_menu::create_document(gui::Context* context)
+{
+    document_ = context->create_document("network-settings");
+
+    auto window = create_generic_settings_window(context, document_.get(), "Network Settings");
+    auto window_size = window->size();
+    
+    const auto& font_library = context->font_library();
+
+    gui::Text_style text_style;
+    text_style.font = font_library.font_by_name(gui::fonts::Sans);
+    text_style.color = sf::Color::White;
+    text_style.character_size = 14;
+
+    auto hover_style = text_style;
+    hover_style.color = sf::Color(255, 150, 0);
+    
+    using settings_list_type = gui::Vertical_list<gui::Element>;
+    gui::Vertical_list_style list_style;
+    list_style.row_size = Vector2i(300, 24);
+    list_style.item_style = gui::make_background_style<gui::Plain_background>(sf::Color(255, 255, 255, 10));
+
+    auto settings_list = window->create_child<settings_list_type>(list_style);
+    settings_list->set_position({ 40.0, 60.0 });
+
+    auto create_option_row = [=](utf8_string setting_string)
+    {
+        auto row = settings_list->create_row();
+        row->create_child<gui::Text_element>(std::move(setting_string), text_style);
+
+        return row;
+    };
+
+    gui::Integer_input_style input_style;
+    input_style.text_area_size = Vector2i(50, 20);
+    input_style.arrow_area_size = Vector2i(20, 20);
+    input_style.text_style = text_style;
+    input_style.text_hover_style = hover_style;
+
+    gui::Integer_input_range port_range;
+    port_range.min = 1;
+    port_range.max = 65536;
+    port_range.value = network_settings_->client_port;
+
+    auto client_port_row = create_option_row("Client Port:");
+    auto client_port_input = client_port_row->create_child<gui::Integer_input>(input_style, port_range);
+    client_port_input->set_position({ 160.0, 0.0 });
+
+    port_range.value = network_settings_->server_port;
+    auto server_port_row = create_option_row("Server Port:");
+    auto server_port_input = server_port_row->create_child<gui::Integer_input>(input_style, port_range);
+    server_port_input->set_position({ 160.0, 0.0 });
+
+    gui::Integer_input_range pred_range;
+    pred_range.min = 0;
+    pred_range.max = 1000;
+    pred_range.increment = 20;
+    pred_range.value = network_settings_->min_prediction;
+
+    auto min_prediction_row = create_option_row("Min. Prediction:");
+    auto min_prediction_input = min_prediction_row->create_child<gui::Integer_input>(input_style, pred_range);
+    min_prediction_input->set_position({ 160.0, 0.0 });
+
+    pred_range.value = network_settings_->max_prediction;
+    auto max_prediction_row = create_option_row("Max. Prediction:");
+    auto max_prediction_input = max_prediction_row->create_child<gui::Integer_input>(input_style, pred_range);
+    max_prediction_input->set_position({ 160.0, 0.0 });
+
+    client_port_input->add_event_handler(gui::Integer_input::on_value_change,
+                                         [this](const gui::Element&, std::int32_t new_value)
+    {
+        network_settings_->client_port = new_value;
+    });
+
+    server_port_input->add_event_handler(gui::Integer_input::on_value_change,
+                                         [this](const gui::Element&, std::int32_t new_value)
+    {
+        network_settings_->server_port = new_value;
+    });
+
+    min_prediction_input->add_event_handler(gui::Integer_input::on_value_change,
+                                         [this, min_prediction_input](const gui::Element&, std::int32_t new_value)
+    {
+        if (new_value >= network_settings_->max_prediction - 40)
+        {
+            min_prediction_input->set_value(network_settings_->max_prediction - 40);
+        }
+
+        else
+        {
+            network_settings_->min_prediction = new_value;
+        }
+    });
+    
+    max_prediction_input->add_event_handler(gui::Integer_input::on_value_change,
+                                           [this, max_prediction_input](const gui::Element&, std::int32_t new_value)
+    {
+        if (new_value < network_settings_->min_prediction + 40)
+        {
+            max_prediction_input->set_value(network_settings_->min_prediction + 40);
+        }
+
+        else
+        {
+            network_settings_->max_prediction = new_value;
+        }
+    });
+
+    document_->set_visible(false);
 }

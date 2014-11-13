@@ -26,6 +26,7 @@
 #include "resource_download_server.hpp"
 #include "server_cup_script.hpp"
 #include "command_center.hpp"
+#include "server_interaction_events.hpp"
 
 #include "cup/cup_controller.hpp"
 
@@ -77,6 +78,7 @@ public:
     Local_client_link local_client_link_;
 
     Cup_script_interface cup_script_interface_;
+    Interaction_event_listener interaction_event_listener_;
 };
 
 ts::server::Server_message_dispatcher::Server_message_dispatcher(impl::Server* server, Message_center* message_center)
@@ -100,7 +102,8 @@ ts::server::impl::Server::Server(resources::Resource_store* resource_store)
   command_center_(),
   interaction_interface_(&message_center_, &client_map_, &cup_controller_, &stage_interface_, &command_center_),
   download_server_(&message_center_, resource_store),  
-  cup_script_interface_(&message_center_, &command_center_, &cup_controller_, &client_map_)
+  cup_script_interface_(&message_center_, &command_center_, &cup_controller_, &client_map_),
+  interaction_event_listener_(&interaction_interface_, &cup_script_interface_)
 {
 }
 

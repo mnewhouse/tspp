@@ -24,6 +24,9 @@
 
 #include "client_messages.hpp"
 
+#include "resources/settings_copy.hpp"
+#include "resources/settings/network_settings.hpp"
+
 namespace ts
 {
     namespace action
@@ -39,7 +42,8 @@ namespace ts
             : public Message_listener
         {
         public:
-            Stage_conductor(Message_center* message_center, action::Stage* stage);
+            Stage_conductor(Message_center* message_center, action::Stage* stage, 
+                            resources::Network_settings* network_settings);
             ~Stage_conductor();
 
             void update(std::size_t frame_duration);
@@ -54,8 +58,11 @@ namespace ts
             std::unique_ptr<action::Stage_conductor> stage_conductor_;
             std::vector<action::Game_state_message> queued_game_state_;
 
-            std::int32_t min_advance_time_ = 100;
-            std::int32_t max_advance_time_ = 200;
+            template <typename T>
+            using Settings_copy = resources::Settings_copy<T>;
+            using Network_settings = resources::Network_settings;
+
+            Settings_copy<Network_settings> network_settings_;
             std::int32_t advance_time_ = 100;
         };
     }

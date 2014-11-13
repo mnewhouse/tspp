@@ -46,6 +46,7 @@ namespace ts
             using Engine::get_module_by_name;
             using Engine::unload_module;
             using Engine::register_console;
+            using Engine::trigger_event;
         };
     }
 }

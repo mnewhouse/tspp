@@ -289,6 +289,8 @@ set(SRC src/main.cpp
 		src/server/server.cpp
 		src/server/server_cup_script.hpp
 		src/server/server_cup_script.cpp
+		src/server/server_interaction_events.hpp
+		src/server/server_interaction_events.cpp
 		src/server/server_interaction_listener.hpp
 		src/server/server_interaction_listener.cpp
 		src/server/server_interactions.hpp

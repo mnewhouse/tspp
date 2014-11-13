@@ -29,6 +29,8 @@
 #include "cup/cup.hpp"
 #include "network/client_connection.hpp"
 
+#include "resources/resource_store.hpp"
+
 namespace ts
 {
     namespace client
@@ -85,6 +87,8 @@ public:
 
     Server_message message_buffer_;
     std::unique_ptr<Control_interface> control_interface_;
+
+    resources::Resource_store* resource_store_;
 };
 
 ts::client::impl::Client::Client(resources::Resource_store* resource_store)
@@ -95,7 +99,7 @@ ts::client::impl::Client::Client(resources::Resource_store* resource_store)
   client_interface_(&message_center_, &cup_),
   interaction_interface_(&message_center_, &cup_, resource_store),
   chatbox_interface_(&message_center_),
-  stage_interface_(&message_center_)
+  stage_interface_(&message_center_, &resource_store->network_settings())
 {
 }
 

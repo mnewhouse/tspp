@@ -19,20 +19,30 @@
 
 #pragma once
 
-#ifndef NETWORK_SETTINGS_HPP
-#define NETWORK_SETTINGS_HPP
+#ifndef SERVER_INTERACTION_EVENTS_HPP
+#define SERVER_INTERACTION_EVENTS_HPP
+
+#include "server_interaction_listener.hpp"
 
 namespace ts
 {
-    namespace resources
+    namespace server
     {
-        class Network_settings
+        class Interaction_interface;
+        class Cup_script_interface;
+
+        class Interaction_event_listener
+            : public Interaction_listener
         {
         public:
-            std::uint16_t server_port = 8821;
-            std::uint16_t client_port = 8822;
-            std::uint16_t min_prediction = 0;
-            std::uint16_t max_prediction = 120;
+            Interaction_event_listener(Interaction_interface* interaction_interface, Cup_script_interface* script_interface);
+            
+            virtual void on_client_connect(const Generic_client& client) override;
+            virtual void on_client_disconnect(const Generic_client& client) override;
+
+        private:
+            Interaction_interface* interaction_interface_;
+            Cup_script_interface* cup_script_interface_;
         };
     }
 }

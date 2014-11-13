@@ -41,12 +41,17 @@ namespace ts
         class Stage_loader;
     }
 
+    namespace resources
+    {
+        class Network_settings;
+    }
+
     namespace client
     {
         class Stage_interface
         {
         public:
-            Stage_interface(Message_center* message_center);
+            Stage_interface(Message_center* message_center, resources::Network_settings* network_settings);
             ~Stage_interface();
 
             const game::Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback);

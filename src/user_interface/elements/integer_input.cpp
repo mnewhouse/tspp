@@ -47,13 +47,13 @@ ts::gui::Integer_input::Integer_input(Integer_input_style style, Integer_input_r
     increment_arrow_->add_event_handler(gui::events::on_click, 
         [this](const gui::Element& element)
     {
-        increment();
+        increment(get_increment_delta());
     });
 
     decrement_arrow_->add_event_handler(gui::events::on_click,
         [this](const gui::Element& element)
     {
-        decrement();
+        decrement(get_increment_delta());
     });
 
     auto value = clamp(range.value, range.min, range.max);
@@ -91,4 +91,25 @@ void ts::gui::Integer_input::update_value(std::int32_t value)
 std::int32_t ts::gui::Integer_input::value() const
 {
     return range_.value;
+}
+
+std::int32_t ts::gui::Integer_input::get_increment_delta() const
+{
+    auto increment = range_.increment;
+
+    if (increment == 1)
+    {
+        using sf::Keyboard;    
+        if (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))
+        {
+            increment *= 10;
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::LShift) || Keyboard::isKeyPressed(Keyboard::RShift))
+        {
+            increment *= 10;
+        }
+    }
+
+    return increment;
 }

@@ -43,6 +43,9 @@ namespace ts
                                  cup::Cup_controller* cup_controller, Client_map* client_map);
             ~Cup_script_interface();
 
+            void handle_client_connect(const Generic_client& client);
+            void handle_client_disconnect(const Generic_client& client);
+
         private:
             struct Impl;
             std::unique_ptr<Impl> impl_;

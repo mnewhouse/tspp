@@ -38,6 +38,7 @@ namespace ts
         std::istream& operator>>(std::istream& stream, Car_settings& car_settings);
         std::istream& operator>>(std::istream& stream, Player_settings& player_settings);
         std::istream& operator>>(std::istream& stream, Script_settings& script_settings);
+        std::istream& operator>>(std::istream& stream, Network_settings& network_settings);
 
         std::ostream& operator<<(std::ostream& stream, const Video_settings& video_settings);
         std::ostream& operator<<(std::ostream& stream, const Input_settings& input_settings);
@@ -46,6 +47,7 @@ namespace ts
         std::ostream& operator<<(std::ostream& stream, const Car_settings& car_settings);
         std::ostream& operator<<(std::ostream& stream, const Player_settings& player_settings);
         std::ostream& operator<<(std::ostream& stream, const Script_settings& script_settings);
+        std::ostream& operator<<(std::ostream& stream, const Network_settings& network_settings);
     }
 }
 
@@ -355,6 +357,37 @@ std::istream& ts::resources::operator>>(std::istream& stream, Player_settings& p
     return stream;
 }
 
+std::istream& ts::resources::operator>>(std::istream& stream, Network_settings& network_settings)
+{
+    for (std::string line, directive; directive != "end" && std::getline(stream, line);)
+    {
+        std::istringstream line_stream(line);
+        if (!read_directive(line_stream, directive)) continue;
+
+        if (directive == "clientport")
+        {
+            line_stream >> network_settings.client_port;
+        }
+
+        else if (directive == "serverport")
+        {
+            line_stream >> network_settings.server_port;
+        }
+
+        else if (directive == "minprediction")
+        {
+            line_stream >> network_settings.min_prediction;
+        }
+
+        else if (directive == "maxprediction")
+        {
+            line_stream >> network_settings.max_prediction;
+        }
+    }
+
+    return stream;
+}
+
 std::istream& ts::resources::operator>>(std::istream& stream, Script_settings& script_settings)
 {    
     for (std::string line, directive, param; directive != "end" && std::getline(stream, line);)
@@ -497,5 +530,14 @@ std::ostream& ts::resources::operator<<(std::ostream& stream, const Script_setti
         stream << "EnabledScript " << script_name << std::endl;
     }
 
+    return stream;
+}
+
+std::ostream& ts::resources::operator<<(std::ostream& stream, const Network_settings& network_settings)
+{
+    stream << "ClientPort " << network_settings.client_port << "\n";
+    stream << "ServerPort " << network_settings.server_port << "\n";
+    stream << "MinPrediction " << network_settings.min_prediction << "\n";
+    stream << "MaxPrediction " << network_settings.max_prediction << "\n";
     return stream;
 }

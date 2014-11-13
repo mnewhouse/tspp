@@ -23,9 +23,11 @@
 #include "action/stage_conductor.hpp"
 #include "action/action_messages.hpp"
 
-ts::client::Stage_conductor::Stage_conductor(Message_center* message_center, action::Stage* stage)
+ts::client::Stage_conductor::Stage_conductor(Message_center* message_center, action::Stage* stage,
+                                             resources::Network_settings* network_settings)
 : Message_listener(message_center),
-  stage_conductor_(std::make_unique<action::Stage_conductor>(stage))
+  stage_conductor_(std::make_unique<action::Stage_conductor>(stage)),
+  network_settings_(network_settings)
 {
 }
 
@@ -50,19 +52,17 @@ void ts::client::Stage_conductor::update(std::size_t frame_duration)
         {
             std::int32_t server_difference = old_stage_time - new_stage_time;
 
-            if (min_advance_time_ > server_difference - advance_time_ && 
+            if (network_settings_->min_prediction > server_difference - advance_time_ && 
                 advance_time_ > static_cast<std::int32_t>(frame_duration))
             {
                 // Prediction seems too high, adjust
                 advance_time_ -= frame_duration;
 
-                if (advance_time_ < min_advance_time_)
+                if (advance_time_ < network_settings_->min_prediction)
                 {
-                    min_advance_time_ -= frame_duration;
-                    max_advance_time_ -= frame_duration;
+                    network_settings_->min_prediction -= frame_duration;
+                    network_settings_->max_prediction -= frame_duration;
                 }
-
-                std::cout << advance_time_ << std::endl;
             }
         }
 
@@ -72,10 +72,10 @@ void ts::client::Stage_conductor::update(std::size_t frame_duration)
             // Client should fix their prediction, or we could do it for them.
 
             advance_time_ += frame_duration;
-            if (advance_time_ > max_advance_time_)
+            if (advance_time_ > network_settings_->max_prediction)
             {
-                min_advance_time_ += frame_duration;
-                max_advance_time_ += frame_duration;
+                network_settings_->min_prediction += frame_duration;
+                network_settings_->max_prediction += frame_duration;
             }                  
         }
 

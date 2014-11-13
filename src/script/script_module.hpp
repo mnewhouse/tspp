@@ -35,6 +35,44 @@ namespace ts
         struct API_definition;
         class Engine;
 
+        namespace impl
+        {
+            template <typename T>
+            struct Argument_forward_helper
+            {
+                explicit Argument_forward_helper(HSQUIRRELVM vm) {}
+
+                template <typename U>
+                U& operator()(U& value) const
+                {
+                    return value;
+                }
+
+                template <typename U>
+                U&& operator()(U&& value) const
+                {
+                    return value;
+                }
+            };
+
+            template <typename T>
+            struct Argument_forward_helper<Userdata_forwarder<T>>
+            {
+                explicit Argument_forward_helper(HSQUIRRELVM vm)
+                    : vm_(vm)
+                {}
+
+                template <typename U>
+                Userdata<std::decay_t<U>> operator()(const Userdata_forwarder<U>& forwarder) const
+                {
+                    return make_userdata(vm_, forwarder.value);
+                }
+
+                HSQUIRRELVM vm_;
+            };
+        }
+        
+
         class Module
         {
         public:
@@ -58,10 +96,11 @@ namespace ts
 
         private:
             template <typename T>
-            T&& forward_argument(std::remove_reference_t<T>& argument, ...) const;
-
-            template <typename T, typename U>
-            Userdata<U> forward_argument(const Userdata_forwarder<U>& udata_forwarder) const;
+            auto forward_argument(std::remove_reference_t<T>& argument) const ->
+                decltype(impl::Argument_forward_helper<std::decay_t<T>>(vm_)(argument))
+            {
+                return impl::Argument_forward_helper<std::decay_t<T>>(vm_)(argument);
+            }
 
             Engine* engine_;
             Virtual_machine vm_;
@@ -74,18 +113,6 @@ namespace ts
         SQInteger error_handler(HSQUIRRELVM vm);
         void compile_error_handler(HSQUIRRELVM vm, const SQChar* desc, const SQChar* source, SQInteger line, SQInteger column);
     }
-}
-
-template <typename T>
-T&& ts::script::Module::forward_argument(std::remove_reference_t<T>& argument, ...) const
-{
-    return std::forward<T>(argument);
-}
-
-template <typename T, typename U>
-ts::script::Userdata<U> ts::script::Module::forward_argument(const Userdata_forwarder<U>& udata_forwarder) const
-{
-    return make_userdata(vm_, udata_forwarder.value);
 }
 
 template <typename... Args>

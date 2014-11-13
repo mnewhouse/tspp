@@ -17,24 +17,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
+#include "stdinc.hpp"
+#include "server_interaction_events.hpp"
+#include "server_cup_script.hpp"
 
-#ifndef NETWORK_SETTINGS_HPP
-#define NETWORK_SETTINGS_HPP
-
-namespace ts
+ts::server::Interaction_event_listener::Interaction_event_listener(Interaction_interface* interaction_interface,
+                                                                   Cup_script_interface* cup_script_interface)
+: Interaction_listener(interaction_interface),
+  interaction_interface_(interaction_interface),
+  cup_script_interface_(cup_script_interface)
 {
-    namespace resources
-    {
-        class Network_settings
-        {
-        public:
-            std::uint16_t server_port = 8821;
-            std::uint16_t client_port = 8822;
-            std::uint16_t min_prediction = 0;
-            std::uint16_t max_prediction = 120;
-        };
-    }
 }
 
-#endif
+void ts::server::Interaction_event_listener::on_client_connect(const Generic_client& client)
+{
+    cup_script_interface_->handle_client_connect(client);
+}
+
+void ts::server::Interaction_event_listener::on_client_disconnect(const Generic_client& client)
+{
+    cup_script_interface_->handle_client_disconnect(client);
+}

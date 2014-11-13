@@ -114,3 +114,13 @@ ts::server::Cup_script_interface::Cup_script_interface(Message_center* message_c
 ts::server::Cup_script_interface::~Cup_script_interface()
 {
 }
+
+void ts::server::Cup_script_interface::handle_client_connect(const Generic_client& client)
+{
+    impl_->script_interface_.trigger_event("onClientConnect", nullptr, script::forward_as_userdata(client));
+}
+
+void ts::server::Cup_script_interface::handle_client_disconnect(const Generic_client& client)
+{
+    impl_->script_interface_.trigger_event("onClientDisconnect", nullptr, script::forward_as_userdata(client));
+}

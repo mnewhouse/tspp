@@ -27,17 +27,19 @@ class ts::client::Stage_interface::Impl
     : public game::Stage_interface
 {
 public:
-    Impl(Message_center* message_center);
+    Impl(Message_center* message_center, resources::Network_settings* network_settings);
 
     void update(std::size_t frame_duration);
     void launch_action();
 
     Message_center* message_center_;
+    resources::Network_settings* network_settings_;
     std::unique_ptr<Stage_conductor> stage_conductor_;
 };
 
-ts::client::Stage_interface::Impl::Impl(Message_center* message_center)
-: message_center_(message_center)
+ts::client::Stage_interface::Impl::Impl(Message_center* message_center, resources::Network_settings* network_settings)
+: message_center_(message_center),
+  network_settings_(network_settings)
 {
 }
 
@@ -51,11 +53,11 @@ void ts::client::Stage_interface::Impl::update(std::size_t frame_duration)
 
 void ts::client::Stage_interface::Impl::launch_action()
 {
-    stage_conductor_ = std::make_unique<Stage_conductor>(message_center_, stage());
+    stage_conductor_ = std::make_unique<Stage_conductor>(message_center_, stage(), network_settings_);
 }
 
-ts::client::Stage_interface::Stage_interface(Message_center* message_center)
-: impl_(std::make_unique<Impl>(message_center))
+ts::client::Stage_interface::Stage_interface(Message_center* message_center, resources::Network_settings* network_settings)
+: impl_(std::make_unique<Impl>(message_center, network_settings))
 {
 }
 
