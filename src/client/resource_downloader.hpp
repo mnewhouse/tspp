@@ -68,7 +68,8 @@ namespace ts
             enum class Resource_type
             {
                 Track,
-                Car
+                Car,
+                Resource
             };
 
             struct Download_info

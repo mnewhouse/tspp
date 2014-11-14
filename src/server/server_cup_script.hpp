@@ -35,6 +35,7 @@ namespace ts
     {
         class Command_center;
         class Client_map;
+        class Stage_assembler;
 
         class Cup_script_interface
         {
@@ -45,6 +46,8 @@ namespace ts
 
             void handle_client_connect(const Generic_client& client);
             void handle_client_disconnect(const Generic_client& client);
+
+            void handle_pre_initialization(Stage_assembler* stage_assembler);
 
         private:
             struct Impl;

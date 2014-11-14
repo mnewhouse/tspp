@@ -124,8 +124,6 @@ set(SRC src/main.cpp
 		src/cup/download_messages.hpp
 		src/cup/download_messages.cpp
 		src/cup/player.hpp
-		src/cup/stage_assembler.hpp
-		src/cup/stage_assembler.cpp
 		src/cup/stage_data.hpp
 
         src/game/action_scene.hpp
@@ -302,6 +300,8 @@ set(SRC src/main.cpp
 		src/server/server_stage_conductor.cpp
 		src/server/server_stage_interface.hpp
 		src/server/server_stage_interface.cpp
+		src/server/stage_assembler.hpp
+		src/server/stage_assembler.cpp
         
         src/script/argument_stream.hpp
         src/script/argument_stream.cpp
@@ -356,6 +356,8 @@ set(SRC src/main.cpp
         src/script/api_definitions/entity_api.cpp
         src/script/api_definitions/event_api.hpp
         src/script/api_definitions/event_api.cpp
+		src/script/api_definitions/stage_assembler_api.hpp
+		src/script/api_definitions/stage_assembler_api.cpp
 		src/script/api_definitions/utility_classes.hpp
 		src/script/api_definitions/utility_classes.cpp
 		src/script/api_definitions/view_api.hpp

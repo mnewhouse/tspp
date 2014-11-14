@@ -37,9 +37,14 @@ namespace ts
             Script_handle get_script_by_name(const utf8_string& name) const;
             const std::vector<Script_handle>& scripts() const;
 
+            const utf8_string& root_directory() const;
+            Script_handle register_script_resource(const utf8_string& resource_directory);
+
         private:
             void load_resources(const utf8_string& root_directory);
+            Script_handle load_resource(const boost::filesystem::path& resource_directory);
 
+            utf8_string root_directory_;
             std::map<utf8_string, Script_resource> loaded_scripts_;
             std::vector<Script_handle> script_list_;
         };

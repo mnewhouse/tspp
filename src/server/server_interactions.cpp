@@ -29,7 +29,6 @@
 #include "cup/cup_controller.hpp"
 #include "cup/cup_messages.hpp"
 #include "cup/stage_data.hpp"
-#include "cup/stage_assembler.hpp"
 #include "cup/chatbox.hpp"
 
 
@@ -365,11 +364,6 @@ void ts::server::Interaction_interface::Impl::on_state_change(cup::Cup_state old
         message_center_->dispatch_message(out_message);
 
         wait_for_everyone();
-    }
-
-    else if (new_state == Cup_state::Awaiting_initialization)
-    {
-        cup_controller_->initialize_action(cup::assemble_stage(*cup_controller_));
     }
 
     else if (new_state == Cup_state::Initializing)

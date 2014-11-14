@@ -48,14 +48,14 @@ const std::vector<ts::utf8_string>& ts::resources::Script_resource::cup_scripts(
 }
 
 ts::resources::Resource_config_exception::Resource_config_exception(const utf8_string& resource_name)
-: runtime_error("could not load '" + std::string(config_file_name) + "' in resource '" + resource_name.string() + "'")
+: runtime_error("could not load '" + std::string(script_config_file_name) + "' in resource '" + resource_name.string() + "'")
 {
 }
 
 void ts::resources::Script_resource::load_resource_config()
 {
     boost::filesystem::path config_path = root_directory_.string();
-    config_path /= config_file_name;
+    config_path /= script_config_file_name;
 
     boost::filesystem::ifstream stream(config_path, std::istream::in);
     if (!stream)

@@ -35,7 +35,7 @@ namespace ts
 
     namespace downloads
     {
-        struct File_info;
+       struct File_info;
 
        struct Resource_assets
        {
@@ -67,6 +67,7 @@ namespace ts
         private:
             void handle_track_download_request(const Client_message& message);
             void handle_car_download_request(const Client_message& message);
+            void handle_resource_download_request(const Client_message& message);
             void handle_pong_message(const Client_message& message);
 
             void resource_ready(const downloads::Resource_assets& assets);
@@ -74,6 +75,8 @@ namespace ts
 
             void async_load_track_assets(std::size_t resource_id, const resources::Track_identifier& track_identifier);
             void async_load_car_assets(std::size_t resource_id, const resources::Car_identifier& car_identifier);
+            void async_load_resource_assets(std::size_t resource_id, const utf8_string& resource_name);
+
             std::size_t allocate_resource_id() const;
 
             struct Download_info
@@ -107,6 +110,7 @@ namespace ts
             struct Concrete_resources;
             struct Car_resource;
             struct Track_resource;
+            struct Script_resource;
 
             std::unique_ptr<Concrete_resources> concrete_resources_;
             

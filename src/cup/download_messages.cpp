@@ -85,6 +85,27 @@ ts::downloads::Car_download_request ts::downloads::parse_car_download_request(co
     return request;
 }
 
+ts::downloads::Message ts::downloads::make_resource_download_request(std::uint32_t download_key, const utf8_string& resource_name)
+{
+    Message message(Message_type::resource_download_request);
+
+    message << download_key;
+    message << resource_name;
+
+    return message;
+}
+
+ts::downloads::Resource_download_request ts::downloads::parse_resource_download_request(const Message& message)
+{
+    Message_reader message_reader(message);
+
+    Resource_download_request request;
+    std::uint32_t message_type;
+    message_reader >> message_type >> request.download_key >> request.resource_name;
+
+    return request;
+}
+
 ts::downloads::Message ts::downloads::make_file_info_message(std::uint32_t download_key, const std::vector<File_info>& file_info)
 {
     Message message(Message_type::file_info);

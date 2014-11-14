@@ -28,6 +28,7 @@
 #include "resources/resource_store.hpp"
 #include "resources/track_store.hpp"
 #include "resources/car_store.hpp"
+#include "resources/script_manager.hpp"
 
 #include "resources/track_loader.hpp"
 
@@ -37,6 +38,7 @@ namespace ts
     {
         downloads::Resource_assets load_track_assets(std::size_t resource_id, const resources::Track_store& track_store, const resources::Track_identifier& track_identifier);
         downloads::Resource_assets load_car_assets(std::size_t resource_id, const resources::Car_store& car_store, const resources::Car_identifier& car_identifier);
+        downloads::Resource_assets load_resource_assets(std::size_t resource_id, const resources::Script_manager& script_manager, const utf8_string& resource_name);
 
         static bool is_builtin_asset(const utf8_string& file_path);
 
@@ -74,10 +76,17 @@ struct ts::server::Resource_download_server::Car_resource
     resources::Car_identifier car_identifier;
 };
 
+struct ts::server::Resource_download_server::Script_resource
+{
+    std::size_t resource_id;
+    utf8_string resource_name;
+};
+
 struct ts::server::Resource_download_server::Concrete_resources
 {
     std::vector<Track_resource> tracks;
     std::vector<Car_resource> cars;
+    std::vector<Script_resource> scripts;
 };
 
 ts::server::Resource_download_server::Resource_download_server(Message_center* message_center, const resources::Resource_store* resource_store)
@@ -228,6 +237,10 @@ void ts::server::Resource_download_server::handle_message(const Client_message& 
             handle_car_download_request(client_message);
             break;
 
+        case Msg::resource_download_request:
+            handle_resource_download_request(client_message);
+            break;
+
         case Msg::pong:
             handle_pong_message(client_message);
             break;
@@ -325,6 +338,40 @@ void ts::server::Resource_download_server::handle_car_download_request(const Cli
     async_load_car_assets(resource_it->resource_id, resource_it->car_identifier);
 }
 
+void ts::server::Resource_download_server::handle_resource_download_request(const Client_message& client_message)
+{
+    const auto& message = client_message.message;
+    const auto& client = client_message.client;
+
+    auto request = downloads::parse_resource_download_request(message);
+
+    auto& script_resources = concrete_resources_->scripts;
+    auto resource_it = std::find_if(script_resources.begin(), script_resources.end(),
+                                    [&request](const Script_resource& script_resource)
+    {
+        return script_resource.resource_name == request.resource_name;
+    });
+
+    if (resource_it == script_resources.end())
+    {
+        Script_resource resource;
+        resource.resource_name = request.resource_name;
+        resource.resource_id = allocate_resource_id();
+
+        script_resources.push_back(resource);
+        resource_it = std::prev(script_resources.end());
+    }
+
+    Download_info download_info;
+    download_info.download_key_ = request.download_key;
+    download_info.resource_id_ = resource_it->resource_id;
+
+    auto& client_downloads = client_downloads_[client];
+    client_downloads.push_back(download_info);
+
+    async_load_resource_assets(resource_it->resource_id, resource_it->resource_name);
+}
+
 void ts::server::Resource_download_server::async_load_track_assets(std::size_t resource_id, const resources::Track_identifier& track_identifier)
 {
     auto future = std::async(std::launch::async, load_track_assets, resource_id, std::cref(resource_store_->track_store()), track_identifier);
@@ -334,6 +381,12 @@ void ts::server::Resource_download_server::async_load_track_assets(std::size_t r
 void ts::server::Resource_download_server::async_load_car_assets(std::size_t resource_id, const resources::Car_identifier& car_identifier)
 {
     auto future = std::async(std::launch::async, load_car_assets, resource_id, std::cref(resource_store_->car_store()), car_identifier);
+    loading_resources_[resource_id] = std::move(future);
+}
+
+void ts::server::Resource_download_server::async_load_resource_assets(std::size_t resource_id, const utf8_string& resource_name)
+{
+    auto future = std::async(std::launch::async, load_resource_assets, resource_id, std::cref(resource_store_->script_manager()), resource_name);
     loading_resources_[resource_id] = std::move(future);
 }
 
@@ -566,7 +619,7 @@ ts::downloads::Resource_assets ts::server::load_car_assets(std::size_t resource_
             if (is_builtin_asset(*file_ptr)) continue;
 
             auto contents = core::read_file_contents(*file_ptr);
-            auto base_name = boost::filesystem::path(file_ptr->string()).leaf().string();
+            auto base_name = boost::filesystem::path(file_ptr->string()).filename().string();
 
             result.file_info_.emplace_back();
             result.file_info_.back().file_name = std::move(base_name);
@@ -578,6 +631,45 @@ ts::downloads::Resource_assets ts::server::load_car_assets(std::size_t resource_
     }
 
     return result;
+}
+
+ts::downloads::Resource_assets ts::server::load_resource_assets(std::size_t resource_id, const resources::Script_manager& script_manager,
+                                                                const utf8_string& resource_name)
+{
+    downloads::Resource_assets result;
+
+    if (auto script_handle = script_manager.get_script_by_name(resource_name))
+    {
+        std::vector<utf8_string> assets;
+
+
+
+        const auto& client_scripts = script_handle->client_scripts();
+        const auto& server_scripts = script_handle->client_scripts();
+        const auto& cup_scripts = script_handle->client_scripts();
+
+        assets.push_back(resources::script_config_file_name);
+        assets.insert(assets.end(), client_scripts.begin(), client_scripts.end());
+        assets.insert(assets.end(), server_scripts.begin(), server_scripts.end());
+        assets.insert(assets.end(), cup_scripts.begin(), cup_scripts.end());
+
+        for (const auto& file_name : assets)
+        {
+            if (is_builtin_asset(file_name)) continue;
+
+            auto contents = core::read_file_contents(file_name);
+            auto base_name = boost::filesystem::path(file_name.string()).filename().string();
+
+            result.file_info_.emplace_back();
+            result.file_info_.back().file_name = std::move(base_name);
+            result.file_info_.back().file_size = contents.size();
+
+            result.file_data_.emplace_back();
+            result.file_data_.back().assign(contents.begin(), contents.end());
+        }
+    }
+
+    return result;    
 }
 
 bool ts::server::is_builtin_asset(const utf8_string& path_string)

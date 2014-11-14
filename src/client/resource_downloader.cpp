@@ -27,6 +27,7 @@
 #include "resources/resource_store.hpp"
 #include "resources/car_store.hpp"
 #include "resources/track_store.hpp"
+#include "resources/script_manager.hpp"
 
 
 ts::client::Resource_downloader::Resource_downloader(Message_center* message_center, resources::Resource_store* resource_store)
@@ -235,6 +236,11 @@ void ts::client::Resource_downloader::handle_finished_message(const Message& mes
             resource_store_->car_store().register_car_file(main_file);
         }
 
+        else if (download_info.resource_type == Resource_type::Resource)
+        {
+            resource_store_->script_manager().register_script_resource(download_info.target_directory_);
+        }
+
         save_resource_files(download_info);
 
         download_map_.erase(download_it);
@@ -273,11 +279,10 @@ void ts::client::Resource_downloader::request_track(const resources::Track_ident
 
 void ts::client::Resource_downloader::request_car(const resources::Car_identifier& car_identifier)
 {
-    auto key = generate_key();
-    
+    auto key = generate_key();    
     auto& download_info = download_map_[key];
 
-    download_info.target_directory_ += "download";
+    download_info.target_directory_ = "download";
     download_info.full_target_directory_ = resource_store_->car_store().root_directory();
     download_info.full_target_directory_ += "/";
     download_info.full_target_directory_ += download_info.target_directory_;    
@@ -288,6 +293,28 @@ void ts::client::Resource_downloader::request_car(const resources::Car_identifie
     cup::Chat_message chat_message;
     chat_message.append("Trying to download car ", sf::Color(255, 150, 0));
     chat_message.append(car_identifier.car_name, sf::Color(255, 220, 50));
+    chat_message.append("...", sf::Color(255, 150, 0));
+
+    message_buffer_.message = cup::make_chatbox_output_message(chat_message);
+    message_center_->handle_message(message_buffer_);
+}
+
+void ts::client::Resource_downloader::request_resource(const utf8_string& resource_name)
+{
+    auto key = generate_key();    
+    auto& download_info = download_map_[key];
+    
+    download_info.target_directory_ = resource_name;
+    download_info.full_target_directory_ = resource_store_->script_manager().root_directory();
+    download_info.full_target_directory_ += "/";
+    download_info.full_target_directory_ += download_info.target_directory_;
+
+    message_buffer_.message = downloads::make_resource_download_request(key, resource_name);
+    message_center_->dispatch_message(message_buffer_);
+
+    cup::Chat_message chat_message;
+    chat_message.append("Trying to download resource ", sf::Color(255, 150, 0));
+    chat_message.append(resource_name, sf::Color(255, 220, 50));
     chat_message.append("...", sf::Color(255, 150, 0));
 
     message_buffer_.message = cup::make_chatbox_output_message(chat_message);

@@ -21,8 +21,14 @@
 #include "script_manager.hpp"
 
 ts::resources::Script_manager::Script_manager(const utf8_string& root_directory)
+: root_directory_(root_directory)
 {
     load_resources(root_directory);
+}
+
+const ts::utf8_string& ts::resources::Script_manager::root_directory() const
+{
+    return root_directory_;
 }
 
 ts::resources::Script_handle ts::resources::Script_manager::get_script_by_name(const utf8_string& script_name) const
@@ -36,9 +42,38 @@ ts::resources::Script_handle ts::resources::Script_manager::get_script_by_name(c
     return Script_handle(&it->second);
 }
 
+ts::resources::Script_handle ts::resources::Script_manager::register_script_resource(const utf8_string& resource_directory)
+{
+    return load_resource(resource_directory.string());
+}
+
 const std::vector<ts::resources::Script_handle>& ts::resources::Script_manager::scripts() const
 {
     return script_list_;
+}
+
+ts::resources::Script_handle ts::resources::Script_manager::load_resource(const boost::filesystem::path& resource_path)
+{    
+    const utf8_string resource_name = boost::filesystem::basename(resource_path);
+
+    try
+    {
+        auto emplace_result = loaded_scripts_.emplace(std::piecewise_construct, std::forward_as_tuple(resource_name),
+                                                        std::forward_as_tuple(resource_path.string(), resource_name));
+
+        if (emplace_result.second)
+        {
+            script_list_.emplace_back(&emplace_result.first->second);
+            return script_list_.back();
+        }
+    }
+
+    catch (const Resource_config_exception& error)
+    {
+        std::cerr << error.what() << std::endl;        
+    }
+
+    return Script_handle();
 }
 
 void ts::resources::Script_manager::load_resources(const utf8_string& root_directory)
@@ -48,26 +83,9 @@ void ts::resources::Script_manager::load_resources(const utf8_string& root_direc
     for (boost::filesystem::directory_iterator dir_it(directory_path), dir_end; dir_it != dir_end; ++dir_it)
     {
         const auto& path = dir_it->path();
-
         if (boost::filesystem::is_directory(path))
         {
-            utf8_string resource_name = boost::filesystem::basename(path);
-
-            try
-            {
-                auto emplace_result = loaded_scripts_.emplace(std::piecewise_construct, std::forward_as_tuple(resource_name),
-                                                              std::forward_as_tuple(path.string(), resource_name));
-
-                if (emplace_result.second)
-                {
-                    script_list_.emplace_back(&emplace_result.first->second);
-                }
-            }
-
-            catch (const Resource_config_exception& error)
-            {
-                std::cerr << error.what() << std::endl;
-            }
+            load_resource(path);
         }
     }
 }

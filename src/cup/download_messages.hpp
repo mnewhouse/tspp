@@ -74,6 +74,12 @@ namespace ts
             resources::Car_identifier car_identifier;
         };
 
+        struct Resource_download_request
+        {
+            std::uint32_t download_key = 0;
+            utf8_string resource_name;
+        };
+
         struct File_info
         {
             utf8_string file_name;
@@ -102,6 +108,9 @@ namespace ts
 
         Message make_car_download_request(std::uint32_t download_key, const resources::Car_identifier& car_identifier);
         Car_download_request parse_car_download_request(const Message& message);
+
+        Message make_resource_download_request(std::uint32_t download_key, const utf8_string& resource_name);
+        Resource_download_request parse_resource_download_request(const Message& message);
 
         Message make_pong_message(std::uint32_t download_key);
         Download_message parse_pong_message(const Message& message);

@@ -26,7 +26,7 @@ namespace ts
 {
     namespace resources
     {
-        static const char* const config_file_name = "script.cfg";
+        static const char* const script_config_file_name = "script.cfg";
 
         struct Resource_config_exception
             : public std::runtime_error

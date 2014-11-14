@@ -124,3 +124,8 @@ void ts::server::Cup_script_interface::handle_client_disconnect(const Generic_cl
 {
     impl_->script_interface_.trigger_event("onClientDisconnect", nullptr, script::forward_as_userdata(client));
 }
+
+void ts::server::Cup_script_interface::handle_pre_initialization(Stage_assembler* stage_assembler)
+{
+    impl_->script_interface_.trigger_event("onStagePreInitialize", nullptr, script::forward_as_userdata(stage_assembler));
+}

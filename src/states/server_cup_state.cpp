@@ -21,7 +21,6 @@
 #include "server_cup_state.hpp"
 #include "server_action_state.hpp"
 
-#include "cup/stage_assembler.hpp"
 #include "cup/cup.hpp"
 
 #include "resources/settings/network_settings.hpp"
