@@ -105,7 +105,7 @@ ts::server::impl::Server::Server(resources::Resource_store* resource_store)
   command_center_(),
   interaction_interface_(&message_center_, &client_map_, &cup_controller_, &stage_interface_, &command_center_),
   download_server_(&message_center_, resource_store),  
-  cup_script_interface_(&message_center_, &command_center_, &cup_controller_, &client_map_),
+  cup_script_interface_(&message_center_, &command_center_, &cup_controller_, &client_map_, resource_store),
   stage_assembler_(&cup_controller_, &cup_script_interface_),
   interaction_event_listener_(&interaction_interface_, &cup_script_interface_)
 {

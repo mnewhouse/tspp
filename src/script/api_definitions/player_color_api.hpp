@@ -19,39 +19,16 @@
 
 #pragma once
 
-#ifndef SCRIPT_UTILITY_HPP
-#define SCRIPT_UTILITY_HPP
+#ifndef PLAYER_COLOR_API_HPP
+#define PLAYER_COLOR_API_HPP
 
-#include "squirrel_include.hpp"
-#include "script_table.hpp"
+#include "script/script_api.hpp"
 
 namespace ts
 {
-    namespace script
+    namespace script_api
     {
-        class Module;
-        class Engine;
-
-        Table get_root_table(HSQUIRRELVM);
-
-        utf8_string get_value_string(HSQUIRRELVM vm, SQInteger index);
-
-        struct Stack_guard
-        {
-        public:
-            Stack_guard(HSQUIRRELVM vm);
-            ~Stack_guard();
-
-            Stack_guard(const Stack_guard&) = delete;
-            Stack_guard& operator=(const Stack_guard&) = delete;
-
-        private:
-            HSQUIRRELVM vm_;
-            SQInteger top_;            
-        };
-
-        Engine* get_engine_by_vm(HSQUIRRELVM vm);
-        Module* get_module_by_vm(HSQUIRRELVM vm);        
+        script::API_definition player_color_api();
     }
 }
 

@@ -27,6 +27,7 @@
 #include "error_level.hpp"
 #include "execution_context.hpp"
 #include "script_userdata.hpp"
+#include "script_interface.hpp"
 
 namespace ts
 {
@@ -79,6 +80,10 @@ namespace ts
             Module(Engine* engine);
 
             void register_api(const API_definition& api_definition);
+
+            template <typename InterfaceType>
+            void register_interface(InterfaceType* interface);
+
             void do_file(const utf8_string& file_name);
 
             Event_handler add_event_handler(const utf8_string& event_name, Function function);
@@ -107,9 +112,6 @@ namespace ts
             Event_manager event_manager_;
         };
 
-        Engine* get_engine_by_vm(HSQUIRRELVM vm);
-        Module* get_module_by_vm(HSQUIRRELVM vm);
-
         SQInteger error_handler(HSQUIRRELVM vm);
         void compile_error_handler(HSQUIRRELVM vm, const SQChar* desc, const SQChar* source, SQInteger line, SQInteger column);
     }
@@ -127,5 +129,12 @@ void ts::script::Module::call_function(const Function& function, Args&&... args)
     Execution_context context(vm_);
     context(function, forward_argument<Args>(args)...);
 }
+
+template <typename InterfaceType>
+void ts::script::Module::register_interface(InterfaceType* interface)
+{
+    script::register_interface(vm_, make_interface(interface));
+}
+
 
 #endif

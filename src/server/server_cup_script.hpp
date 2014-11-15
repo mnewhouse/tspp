@@ -31,6 +31,11 @@ namespace ts
         class Cup_controller;
     }
 
+    namespace resources
+    {
+        struct Resource_store;
+    }
+
     namespace server
     {
         class Command_center;
@@ -40,8 +45,10 @@ namespace ts
         class Cup_script_interface
         {
         public:
-            Cup_script_interface(Message_center* message_center, Command_center* command_center, 
-                                 cup::Cup_controller* cup_controller, Client_map* client_map);
+            Cup_script_interface(Message_center* message_center, Command_center* command_center,
+                                 cup::Cup_controller* cup_controller, Client_map* client_map,
+                                 const resources::Resource_store* resource_store);
+
             ~Cup_script_interface();
 
             void handle_client_connect(const Generic_client& client);

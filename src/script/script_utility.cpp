@@ -19,6 +19,7 @@
 
 #include "stdinc.hpp"
 #include "script_utility.hpp"
+#include "script_module.hpp"
 
 ts::script::Stack_guard::Stack_guard(HSQUIRRELVM vm)
 : vm_(vm),
@@ -36,6 +37,17 @@ ts::script::Table ts::script::get_root_table(HSQUIRRELVM vm)
     Stack_guard stack_guard(vm);
     sq_pushroottable(vm);
     return Table(vm, -1);
+}
+
+
+ts::script::Module* ts::script::get_module_by_vm(HSQUIRRELVM vm)
+{
+    return reinterpret_cast<Module*>(sq_getforeignptr(vm));
+}
+
+ts::script::Engine* ts::script::get_engine_by_vm(HSQUIRRELVM vm)
+{
+    return get_module_by_vm(vm)->engine();
 }
 
 ts::utf8_string ts::script::get_value_string(HSQUIRRELVM vm, SQInteger index)

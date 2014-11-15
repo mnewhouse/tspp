@@ -22,6 +22,7 @@
 
 #include "userdata_impl.hpp"
 #include "delegate_definition.hpp"
+#include "script_utility.hpp"
 
 namespace ts
 {

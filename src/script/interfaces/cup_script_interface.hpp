@@ -32,6 +32,12 @@ namespace ts
     {
         class Command_center;
         class Client_map;
+        class Stage_assembler;
+    }
+
+    namespace resources
+    {
+        struct Resource_store;
     }
 
     namespace script_api
@@ -40,7 +46,8 @@ namespace ts
             : private script::Engine
         {
         public:
-            Cup_interface(server::Message_center* message_center, server::Command_center* command_center, server::Client_map* client_map);
+            Cup_interface(server::Message_center* message_center, server::Command_center* command_center,
+                          server::Client_map* client_map, const resources::Resource_store* resource_store);
 
             using Engine::create_module;
             using Engine::get_module_by_name;

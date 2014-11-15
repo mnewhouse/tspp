@@ -22,8 +22,16 @@
 #ifndef STAGE_ASSEMBLER_HPP
 #define STAGE_ASSEMBLER_HPP
 
+#include "cup/cup_metadata.hpp"
+
 namespace ts
 {
+    namespace resources
+    {
+        struct Player_definition;
+        class Car_handle;
+    }
+
     namespace cup
     {
         class Cup_controller;
@@ -41,6 +49,9 @@ namespace ts
             ~Stage_assembler();
 
             const cup::Stage_data& initialize_stage_data(const cup::Cup_controller* cup_controller);
+
+            std::uint32_t add_car(const resources::Player_definition& player_definition, const resources::Car_handle& car_handle,
+                                  cup::Player_handle controller = cup::Player_handle(), std::int32_t start_pos = -1);
 
         private:
             struct Impl;

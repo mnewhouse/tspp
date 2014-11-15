@@ -20,20 +20,29 @@
 #include "stdinc.hpp"
 #include "cup_script_interface.hpp"
 
+#include "resources/resource_store.hpp"
+
 #include "script/api_definitions/event_api.hpp"
 #include "script/api_definitions/utility_classes.hpp"
 #include "script/api_definitions/color_api.hpp"
+#include "script/api_definitions/player_color_api.hpp"
 #include "script/api_definitions/command_api.hpp"
 #include "script/api_definitions/chatbox_api.hpp"
 #include "script/api_definitions/client_api.hpp"
+#include "script/api_definitions/car_store_api.hpp"
+#include "script/api_definitions/stage_assembler_api.hpp"
 
 ts::script_api::Cup_interface::Cup_interface(server::Message_center* message_center, server::Command_center* command_center, 
-                                             server::Client_map* client_map)
+                                             server::Client_map* client_map, const resources::Resource_store* resource_store)
 {
     register_api(script_api::utility_classes());
     register_api(script_api::event_api());
     register_api(script_api::color_api());
+    register_api(script_api::player_color_api());
+
     register_api(script_api::client_api(client_map));
     register_api(script_api::command_api(command_center));
-    register_api(script_api::server_chatbox_api(message_center));
+    register_api(script_api::server_chatbox_api(message_center));    
+    register_api(script_api::stage_assembler_api());
+    register_api(script_api::car_store_api(&resource_store->car_store()));
 }

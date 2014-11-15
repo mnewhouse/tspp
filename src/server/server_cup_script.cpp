@@ -33,8 +33,9 @@
 struct ts::server::Cup_script_interface::Impl
     : public cup::Cup_controller_listener
 {
-    Impl(Message_center* message_center, Command_center* command_center, 
-         cup::Cup_controller* cup_controller, Client_map* client_map);
+    Impl(Message_center* message_center, Command_center* command_center,
+         cup::Cup_controller* cup_controller, Client_map* client_map,
+         const resources::Resource_store* resource_store);
 
     ~Impl();
 
@@ -52,9 +53,10 @@ struct ts::server::Cup_script_interface::Impl
     resources::Script_handle current_gamemode_;
 };
 
-ts::server::Cup_script_interface::Impl::Impl(Message_center* message_center, Command_center* command_center, 
-                                             cup::Cup_controller* cup_controller, Client_map* client_map)
-: script_interface_(message_center, command_center, client_map),
+ts::server::Cup_script_interface::Impl::Impl(Message_center* message_center, Command_center* command_center,
+                                             cup::Cup_controller* cup_controller, Client_map* client_map,
+                                             const resources::Resource_store* resource_store)
+: script_interface_(message_center, command_center, client_map, resource_store),
   cup_controller_(cup_controller)
 {
     cup_controller->add_cup_controller_listener(this);
@@ -94,6 +96,7 @@ void ts::server::Cup_script_interface::Impl::load_script_module(const resources:
     for (const auto& file_name : script_handle->cup_scripts())
     {
         module->do_file(file_name);
+        module->register_interface(script_handle.get());
     }
 }
 
@@ -106,8 +109,9 @@ void ts::server::Cup_script_interface::Impl::unload_script_module(const resource
 }
 
 ts::server::Cup_script_interface::Cup_script_interface(Message_center* message_center, Command_center* command_center, 
-                                                       cup::Cup_controller* cup_controller, Client_map* client_map)
-: impl_(std::make_unique<Impl>(message_center, command_center, cup_controller, client_map))
+                                                       cup::Cup_controller* cup_controller, Client_map* client_map,
+                                                       const resources::Resource_store* resource_store)
+: impl_(std::make_unique<Impl>(message_center, command_center, cup_controller, client_map, resource_store))
 {
 }
 

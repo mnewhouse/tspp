@@ -31,8 +31,8 @@ struct ts::server::Stage_assembler::Impl
     Impl(cup::Cup_controller* cup_controller, Cup_script_interface* script_interface, Stage_assembler* self);
     ~Impl();
 
-    void add_car(const resources::Player_definition& player_definition, const resources::Car_handle& car_handle,
-                 cup::Player_handle controller = cup::Player_handle(), std::int32_t start_pos = -1);
+    std::uint32_t add_car(const resources::Player_definition& player_definition, const resources::Car_handle& car_handle,
+                          cup::Player_handle controller = cup::Player_handle(), std::int32_t start_pos = -1);
 
     const cup::Stage_data& initialize_stage_data();
 
@@ -102,8 +102,8 @@ const ts::cup::Stage_data& ts::server::Stage_assembler::Impl::initialize_stage_d
     return stage_data_;
 }
 
-void ts::server::Stage_assembler::Impl::add_car(const resources::Player_definition& player_definition, const resources::Car_handle& car_handle,
-                                                cup::Player_handle controller, std::int32_t start_pos)
+std::uint32_t ts::server::Stage_assembler::Impl::add_car(const resources::Player_definition& player_definition, const resources::Car_handle& car_handle,
+                                                         cup::Player_handle controller, std::int32_t start_pos)
 {
     auto& cars = stage_data_.cars;
     cars.emplace_back();
@@ -113,8 +113,15 @@ void ts::server::Stage_assembler::Impl::add_car(const resources::Player_definiti
     car_data.controller = controller;
     car_data.player = player_definition;
     car_data.start_pos = start_pos;
+    car_data.car_id = ++car_id_;
 
-    if (start_pos == -1)
+    auto conflicting_pos = std::find_if(cars.begin(), cars.end(), 
+                                        [start_pos](const cup::Car_data& car_data)
+    {
+        return start_pos == car_data.start_pos;
+    });
+
+    if (conflicting_pos != cars.end() || start_pos == -1)
     {
         auto max_pos = std::max_element(cars.begin(), cars.end(), 
                                        [](const cup::Car_data& a, const cup::Car_data& b)
@@ -132,6 +139,8 @@ void ts::server::Stage_assembler::Impl::add_car(const resources::Player_definiti
             car_data.start_pos = 0;
         }
     }
+
+    return car_data.car_id;
 }
 
 ts::server::Stage_assembler::Stage_assembler(cup::Cup_controller* cup_controller, Cup_script_interface* script_interface)
@@ -141,4 +150,10 @@ ts::server::Stage_assembler::Stage_assembler(cup::Cup_controller* cup_controller
 
 ts::server::Stage_assembler::~Stage_assembler()
 {
+}
+
+std::uint32_t ts::server::Stage_assembler::add_car(const resources::Player_definition& player_definition, const resources::Car_handle& car_handle,
+                                                   cup::Player_handle controller, std::int32_t start_pos)
+{
+    return impl_->add_car(player_definition, car_handle, controller, start_pos);
 }

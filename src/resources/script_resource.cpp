@@ -19,12 +19,45 @@
 
 #include "stdinc.hpp"
 #include "script_resource.hpp"
+#include "car_store.hpp"
+
+namespace ts
+{
+    namespace resources
+    {
+        utf8_string resource_car_directory(const utf8_string& resource_directory);
+    }
+}
+
+ts::utf8_string ts::resources::resource_car_directory(const utf8_string& resource_root_directory)
+{
+    boost::filesystem::path path(resource_root_directory.string());
+    path /= "cars";
+    return path.string();
+}
+
+struct ts::resources::Script_resource::Resources
+{
+    Resources(const utf8_string& root_directory);
+
+    Car_store car_store;  
+};
+
+ts::resources::Script_resource::Resources::Resources(const utf8_string& root_directory)
+: car_store(resource_car_directory(root_directory))
+{
+}
 
 ts::resources::Script_resource::Script_resource(utf8_string root_directory, utf8_string name)
 : resource_name_(std::move(name)),
-  root_directory_(std::move(root_directory))
+  root_directory_(std::move(root_directory)),
+  resources_(std::make_unique<Resources>(root_directory_))
 {
     load_resource_config();
+}
+
+ts::resources::Script_resource::~Script_resource()
+{
 }
 
 const ts::utf8_string& ts::resources::Script_resource::name() const
@@ -45,6 +78,11 @@ const std::vector<ts::utf8_string>& ts::resources::Script_resource::server_scrip
 const std::vector<ts::utf8_string>& ts::resources::Script_resource::cup_scripts() const
 {
     return cup_script_files_;
+}
+
+const ts::resources::Car_store* ts::resources::Script_resource::car_store() const
+{
+    return &resources_->car_store;
 }
 
 ts::resources::Resource_config_exception::Resource_config_exception(const utf8_string& resource_name)

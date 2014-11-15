@@ -567,8 +567,10 @@ ts::cup::Message ts::cup::make_action_initialization_message(const Stage_data& s
 
         message << car_index;
         message << static_cast<std::uint16_t>(car_info.start_pos);
-        message << static_cast<std::uint16_t>(car_info.car_id);        
-        message << static_cast<std::uint16_t>(car_info.controller->handle);
+        message << static_cast<std::uint16_t>(car_info.car_id);   
+
+        std::uint16_t controller_id = car_info.controller ? car_info.controller->handle : 0;
+        message << static_cast<std::uint16_t>(controller_id);
         message << car_info.player.color;
     }
 

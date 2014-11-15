@@ -107,7 +107,7 @@ void ts::script::Module::register_api(const API_definition& api_definition)
 
     for (auto interface : api_definition.interfaces)
     {
-        register_interface(vm_, interface);
+        script::register_interface(vm_, interface);
     }
 
     for (const auto& class_def : api_definition.classes)
@@ -161,16 +161,6 @@ ts::script::Event_handler ts::script::Module::add_event_handler(const utf8_strin
 void ts::script::Module::remove_event_handler(const Event_handler& event_handler)
 {
     event_manager_.remove_event_handler(event_handler);
-}
-
-ts::script::Module* ts::script::get_module_by_vm(HSQUIRRELVM vm)
-{
-    return reinterpret_cast<Module*>(sq_getforeignptr(vm));
-}
-
-ts::script::Engine* ts::script::get_engine_by_vm(HSQUIRRELVM vm)
-{
-    return get_module_by_vm(vm)->engine();
 }
 
 SQInteger ts::script::error_handler(HSQUIRRELVM vm)

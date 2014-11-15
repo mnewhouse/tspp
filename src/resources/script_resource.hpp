@@ -26,6 +26,8 @@ namespace ts
 {
     namespace resources
     {
+        class Car_store;
+
         static const char* const script_config_file_name = "script.cfg";
 
         struct Resource_config_exception
@@ -38,17 +40,18 @@ namespace ts
         {
         public:
             Script_resource(utf8_string root_directory, utf8_string name);
+            ~Script_resource();
 
             const std::vector<utf8_string>& client_scripts() const;
             const std::vector<utf8_string>& server_scripts() const;
             const std::vector<utf8_string>& cup_scripts() const;
 
             const utf8_string& name() const;
+            const Car_store* car_store() const;
 
         private:
             void load_resource_config();
             void load_resource_config(std::istream& stream);
-
 
             utf8_string resource_name_;
             utf8_string root_directory_;
@@ -56,6 +59,9 @@ namespace ts
             std::vector<utf8_string> client_script_files_;
             std::vector<utf8_string> server_script_files_;
             std::vector<utf8_string> cup_script_files_;
+
+            struct Resources;
+            std::unique_ptr<Resources> resources_;
         };
 
         using Script_handle = Pointer_handle<const Script_resource>;

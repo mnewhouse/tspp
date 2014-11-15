@@ -344,6 +344,8 @@ set(SRC src/main.cpp
         src/script/userdata_impl.hpp
         src/script/userdata_traits.hpp
        
+	    src/script/api_definitions/car_store_api.hpp
+		src/script/api_definitions/car_store_api.cpp
 	    src/script/api_definitions/chatbox_api.hpp
 		src/script/api_definitions/chatbox_api.cpp
 		src/script/api_definitions/client_api.hpp
@@ -356,6 +358,8 @@ set(SRC src/main.cpp
         src/script/api_definitions/entity_api.cpp
         src/script/api_definitions/event_api.hpp
         src/script/api_definitions/event_api.cpp
+		src/script/api_definitions/player_color_api.hpp
+		src/script/api_definitions/player_color_api.cpp
 		src/script/api_definitions/stage_assembler_api.hpp
 		src/script/api_definitions/stage_assembler_api.cpp
 		src/script/api_definitions/utility_classes.hpp
