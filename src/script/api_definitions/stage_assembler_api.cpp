@@ -23,6 +23,7 @@
 #include "resources/car_handle.hpp"
 #include "resources/player_definition.hpp"
 #include "server/stage_assembler.hpp"
+#include "cup/stage_data.hpp"
 
 #include "script/script_delegates.hpp"
 #include "script/argument_stream.hpp"
@@ -44,6 +45,11 @@ namespace ts
                 { "addCar", addCar },
                 { "removeCar", removeCar },
                 { "carList", carList }
+            };
+
+            struct Car
+            {
+                std::uint32_t car_id;
             };
         }
         
@@ -89,18 +95,73 @@ SQInteger ts::script_api::stage_assembler::addCar(HSQUIRRELVM vm)
         player_def.id = 0;
 
         auto stage_assembler = *stage_assembler_udata;
-        stage_assembler->add_car(player_def, *car_handle_udata, cup::Player_handle());
+
+        stage_assembler::Car car;
+        car.car_id = stage_assembler->add_car(player_def, *car_handle_udata, cup::Player_handle());
+        make_userdata(vm, car).push();
+        return 1;
+    }
+
+    else
+    {
+        report_argument_errors(get_module_by_vm(vm), argument_stream);
+        return 0;
+    }    
+}
+
+SQInteger ts::script_api::stage_assembler::removeCar(HSQUIRRELVM vm)
+{
+    Userdata<server::Stage_assembler*> stage_assembler_udata;
+    Userdata<stage_assembler::Car> car_udata;
+
+    Argument_stream argument_stream(vm);    
+    argument_stream(Userdata_reader<server::Stage_assembler*>(stage_assembler_udata));
+    argument_stream(Userdata_reader<stage_assembler::Car>(car_udata));
+    if (argument_stream)
+    {
+        auto stage_assembler = *stage_assembler_udata;
+        stage_assembler->remove_car_by_id(car_udata->car_id);
+    }
+
+    else
+    {
+        report_argument_errors(get_module_by_vm(vm), argument_stream);
     }
 
     return 0;
 }
 
-SQInteger ts::script_api::stage_assembler::removeCar(HSQUIRRELVM vm)
-{
-    return 0;
-}
-
 SQInteger ts::script_api::stage_assembler::carList(HSQUIRRELVM vm)
 {
-    return 0;
+    Userdata<server::Stage_assembler*> stage_assembler_udata;
+    
+    Argument_stream argument_stream(vm);    
+    argument_stream(Userdata_reader<server::Stage_assembler*>(stage_assembler_udata));
+
+    if (argument_stream)
+    {
+        auto stage_assembler = *stage_assembler_udata;
+        const auto& stage_data = stage_assembler->stage_data();
+
+        sq_newarray(vm, stage_data.cars.size());
+
+        for (const auto& car : stage_data.cars)
+        {
+            Stack_guard loop_guard(vm);
+
+            stage_assembler::Car entry;
+            entry.car_id = car.car_id;
+
+            make_userdata(vm, entry).push();
+            sq_arrayappend(vm, -2);
+        }
+
+        return 1;
+    }
+
+    else
+    {
+        report_argument_errors(get_module_by_vm(vm), argument_stream);
+        return 0;
+    }    
 }

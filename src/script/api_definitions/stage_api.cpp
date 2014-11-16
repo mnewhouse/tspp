@@ -18,7 +18,7 @@
 */
 
 #include "stdinc.hpp"
-#include "world_api.hpp"
+#include "stage_api.hpp"
 
 #include "action/stage.hpp"
 

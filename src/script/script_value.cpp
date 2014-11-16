@@ -58,6 +58,66 @@ struct ts::script::Value::push_visitor
     HSQUIRRELVM vm;
 };
 
+struct ts::script::Value::copy_visitor
+    : public boost::static_visitor<Value>
+{
+    copy_visitor(HSQUIRRELVM vm)
+    : vm(vm)
+    {
+    }
+
+    Value operator()(null_t) const
+    {
+        return nullptr;
+    }
+    Value operator()(bool_t value) const
+    {
+        return value;
+    }
+
+    Value operator()(integer_t value) const
+    {
+        return value;
+    }
+
+    Value operator()(float_t value) const
+    {
+        return value;
+    }
+
+    Value operator()(const string_t& value) const
+    {
+        return value;
+    }
+    Value operator()(const string_view_t& value) const
+    {
+        return string_t(value);
+    }
+
+    Value operator()(userpointer_t value) const
+    {
+        return value;
+    }
+
+    Value operator()(const userdata_t& value) const
+    {
+        // TODO
+        return nullptr;
+    }
+
+    Value operator()(const function_t& function) const
+    {
+        return nullptr;
+    }
+
+    Value operator()(const object_t& object) const
+    {
+        return nullptr;
+    }
+
+    HSQUIRRELVM vm;
+};
+
 ts::script::Value::Value()
 : variant_(null_t())
 {
@@ -129,4 +189,9 @@ ts::script::Value::variant_t ts::script::Value::read_value_from_stack(HSQUIRRELV
     default:
         return null_t();
     }
+}
+
+ts::script::Value ts::script::copy_value(const Value& value, HSQUIRRELVM vm)
+{
+    return boost::apply_visitor(Value::copy_visitor(vm), value.variant_);
 }

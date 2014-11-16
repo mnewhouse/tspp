@@ -21,7 +21,7 @@
 #include "server_script_interface.hpp"
 
 #include "script/api_definitions/utility_classes.hpp"
-#include "script/api_definitions/world_api.hpp"
+#include "script/api_definitions/stage_api.hpp"
 #include "script/api_definitions/event_api.hpp"
 
 #include "action/stage.hpp"

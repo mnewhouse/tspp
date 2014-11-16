@@ -107,10 +107,15 @@ namespace ts
 
             struct type_visitor;
             struct push_visitor;
+            struct copy_visitor;
+            friend Value copy_value(const Value&, HSQUIRRELVM);
+
             variant_t read_value_from_stack(HSQUIRRELVM vm, SQInteger index);
             
             variant_t variant_;
         };
+
+        Value copy_value(const Value& value, HSQUIRRELVM target_vm);
     }
 }
 

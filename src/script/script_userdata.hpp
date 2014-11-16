@@ -34,6 +34,40 @@ namespace ts
             static const construct_t construct;
         }
 
+        struct Generic_userdata;
+
+        struct Userdata_storage_base
+        {
+            virtual Generic_userdata clone(HSQUIRRELVM vm) const = 0;
+            virtual SQUserPointer data() = 0;
+            virtual ~Userdata_storage_base() = default;
+        };
+
+        template <typename T>
+        struct Userdata_storage
+            : public Userdata_storage_base
+        {
+            virtual ~Userdata_storage()
+            {
+                static_cast<T*>(static_cast<void*>(&data_))->~T();
+            }
+
+            template <typename... Args>
+            Userdata_storage(userdata::construct_t, Args&&... args)
+            {
+                new (&data_)T(std::forward<Args>(args)...);
+            }
+
+            virtual SQUserPointer data() override
+            {
+                return static_cast<SQUserPointer>(&data_);
+            }
+
+            virtual Generic_userdata clone(HSQUIRRELVM vm) const override;
+
+            std::aligned_storage_t<sizeof(T)> data_;
+        };
+
         struct Userdata_base
         {
             virtual ~Userdata_base() = default;
@@ -41,6 +75,8 @@ namespace ts
             virtual SQUserPointer type_tag() const = 0;
             virtual void push() const = 0;
             virtual HSQUIRRELVM vm_handle() const = 0;
+
+            virtual Generic_userdata clone(HSQUIRRELVM target_vm) const = 0;
         };
 
         template <typename T>
@@ -48,48 +84,65 @@ namespace ts
         {
            reinterpret_cast<T*>(ptr)->~T();
            return 1;
-       }
+        }
+        
+        template <typename T, typename... Args>
+        Object_handle initialize_userdata(HSQUIRRELVM vm, Args&&... args)
+        {
+            Stack_guard stack_guard(vm);
+
+            auto pointer = sq_newuserdata(vm, sizeof(Userdata_storage<T>));
+            sq_settypetag(vm, -1, userdata_type_tag<T>());
+            sq_setreleasehook(vm, -1, userdata_release_hook<Userdata_storage<T>>);
+
+            auto target_pointer = static_cast<Userdata_storage<T>*>(static_cast<Userdata_storage_base*>(pointer));
+            new (target_pointer) Userdata_storage<T>(userdata::construct, std::forward<Args>(args)...);
+
+            return Object_handle(vm, -1);
+        }
 
         struct Userdata_internals
             : public Object_handle
         {
             Userdata_internals()
-            : Object_handle(), 
-              pointer(nullptr), 
+            : storage(nullptr),
               type_tag(nullptr)
             {
             }
 
-            Userdata_internals(HSQUIRRELVM vm, SQUnsignedInteger size, SQUserPointer type_tag, 
-                               SQRELEASEHOOK release_hook, Table delegate)
-                : Object_handle()
+            Userdata_internals(Object_handle object_handle)
+            : Object_handle(object_handle),
+              storage(nullptr),
+              type_tag(nullptr)
             {
-                Stack_guard stack_guard(vm);
-                pointer = sq_newuserdata(vm, size);
-                sq_settypetag(vm, -1, type_tag);
-                sq_setreleasehook(vm, -1, release_hook);
+                Stack_guard stack_guard(vm());
 
-                if (delegate)
-                {
-                    delegate.push();
-                    sq_setdelegate(vm, -2);
-                }
+                push();
 
-                reset(vm, -1, OT_USERDATA);
+                SQUserPointer pointer;
+                sq_getuserdata(vm(), -1, &pointer, &type_tag);
+
+                storage = static_cast<Userdata_storage_base*>(pointer);
             }
 
             Userdata_internals(HSQUIRRELVM vm, SQInteger index)
-                : Object_handle(vm, index, OT_USERDATA)
+                : Object_handle(vm, index, OT_USERDATA),
+                  storage(nullptr),
+                  type_tag(nullptr)
             {
                 if (*this)
                 {
+                    SQUserPointer pointer;
                     sq_getuserdata(vm, index, &pointer, &type_tag);
+
+                    storage = static_cast<Userdata_storage_base*>(pointer);
                 }
             }
 
-            SQUserPointer pointer;
+            Userdata_storage_base* storage;
             SQUserPointer type_tag;
         };
+        
 
         template <typename T>
         class Userdata
@@ -100,15 +153,23 @@ namespace ts
 
             template <typename... Args>
             explicit Userdata(userdata::construct_t, HSQUIRRELVM vm, Args&&... args)
-                : internals_(vm, sizeof(T), userdata_type_tag<T>(), userdata_release_hook<T>, get_delegate_table<T>(vm)),
-                  pointer_(static_cast<T*>(internals_.pointer))
+                : internals_(initialize_userdata<T>(vm, std::forward<Args>(args)...)),
+                  pointer_(static_cast<T*>(internals_.storage->data()))
             {
-                new (pointer_)T(std::forward<Args>(args)...);
+                Stack_guard stack_guard(vm);
+                internals_.push();
+
+                auto delegate = get_delegate_table<T>(vm);
+                if (delegate)
+                {
+                    delegate.push();
+                    sq_setdelegate(vm, -2);
+                }
             }
 
             Userdata(HSQUIRRELVM vm, SQInteger index)
                 : internals_(vm, index), 
-                  pointer_(impl::userdata_cast<T>(internals_.pointer, internals_.type_tag))
+                  pointer_(impl::userdata_cast<T>(internals_.storage->data(), internals_.type_tag))
             {
             }
 
@@ -121,6 +182,8 @@ namespace ts
             {
                 return userdata_type_tag<T>();
             }
+
+            virtual Generic_userdata clone(HSQUIRRELVM vm) const override;
 
             T* operator->() const
             {
@@ -174,6 +237,8 @@ namespace ts
                 return internals_.vm();
             }
 
+            virtual Generic_userdata clone(HSQUIRRELVM vm) const override;
+
         private:
             Userdata_internals internals_;
         };
@@ -185,6 +250,8 @@ namespace ts
         struct Generic_userdata
         {
         public:
+            Generic_userdata() = default;
+
             Generic_userdata(HSQUIRRELVM vm, SQInteger integer)
                 : self_(std::make_shared<Userdata<void>>(vm, integer))
             {
@@ -274,6 +341,49 @@ namespace ts
 
             T value;
         };
+
+        namespace impl
+        {
+            template <typename T>
+            struct clone_helper
+            {
+                Generic_userdata operator()(HSQUIRRELVM vm, const T& object) const
+                {
+                    return clone_impl<T>(vm, object, 0);
+                }
+
+                template <typename U, typename std::enable_if<std::is_copy_constructible<U>::value>::type = 0>
+                Generic_userdata clone_impl(HSQUIRRELVM vm, const T& object, int) const
+                {
+                    return make_userdata(vm, object);
+                }
+
+                template <typename U>
+                Generic_userdata clone_impl(HSQUIRRELVM vm, const T& object, ...) const
+                {
+                    return Generic_userdata();
+                }
+            };
+        }
+
+        inline Generic_userdata Userdata<void>::clone(HSQUIRRELVM vm) const
+        {
+            return internals_.storage->clone(vm);
+        }
+
+        template <typename T>
+        Generic_userdata Userdata<T>::clone(HSQUIRRELVM vm) const
+        {
+            return internals_.storage->clone(vm);
+        }
+
+
+        template <typename T>
+        Generic_userdata Userdata_storage<T>::clone(HSQUIRRELVM vm) const
+        {
+            impl::clone_helper<T> clone_helper;
+            return clone_helper(vm, *static_cast<const T*>(static_cast<const void*>(&data_)));
+        }
 
         template <typename T>
         Userdata_forwarder<T&&> forward_as_userdata(T&& value)

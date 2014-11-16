@@ -34,6 +34,8 @@ struct ts::server::Stage_assembler::Impl
     std::uint32_t add_car(const resources::Player_definition& player_definition, const resources::Car_handle& car_handle,
                           cup::Player_handle controller = cup::Player_handle(), std::int32_t start_pos = -1);
 
+    void remove_car_by_id(std::uint32_t car_id);
+
     const cup::Stage_data& initialize_stage_data();
 
     virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
@@ -143,6 +145,16 @@ std::uint32_t ts::server::Stage_assembler::Impl::add_car(const resources::Player
     return car_data.car_id;
 }
 
+void ts::server::Stage_assembler::Impl::remove_car_by_id(std::uint32_t car_id)
+{
+    auto& cars = stage_data_.cars;
+    cars.erase(std::remove_if(cars.begin(), cars.end(), 
+        [car_id](const cup::Car_data& car_data)
+    {
+        return car_data.car_id == car_id;
+    }), cars.end());
+}
+
 ts::server::Stage_assembler::Stage_assembler(cup::Cup_controller* cup_controller, Cup_script_interface* script_interface)
 : impl_(std::make_unique<Impl>(cup_controller, script_interface, this))
 {
@@ -156,4 +168,14 @@ std::uint32_t ts::server::Stage_assembler::add_car(const resources::Player_defin
                                                    cup::Player_handle controller, std::int32_t start_pos)
 {
     return impl_->add_car(player_definition, car_handle, controller, start_pos);
+}
+
+void ts::server::Stage_assembler::remove_car_by_id(std::uint32_t car_id)
+{
+    impl_->remove_car_by_id(car_id);
+}
+
+const ts::cup::Stage_data& ts::server::Stage_assembler::stage_data() const
+{
+    return impl_->stage_data_;
 }

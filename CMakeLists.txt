@@ -360,14 +360,15 @@ set(SRC src/main.cpp
         src/script/api_definitions/event_api.cpp
 		src/script/api_definitions/player_color_api.hpp
 		src/script/api_definitions/player_color_api.cpp
+		src/script/api_definitions/stage_api.hpp
+        src/script/api_definitions/stage_api.cpp
 		src/script/api_definitions/stage_assembler_api.hpp
 		src/script/api_definitions/stage_assembler_api.cpp
 		src/script/api_definitions/utility_classes.hpp
 		src/script/api_definitions/utility_classes.cpp
 		src/script/api_definitions/view_api.hpp
 		src/script/api_definitions/view_api.cpp
-        src/script/api_definitions/world_api.hpp
-        src/script/api_definitions/world_api.cpp
+
         
         src/script/interfaces/client_script_interface.hpp
         src/script/interfaces/client_script_interface.cpp
