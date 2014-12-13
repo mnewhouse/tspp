@@ -40,28 +40,55 @@ namespace ts
         return N;
     }
 
-
-    template <typename F>
-    struct Scope_exit
+    struct Generic_scope_exit
     {
-        explicit Scope_exit(F func)
-        : func_(func)
+        explicit Generic_scope_exit(std::function<void()> func = {})
+        : func_(std::move(func))
         {
         }
 
-        ~Scope_exit()
+        Generic_scope_exit(const Generic_scope_exit&) = delete;
+        Generic_scope_exit& operator=(const Generic_scope_exit&) = delete;
+
+        Generic_scope_exit(Generic_scope_exit&& other)
+            : func_(std::move(other.func_))
         {
-            func_();
+        }
+
+        Generic_scope_exit& operator=(Generic_scope_exit&& rhs)
+        {
+            if (func_)
+            {
+                func_();
+            }
+
+            func_ = std::move(rhs.func_);
+            rhs.func_ = nullptr;
+
+            return *this;
+        }        
+
+        ~Generic_scope_exit()
+        {
+            if (func_)
+            {
+                func_();
+            }            
+        }
+
+        explicit operator bool() const
+        {
+            return func_ != nullptr;
         }
 
     private:
-        F func_;
+        std::function<void()> func_;
     };
 
     template <typename F>
-    Scope_exit<F> scope_exit(F func)
+    Generic_scope_exit generic_scope_exit(F func)
     {
-        return Scope_exit<F>(func);
+        return Generic_scope_exit(func);
     }
 
     template <typename T>

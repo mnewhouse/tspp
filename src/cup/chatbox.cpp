@@ -21,22 +21,10 @@
 #include "chatbox.hpp"
 #include "chatbox_listener.hpp"
 
-void ts::cup::Chatbox::add_chatbox_listener(Chatbox_listener* listener)
-{
-    listeners_.push_back(listener);
-}
-
-void ts::cup::Chatbox::remove_chatbox_listener(Chatbox_listener* listener)
-{
-    listeners_.erase(std::remove(listeners_.begin(), listeners_.end(), listener), listeners_.end());
-}
-
 void ts::cup::Chatbox::dispatch_message(const Chat_message& message)
 {
-    for (auto listener : listeners_)
-    {
-        listener->on_chat_message(message);
-    }
+
+    call_listeners(&Chatbox_listener::on_chat_message, message);
 
     log_message(message);
 }

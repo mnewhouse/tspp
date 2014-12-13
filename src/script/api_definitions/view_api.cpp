@@ -26,8 +26,8 @@
 #include "script/script_delegates.hpp"
 #include "script/script_userdata.hpp"
 
-#include "game/action_scene.hpp"
-#include "game/view_context.hpp"
+#include "client/scene/action_scene.hpp"
+#include "client/scene/view_context.hpp"
 
 namespace ts
 {
@@ -35,7 +35,7 @@ namespace ts
     {
         using namespace script;
 
-        using game::View_context;
+        using scene::View_context;
 
         SQInteger getViewList(HSQUIRRELVM vm);
         SQInteger getScreenSize(HSQUIRRELVM vm);
@@ -111,7 +111,7 @@ namespace ts
     }
 }
 
-ts::script::API_definition ts::script_api::view_api(game::Action_scene* action_scene)
+ts::script::API_definition ts::script_api::view_api(scene::Action_scene* action_scene)
 {
     API_definition api_def;
     api_def.static_functions.assign(std::begin(view_functions), std::end(view_functions));
@@ -127,7 +127,7 @@ ts::script::API_definition ts::script_api::view_api(game::Action_scene* action_s
 
 SQInteger ts::script_api::getViewList(HSQUIRRELVM vm)
 {
-    auto view_context = get_interface<game::View_context>(vm);
+    auto view_context = get_interface<scene::View_context>(vm);
     sq_newarray(vm, view_context->view_count());
 
     View view;
@@ -143,7 +143,7 @@ SQInteger ts::script_api::getViewList(HSQUIRRELVM vm)
 
 SQInteger ts::script_api::getScreenSize(HSQUIRRELVM vm)
 {
-    auto view_context = get_interface<game::View_context>(vm);
+    auto view_context = get_interface<scene::View_context>(vm);
     auto screen_size = view_context->screen_size();
 
     push_vector2(vm, screen_size);

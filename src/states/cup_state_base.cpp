@@ -22,11 +22,11 @@
 #include "action_state_base.hpp"
 #include "cup_gui.hpp"
 
+#include "client/client_interface.hpp"
+
 #include "cup/cup.hpp"
 
-#include "game/loading_sequence.hpp"
-#include "game/chatbox_display.hpp"
-#include "game/stage_loader.hpp"
+#include "resources/loading_interface.hpp"
 
 namespace ts
 {
@@ -37,12 +37,13 @@ namespace ts
 }
 
 
-ts::states::Cup_state_base::Cup_state_base(const client::Client_interface* client_interface, state_machine_type* state_machine, gui::Context* context,
-                                 resources::Resource_store* resource_store)
+ts::states::Cup_state_base::Cup_state_base(const client::Client_interface* client_interface,
+    state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
   : gui::State(state_machine, context, resource_store),
+    cup::Scoped_cup_listener(client_interface->cup()),
+
     client_interface_(client_interface),
-    cup_gui_(std::make_unique<Cup_GUI>(client_interface, context, resource_store)),
-    loading_sequence_(std::make_unique<game::Loading_sequence>(resource_store))
+    cup_gui_(std::make_unique<Cup_GUI>(client_interface, context, resource_store))
 {
     cup_gui_->set_cup_state_text(to_string(client_interface->cup()->cup_state()));
 }
@@ -67,56 +68,46 @@ void ts::states::Cup_state_base::update(std::size_t frame_duration)
 {
     cup_gui_->update(frame_duration);
 
-    if (stage_loader_)
+    if (loading_interface_)
     {
-        cup_gui_->set_loading_progress(stage_loader_->progress());
-        cup_gui_->set_loading_progress_text(to_string(stage_loader_->state()));
+        cup_gui_->set_loading_progress(loading_interface_->progress() / loading_interface_->max_progress());
+        cup_gui_->set_loading_progress_text(loading_interface_->progress_string());
     }
 
-    else
+    else if (client_interface_->cup()->cup_state() == cup::Cup_state::Action)
     {
-        loading_sequence_->poll();
-        
-        cup_gui_->set_loading_progress(loading_sequence_->progress());
-        cup_gui_->set_loading_progress_text(loading_sequence_->progress_string());
-    }
-
-    if (client_interface_->cup()->cup_state() == cup::Cup_state::Action)
-    {
-        if (loading_sequence_->is_complete())
-        {
-            try
-            {
-                launch_action(make_action_state(loading_sequence_->transfer_result()));
-            }
-
-            catch (const std::exception& error)
-            {
-                client_interface_->load_error(error.what());
-            }            
-        }
-    }
-
-    if (cup_gui_->quit_event_pending())
-    {
-        state_machine()->change_state();
+        // No loading interface anymore and cup state equals Action - let's go!
+        launch_action(make_action_state());
     }
 }
 
 void ts::states::Cup_state_base::on_state_change(cup::Cup_state old_state, cup::Cup_state new_state)
 {
     cup_gui_->set_cup_state_text(to_string(new_state));
+
+    if (new_state == cup::Cup_state::Initializing)
+    {
+        cup_gui_->hide_progress_dialog();
+        loading_interface_ = nullptr;
+    }
 }
 
-void ts::states::Cup_state_base::show_stage_loading(const game::Stage_loader* stage_loader)
+void ts::states::Cup_state_base::show_stage_loading(const resources::Loading_interface* loading_interface)
 {
-    stage_loader_ = stage_loader;
+    loading_interface_ = loading_interface;
 
     cup_gui_->show_progress_dialog();
-    cup_gui_->set_loading_progress(stage_loader->progress());
-    cup_gui_->set_loading_progress_text(to_string(stage_loader->state()));
+    cup_gui_->set_loading_progress(loading_interface->progress());
+    cup_gui_->set_loading_progress_text(loading_interface->progress_string());
 }
 
+void ts::states::Cup_state_base::ready_for_action()
+{
+    loading_interface_ = nullptr;
+    cup_gui_->hide_progress_dialog();
+}
+
+/*
 void ts::states::Cup_state_base::load_scene(const action::Stage* stage)
 {
     stage_loader_ = nullptr;
@@ -134,6 +125,7 @@ void ts::states::Cup_state_base::load_scene(const action::Stage* stage)
 
     loading_sequence_->async_load(stage);
 }
+*/
 
 
 void ts::states::Cup_state_base::return_to_main_menu()

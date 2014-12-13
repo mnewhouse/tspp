@@ -37,14 +37,14 @@ namespace ts
             SQFUNCTION function;
         };
 
+        using Launch_callback = std::function<void(HSQUIRRELVM)>;
+
         struct API_definition
         {
             std::vector<Static_function_definition> static_functions;
             std::vector<Delegate_definition> delegates;
             std::vector<Class_definition> classes;
-
-            std::vector<utf8_string> events;
-
+            std::vector<Launch_callback> launch_callbacks;
             std::vector<Generic_interface> interfaces;
         };
     };

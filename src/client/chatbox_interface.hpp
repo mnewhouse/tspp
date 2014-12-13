@@ -39,8 +39,9 @@ namespace ts
             virtual void handle_message(const Server_message& message) override;
 
             const cup::Chatbox* chatbox() const;
-            void add_chatbox_listener(cup::Chatbox_listener* listener);
-            void remove_chatbox_listener(cup::Chatbox_listener* listener);
+            cup::Chatbox* chatbox();
+
+            core::Listener_host<cup::Chatbox_listener>* chatbox_listener_host();
 
         private:
             void handle_chatbox_output(const Message& message);

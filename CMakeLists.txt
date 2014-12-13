@@ -33,18 +33,13 @@ set(SRC src/main.cpp
 		src/action/stage.cpp
 		src/action/stage_conductor.hpp
 		src/action/stage_conductor.cpp
+		src/action/stage_interface.hpp
+		src/action/stage_interface.cpp
+		src/action/stage_loader.hpp
+		src/action/stage_loader.cpp
 
         src/audio/audio_store.cpp
         src/audio/audio_store.hpp
-        src/audio/collision_sounds.cpp
-        src/audio/collision_sounds.hpp
-        src/audio/engine_sounds.cpp
-        src/audio/engine_sounds.hpp
-        src/audio/loaded_sound_effects.hpp
-        src/audio/skid_sounds.hpp
-        src/audio/skid_sounds.cpp
-        src/audio/sound_controller.hpp
-        src/audio/sound_controller.cpp
         src/audio/sound_effect_controller.hpp
         src/audio/sound_effect_controller.cpp
 
@@ -70,6 +65,42 @@ set(SRC src/main.cpp
 		src/client/registration.hpp
 		src/client/resource_downloader.hpp
 		src/client/resource_downloader.cpp
+
+		
+        src/client/scene/action_scene.hpp
+        src/client/scene/action_scene.cpp
+		src/client/scene/audio_loader.hpp
+		src/client/scene/audio_loader.cpp
+        src/client/scene/camera.hpp
+        src/client/scene/camera.cpp
+		src/client/scene/collision_sounds.hpp
+		src/client/scene/collision_sounds.cpp
+        src/client/scene/drawable_entity.hpp
+        src/client/scene/drawable_entity.cpp
+		src/client/scene/engine_sounds.hpp
+		src/client/scene/engine_sounds.cpp
+		src/client/scene/loaded_sound_effects.hpp
+		src/client/scene/loading_sequence.hpp
+		src/client/scene/loading_sequence.cpp
+        src/client/scene/particle_generator.hpp
+        src/client/scene/particle_generator.cpp
+		src/client/scene/scene.hpp
+		src/client/scene/scene.cpp
+		src/client/scene/scene_loader.hpp
+        src/client/scene/scene_loader.cpp
+		src/client/scene/skid_sounds.hpp
+		src/client/scene/skid_sounds.cpp
+		src/client/scene/sound_controller.hpp
+		src/client/scene/sound_controller.cpp
+		src/client/scene/track_builder.hpp
+        src/client/scene/track_builder.cpp
+		src/client/scene/view_context.hpp
+		src/client/scene/view_context.cpp
+
+		src/client/hud/chatbox_display.hpp
+		src/client/hud/chatbox_display.cpp
+		src/client/hud/hud_chatbox.hpp
+		src/client/hud/hud_chatbox.cpp
         
         src/controls/control.hpp
         src/controls/control.cpp
@@ -78,6 +109,8 @@ set(SRC src/main.cpp
 		src/controls/control_event.hpp
 		src/controls/control_event_translator.hpp
 		src/controls/control_event_translator.cpp
+		src/controls/control_event_processor.hpp
+		src/controls/control_event_processor.cpp
         src/controls/control_interface.hpp
         src/controls/controllable.hpp
         src/controls/controllable.cpp
@@ -88,6 +121,7 @@ set(SRC src/main.cpp
         src/core/config.hpp
         src/core/directive_reader.hpp
 		src/core/line_intersection.hpp
+		src/core/listener_utilities.hpp
         src/core/pointer_handle.hpp
         src/core/range.hpp
         src/core/rect.hpp
@@ -126,48 +160,19 @@ set(SRC src/main.cpp
 		src/cup/player.hpp
 		src/cup/stage_data.hpp
 
-        src/game/action_scene.hpp
-        src/game/action_scene.cpp
-		src/game/audio_loader.hpp
-		src/game/audio_loader.cpp
-        src/game/camera.hpp
-        src/game/camera.cpp
-        src/game/car_image_generator.hpp
-        src/game/car_image_generator.cpp
-		src/game/chatbox_display.hpp
-		src/game/chatbox_display.cpp
-		src/game/client_script_loader.hpp
-		src/game/client_script_loader.cpp
-        src/game/drawable_entity.hpp
-        src/game/drawable_entity.cpp
+		
+		src/game/event_dispatcher.hpp
+		src/game/event_dispatcher.cpp
+		src/game/event_handler.hpp
         src/game/game.hpp
         src/game/game.cpp        
         src/game/game_state.hpp
         src/game/game_state.cpp
-		src/game/generic_loader.hpp
-		src/game/loaded_scene.hpp
-		src/game/loaded_scene.cpp
-		src/game/loading_sequence.hpp
-		src/game/loading_sequence.cpp
-        src/game/particle_generator.hpp
-        src/game/particle_generator.cpp
-		src/game/scene_loader.hpp
-        src/game/scene_loader.cpp
-		src/game/stage_interface.hpp
-		src/game/stage_interface.cpp
-		src/game/stage_loader.hpp
-		src/game/stage_loader.cpp
-		src/game/track_builder.hpp
-        src/game/track_builder.cpp
-		src/game/view_context.hpp
-		src/game/view_context.cpp
 
 		src/graphics/colored_text.hpp
 		src/graphics/colored_text.cpp
         src/graphics/geometry.hpp
         src/graphics/geometry.cpp
-        src/graphics/image_loader.hpp
-        src/graphics/image_loader.cpp
         src/graphics/particle_drawer.hpp
         src/graphics/particle_drawer.cpp
         src/graphics/render_scene.hpp
@@ -202,6 +207,8 @@ set(SRC src/main.cpp
         src/resources/car_handle.hpp
         src/resources/car_handle.cpp
 		src/resources/car_identifier.hpp
+		src/resources/car_image_generator.hpp
+		src/resources/car_image_generator.cpp
         src/resources/car_store.hpp
         src/resources/car_store.cpp
         src/resources/control_point.hpp
@@ -209,9 +216,14 @@ set(SRC src/main.cpp
         src/resources/font_face.cpp
         src/resources/font_library.hpp
         src/resources/font_library.cpp
+		src/resources/generic_loader.hpp
+		src/resources/image_loader.hpp
+		src/resources/image_loader.cpp
         src/resources/image_type.hpp
         src/resources/include_path.hpp
         src/resources/include_path.cpp
+		src/resources/loading_interface.hpp
+		src/resources/loading_interface.cpp
         src/resources/pattern.hpp
         src/resources/pattern.cpp
         src/resources/pattern_builder.hpp
@@ -273,35 +285,6 @@ set(SRC src/main.cpp
         src/resources/fonts/monospace.cpp
         src/resources/fonts/sans.hpp
         src/resources/fonts/sans.cpp
-
-		src/server/client_map.hpp
-		src/server/client_map.cpp
-		src/server/command_center.hpp
-		src/server/command_center.cpp
-		src/server/command_handler.hpp
-		src/server/generic_client.hpp
-		src/server/generic_client.cpp
-		src/server/resource_download_server.hpp
-		src/server/resource_download_server.cpp
-		src/server/server.hpp
-		src/server/server.cpp
-		src/server/server_cup_script.hpp
-		src/server/server_cup_script.cpp
-		src/server/server_interaction_events.hpp
-		src/server/server_interaction_events.cpp
-		src/server/server_interaction_listener.hpp
-		src/server/server_interaction_listener.cpp
-		src/server/server_interactions.hpp
-		src/server/server_interactions.cpp
-		src/server/server_load_errors.hpp
-		src/server/server_load_errors.cpp
-		src/server/server_messages.hpp
-		src/server/server_stage_conductor.hpp
-		src/server/server_stage_conductor.cpp
-		src/server/server_stage_interface.hpp
-		src/server/server_stage_interface.cpp
-		src/server/stage_assembler.hpp
-		src/server/stage_assembler.cpp
         
         src/script/argument_stream.hpp
         src/script/argument_stream.cpp
@@ -312,11 +295,16 @@ set(SRC src/main.cpp
         src/script/delegate_traits.hpp
         src/script/delegates_impl.hpp
         src/script/error_level.hpp
+        src/script/event_interface.hpp
         src/script/event_manager.hpp
         src/script/event_manager.cpp
         src/script/execution_context.hpp
         src/script/execution_context.cpp
 		src/script/member_function.hpp
+		src/script/module_handle.hpp
+		src/script/module_handle.cpp
+		src/script/module_loader.hpp
+		src/script/module_loader.cpp
         src/script/object_handle.hpp
         src/script/object_handle.cpp
         src/script/script_api.hpp
@@ -341,8 +329,48 @@ set(SRC src/main.cpp
         src/script/script_vm.hpp
         src/script/script_vm.cpp
         src/script/squirrel_include.hpp
+        src/script/userdata_forwarder.hpp
         src/script/userdata_impl.hpp
         src/script/userdata_traits.hpp
+        
+        src/server/client_map.hpp
+		src/server/client_map.cpp
+		src/server/command_center.hpp
+		src/server/command_center.cpp
+		src/server/command_handler.hpp
+		src/server/generic_client.hpp
+		src/server/generic_client.cpp
+		src/server/resource_download_server.hpp
+		src/server/resource_download_server.cpp
+		src/server/server.hpp
+		src/server/server.cpp
+		src/server/server_interaction_listener.hpp
+		src/server/server_interaction_listener.cpp
+		src/server/server_interactions.hpp
+		src/server/server_interactions.cpp
+		src/server/server_load_errors.hpp
+		src/server/server_load_errors.cpp
+		src/server/server_messages.hpp
+		src/server/server_stage_conductor.hpp
+		src/server/server_stage_conductor.cpp
+		src/server/server_stage_interface.hpp
+		src/server/server_stage_interface.cpp
+		src/server/stage_assembler.hpp
+		src/server/stage_assembler.cpp
+        
+        src/server/script/cup_module_manager.hpp
+        src/server/script/cup_module_manager.cpp
+        src/server/script/script_stage_modifier.hpp
+        src/server/script/script_stage_modifier.cpp
+        src/server/script/server_interaction_events.hpp
+        src/server/script/server_interaction_events.cpp
+        src/server/script/server_script_api.hpp
+        src/server/script/server_script_api.cpp
+        src/server/script/server_script_engine.hpp
+        src/server/script/server_script_engine.cpp
+        src/server/script/server_script_events.hpp
+        src/server/script/stage_module_manager.hpp
+        src/server/script/stage_module_manager.cpp
        
 	    src/script/api_definitions/car_store_api.hpp
 		src/script/api_definitions/car_store_api.cpp
@@ -368,18 +396,6 @@ set(SRC src/main.cpp
 		src/script/api_definitions/utility_classes.cpp
 		src/script/api_definitions/view_api.hpp
 		src/script/api_definitions/view_api.cpp
-
-        
-        src/script/interfaces/client_script_interface.hpp
-        src/script/interfaces/client_script_interface.cpp
-		src/script/interfaces/cup_script_interface.hpp
-		src/script/interfaces/cup_script_interface.cpp
-		src/script/interfaces/screen_interface.hpp
-		src/script/interfaces/screen_interface.cpp
-		src/script/interfaces/server_script_interface.hpp
-		src/script/interfaces/server_script_interface.cpp
-        src/script/interfaces/world_interface.hpp
-        src/script/interfaces/world_interface.cpp
 
         src/states/action_state_base.hpp
         src/states/action_state_base.cpp
@@ -475,6 +491,8 @@ SOURCE_GROUP(stdinc REGULAR_EXPRESSION src/stdinc\\..p)
 SOURCE_GROUP(action REGULAR_EXPRESSION src/action/[^/]+)
 SOURCE_GROUP(audio REGULAR_EXPRESSION src/audio/[^/]+)
 SOURCE_GROUP(client REGULAR_EXPRESSION src/client/[^/]+)
+SOURCE_GROUP(client\\scene REGULAR_EXPRESSION src/client/scene/[^/]+)
+SOURCE_GROUP(client\\hud REGULAR_EXPRESSION src/client/hud/[^/]+)
 SOURCE_GROUP(controls REGULAR_EXPRESSION src/controls/[^/]+)
 SOURCE_GROUP(core REGULAR_EXPRESSION src/core/[^/]+)
 SOURCE_GROUP(cup REGULAR_EXPRESSION src/cup/[^/]+)
@@ -486,6 +504,7 @@ SOURCE_GROUP(resources REGULAR_EXPRESSION src/resources/[^/]+)
 SOURCE_GROUP(resources\\fonts REGULAR_EXPRESSION src/resources/fonts/[^/]+)
 SOURCE_GROUP(resources\\settings REGULAR_EXPRESSION src/resources/settings/[^/]+)
 SOURCE_GROUP(server REGULAR_EXPRESSION src/server/[^/]+)
+SOURCE_GROUP(server\\script REGULAR_EXPRESSION src/server/script/[^/]+)
 SOURCE_GROUP(states REGULAR_EXPRESSION src/states/[^/]+)
 SOURCE_GROUP(states\\gui_definitions REGULAR_EXPRESSION src/states/gui_definitions/[^/]+)
 SOURCE_GROUP(script REGULAR_EXPRESSION src/script/[^/]+)

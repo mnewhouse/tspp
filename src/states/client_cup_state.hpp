@@ -68,7 +68,7 @@ namespace ts
             virtual void on_initialize(const cup::Stage_data& stage_data) override;
 
         private:
-            std::unique_ptr<Action_state_base> make_action_state(game::Loaded_scene loaded_scene) override;
+            virtual std::unique_ptr<Action_state_base> make_action_state() override;
         };
     }
 }

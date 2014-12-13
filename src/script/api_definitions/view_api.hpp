@@ -26,14 +26,14 @@
 
 namespace ts
 {
-    namespace game
+    namespace scene
     {
         class Action_scene;
     }
 
     namespace script_api
     {
-        script::API_definition view_api(game::Action_scene* action_scene);
+        script::API_definition view_api(scene::Action_scene* action_scene);
     }
 }
 

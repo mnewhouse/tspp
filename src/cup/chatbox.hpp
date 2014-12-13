@@ -37,12 +37,10 @@ namespace ts
         };
 
         class Chatbox
+            : public core::Listener_host<Chatbox_listener>
         {
         public:
             void dispatch_message(const Chat_message& message);
-
-            void add_chatbox_listener(Chatbox_listener* listener);
-            void remove_chatbox_listener(Chatbox_listener* listener);
 
             void set_max_backlog_size(std::size_t size);
             std::size_t max_backlog_size() const;
@@ -50,11 +48,8 @@ namespace ts
             using backlog_iterator = std::deque<Chatbox_log_entry>::const_reverse_iterator;
             Range<backlog_iterator> backlog() const;
 
-
         private:
             void log_message(const Chat_message& message);
-
-            std::vector<Chatbox_listener*> listeners_;
 
             std::size_t max_backlog_size_ = 256;
             std::deque<Chatbox_log_entry> message_log_;

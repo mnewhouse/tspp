@@ -26,6 +26,9 @@
 #include "client_control_interface.hpp"
 #include "chatbox_interface.hpp"
 
+#include "scene/scene.hpp"
+#include "scene/loading_sequence.hpp"
+
 #include "cup/cup.hpp"
 #include "network/client_connection.hpp"
 
@@ -80,13 +83,15 @@ public:
     Message_center message_center_;
     Client_message_dispatcher message_dispatcher_;
 
-    Client_interface client_interface_;
     Interaction_interface interaction_interface_;
     Chatbox_interface chatbox_interface_;
     Stage_interface stage_interface_;
 
+    Client_interface client_interface_;
+
+    scene::Loading_sequence loading_sequence_;
+
     Server_message message_buffer_;
-    std::unique_ptr<Control_interface> control_interface_;
 
     resources::Resource_store* resource_store_;
 };
@@ -96,10 +101,11 @@ ts::client::impl::Client::Client(resources::Resource_store* resource_store)
   cup_(cup::Locality::Remote),
   message_center_(),
   message_dispatcher_(&client_connection_, &message_center_),
-  client_interface_(&message_center_, &cup_),
   interaction_interface_(&message_center_, &cup_, resource_store),
   chatbox_interface_(&message_center_),
-  stage_interface_(&message_center_, &resource_store->network_settings())
+  stage_interface_(&message_center_, &resource_store->network_settings()),
+  client_interface_(&message_center_, &cup_, chatbox_interface_.chatbox(), resource_store),
+  loading_sequence_(resource_store)
 {
 }
 
@@ -118,10 +124,11 @@ void ts::client::impl::Client::poll()
     }
 
     interaction_interface_.poll();
+    loading_sequence_.poll();
 
     try
     {
-        stage_interface_.poll_loader();
+        stage_interface_.poll();
     }
 
     catch (const std::exception& error)
@@ -139,29 +146,31 @@ ts::client::Client::~Client()
 {
 }
 
-void ts::client::Client::launch_action()
+ts::Generic_scope_exit ts::client::Client::launch_action()
 {
     impl_->stage_interface_.launch_action();
+
+    return Generic_scope_exit([this]() { end_action(); });
 }
 
 void ts::client::Client::end_action()
 {
-    impl_->stage_interface_.clean_stage();
+    impl_->stage_interface_.clear();
 }
 
 void ts::client::Client::update(std::size_t frame_duration)
 {
     impl_->poll();
+
     impl_->stage_interface_.update(frame_duration);
 }
 
-ts::controls::Control_interface* ts::client::Client::make_control_interface()
+std::unique_ptr<ts::controls::Control_interface> ts::client::Client::make_control_interface() const
 {
     const auto* stage = impl_->stage_interface_.stage();
     const auto* message_center = &impl_->message_center_;
 
-    impl_->control_interface_ = std::make_unique<Control_interface>(stage, message_center);
-    return impl_->control_interface_.get();
+    return std::make_unique<Control_interface>(stage, message_center);
 }
 
 const ts::client::Client_interface* ts::client::Client::client_interface() const
@@ -184,29 +193,14 @@ const ts::utf8_string& ts::client::Client::registration_error() const
     return impl_->interaction_interface_.registration_error();
 }
 
-void ts::client::Client::add_cup_listener(cup::Cup_listener* listener)
-{
-    impl_->cup_.add_cup_listener(listener);
-}
-
-void ts::client::Client::remove_cup_listener(cup::Cup_listener* listener)
-{
-    impl_->cup_.remove_cup_listener(listener);
-}
-
 const ts::cup::Chatbox* ts::client::Client::chatbox() const
 {
     return impl_->chatbox_interface_.chatbox();
 }
 
-void ts::client::Client::add_chatbox_listener(cup::Chatbox_listener* listener)
+const ts::cup::Cup* ts::client::Client::cup() const
 {
-    impl_->chatbox_interface_.add_chatbox_listener(listener);
-}
-
-void ts::client::Client::remove_chatbox_listener(cup::Chatbox_listener* listener)
-{
-    impl_->chatbox_interface_.remove_chatbox_listener(listener);
+    return &impl_->cup_;
 }
 
 void ts::client::Client::async_connect(utf8_string remote_address, std::uint16_t remote_port)
@@ -229,13 +223,30 @@ std::pair<std::size_t, std::size_t> ts::client::Client::download_progress() cons
     return impl_->interaction_interface_.download_progress();
 }
 
-const ts::game::Stage_loader* ts::client::Client::async_load_stage(const cup::Stage_data& stage_data, 
-                                                                   std::function<void(const action::Stage*)> completion_callback)
+const ts::resources::Loading_interface* ts::client::Client::async_load_stage(const cup::Stage_data& stage_data, 
+                                                                             std::function<void()> completion_callback)
 {
-    return impl_->stage_interface_.async_load_stage(stage_data, completion_callback);
+    // Hook the callback, so that we can acquire the result when it's ready
+    auto completion_hook = [this, completion_callback]()
+    {
+        completion_callback();
+    };
+
+    auto loading_sequence = &impl_->loading_sequence_;
+    loading_sequence->set_completion_handler(completion_hook);
+
+    // Make sure the loading sequence loads the stage too, by calling the appropriate overload.
+    loading_sequence->async_load(stage_data, impl_->stage_interface_.base());
+
+    return loading_sequence;
 }
 
 const ts::action::Stage* ts::client::Client::stage() const
 {
     return impl_->stage_interface_.stage();
+}
+
+ts::scene::Scene ts::client::Client::acquire_scene()
+{
+    return impl_->loading_sequence_.transfer_result();
 }

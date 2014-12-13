@@ -19,11 +19,17 @@
 
 #include "stdinc.hpp"
 #include "stage_api.hpp"
+#include "event_api.hpp"
 
+#include "action/stage_interface.hpp"
 #include "action/stage.hpp"
 
+#include "script/event_interface.hpp"
 #include "script/argument_stream.hpp"
 #include "script/script_userdata.hpp"
+#include "script/script_delegates.hpp"
+
+#include "world/world_listener.hpp"
 
 namespace ts
 {
@@ -31,37 +37,156 @@ namespace ts
     {
         using namespace script;
 
-        SQInteger getGameTime(HSQUIRRELVM vm);
-        SQInteger startGameTimer(HSQUIRRELVM vm);
-
-        static const Static_function_definition world_functions[] =
+        namespace events
         {
-            { "getGameTime", getGameTime },
-            { "startGameTimer", startGameTimer }
-        };
+            static const char* const onGameStart = "onGameStart";
+            static const char* const onGameEnd = "onGameEnd";
+            static const char* const onGameUpdate = "onGameUpdate";
+        }
+
+		namespace stage
+		{
+            SQInteger getStage(HSQUIRRELVM vm);
+
+			SQInteger getGameTime(HSQUIRRELVM vm);
+			SQInteger startGameTimer(HSQUIRRELVM vm);
+            SQInteger getCarById(HSQUIRRELVM vm);
+
+			static const Static_function_definition static_functions[] =
+			{
+				{ "Stage", getStage }
+			};
+
+			static const Member_function_definition member_functions[] =
+			{
+				{ "getGameTime", getGameTime },
+				{ "startGameTimer", startGameTimer },
+                { "getCarById", getCarById }
+			};
+		}
+
+		template <>
+		struct Delegate_traits<const action::Stage*>
+		{
+			static Range<const Member_function_definition*> member_functions();
+		};
     }
+
+	namespace script
+	{
+		template <>
+		const char* userdata_type_name<const action::Stage*>()
+		{
+			return "Stage";
+		}
+	}
 }
 
-ts::script::API_definition ts::script_api::stage_api(const action::Stage* stage)
+ts::Range<const ts::script::Member_function_definition*> ts::script_api::Delegate_traits<const ts::action::Stage*>::member_functions()
+{
+	return make_range(std::begin(stage::member_functions), std::end(stage::member_functions));
+}
+
+ts::script::API_definition ts::script_api::stage_api(const action::Stage_interface* stage_interface)
 {
     API_definition api_def;
-    api_def.interfaces.push_back(make_interface(stage));
-    api_def.static_functions.assign(std::begin(world_functions), std::end(world_functions));
+    api_def.interfaces.push_back(make_interface(stage_interface));
+    api_def.static_functions.assign(std::begin(stage::static_functions), std::end(stage::static_functions));
+    api_def.delegates.push_back(create_delegate_definition<const action::Stage*>());
 
     return api_def;
 }
 
-SQInteger ts::script_api::getGameTime(HSQUIRRELVM vm)
+SQInteger ts::script_api::stage::getGameTime(HSQUIRRELVM vm)
 {
-    auto stage = get_interface<action::Stage>(vm);
-    sq_pushinteger(vm, stage->game_time());
-    return 1;
+	Userdata<const action::Stage*> stage_udata;
+
+	Argument_stream argument_stream(vm);
+	argument_stream(make_reader(stage_udata));
+
+	if (argument_stream)
+	{
+		auto game_time = (*stage_udata)->game_time();
+		sq_pushinteger(vm, game_time);
+		return 1;
+	}
+
+	else
+	{
+		report_argument_errors(get_module_by_vm(vm), argument_stream);
+		return 0;
+	}
+
+    return 0;
 }
 
 
-SQInteger ts::script_api::startGameTimer(HSQUIRRELVM vm)
+SQInteger ts::script_api::stage::startGameTimer(HSQUIRRELVM vm)
 {
-    auto stage = get_interface<action::Stage>(vm);
-    stage->start_game_timer();
-    return 1;
+	Userdata<const action::Stage*> stage_udata;
+
+	Argument_stream argument_stream(vm);
+	argument_stream(make_reader(stage_udata));
+
+	if (argument_stream)
+	{
+		(*stage_udata)->start_game_timer();
+	}
+
+	else
+	{
+		report_argument_errors(get_module_by_vm(vm), argument_stream);
+		return 0;
+	}
+    
+    return 0;
+}
+
+SQInteger ts::script_api::stage::getCarById(HSQUIRRELVM vm)
+{
+    Userdata<const action::Stage*> stage_udata;
+    std::uint16_t car_id = 0;
+
+    Argument_stream argument_stream(vm);
+    argument_stream(make_reader(stage_udata));
+    argument_stream(make_integer_reader(car_id));
+
+    if (argument_stream)
+    {
+        auto stage = *stage_udata;
+        const auto* car = stage->get_car_by_id(car_id);
+
+        if (car)
+        {
+            auto car_udata = make_userdata(vm, car);
+            car_udata.push();
+        }
+
+        else
+        {
+            sq_pushnull(vm);
+        }
+
+        return 1;
+    }
+
+    else
+    {
+        report_argument_errors(get_module_by_vm(vm), argument_stream);
+        return 0;
+    }
+}
+
+SQInteger ts::script_api::stage::getStage(HSQUIRRELVM vm)
+{
+	auto stage_interface = get_interface<const action::Stage_interface>(vm);
+	const action::Stage* stage = stage_interface->stage();
+	if (stage)
+	{
+		auto stage_udata = make_userdata(vm, stage);
+		stage_udata.push();
+		return 1;		
+	}
+
+	return 0;
 }

@@ -19,6 +19,7 @@
 
 #include "stdinc.hpp"
 #include "stage_assembler_api.hpp"
+#include "stage_api.hpp"
 
 #include "resources/car_handle.hpp"
 #include "resources/player_definition.hpp"
@@ -47,14 +48,33 @@ namespace ts
                 { "carList", carList }
             };
 
-            struct Car
+			struct Car_info
+			{
+                Car_info(const server::Stage_assembler* stage_assembler, std::uint32_t car_id)
+                    : car_id(car_id), stage_assembler(stage_assembler)
+                {
+                }
+
+				std::uint32_t car_id;
+                const server::Stage_assembler* stage_assembler;
+
+                static SQInteger getId(HSQUIRRELVM vm);
+			};
+
+            static const Member_function_definition car_member_functions[] =
             {
-                std::uint32_t car_id;
+                { "getId", Car_info::getId }
             };
         }
         
         template <>
         struct Delegate_traits<server::Stage_assembler*>
+        {
+            static Range<const Member_function_definition*> member_functions();
+        };
+
+        template <>
+        struct Delegate_traits<stage_assembler::Car_info>
         {
             static Range<const Member_function_definition*> member_functions();
         };
@@ -66,10 +86,16 @@ ts::Range<const ts::script::Member_function_definition*> ts::script_api::Delegat
     return make_range(std::begin(stage_assembler::member_functions), std::end(stage_assembler::member_functions));
 }
 
+ts::Range<const ts::script::Member_function_definition*> ts::script_api::Delegate_traits<ts::script_api::stage_assembler::Car_info>::member_functions()
+{
+    return make_range(std::begin(stage_assembler::car_member_functions), std::end(stage_assembler::car_member_functions));
+}
+
 ts::script::API_definition ts::script_api::stage_assembler_api()
 {
     API_definition result;
     result.delegates.push_back(create_delegate_definition<server::Stage_assembler*>());
+    result.delegates.push_back(create_delegate_definition<stage_assembler::Car_info>());
 
     return result;
 }
@@ -82,10 +108,10 @@ SQInteger ts::script_api::stage_assembler::addCar(HSQUIRRELVM vm)
     utf8_string_view associated_name;
     
     Argument_stream argument_stream(vm);    
-    argument_stream(Userdata_reader<server::Stage_assembler*>(stage_assembler_udata));
+    argument_stream(make_reader(stage_assembler_udata));
     argument_stream(Tostring_reader(associated_name));
-    argument_stream(Userdata_reader<resources::Car_handle>(car_handle_udata));
-    argument_stream(Userdata_reader<resources::Player_color>(player_color_udata));
+    argument_stream(make_reader(car_handle_udata));
+    argument_stream(make_reader(player_color_udata));
 
     if (argument_stream && *car_handle_udata)
     {
@@ -96,9 +122,11 @@ SQInteger ts::script_api::stage_assembler::addCar(HSQUIRRELVM vm)
 
         auto stage_assembler = *stage_assembler_udata;
 
-        stage_assembler::Car car;
-        car.car_id = stage_assembler->add_car(player_def, *car_handle_udata, cup::Player_handle());
-        make_userdata(vm, car).push();
+        auto car_id = stage_assembler->add_car(player_def, *car_handle_udata, cup::Player_handle());
+        stage_assembler::Car_info car_info(stage_assembler, car_id);
+
+		auto car_info_udata = make_userdata(vm, car_info);
+		car_info_udata.push();
         return 1;
     }
 
@@ -112,11 +140,11 @@ SQInteger ts::script_api::stage_assembler::addCar(HSQUIRRELVM vm)
 SQInteger ts::script_api::stage_assembler::removeCar(HSQUIRRELVM vm)
 {
     Userdata<server::Stage_assembler*> stage_assembler_udata;
-    Userdata<stage_assembler::Car> car_udata;
+    Userdata<stage_assembler::Car_info> car_udata;
 
     Argument_stream argument_stream(vm);    
-    argument_stream(Userdata_reader<server::Stage_assembler*>(stage_assembler_udata));
-    argument_stream(Userdata_reader<stage_assembler::Car>(car_udata));
+    argument_stream(make_reader(stage_assembler_udata));
+    argument_stream(make_reader(car_udata));
     if (argument_stream)
     {
         auto stage_assembler = *stage_assembler_udata;
@@ -136,7 +164,7 @@ SQInteger ts::script_api::stage_assembler::carList(HSQUIRRELVM vm)
     Userdata<server::Stage_assembler*> stage_assembler_udata;
     
     Argument_stream argument_stream(vm);    
-    argument_stream(Userdata_reader<server::Stage_assembler*>(stage_assembler_udata));
+    argument_stream(make_reader(stage_assembler_udata));
 
     if (argument_stream)
     {
@@ -149,10 +177,11 @@ SQInteger ts::script_api::stage_assembler::carList(HSQUIRRELVM vm)
         {
             Stack_guard loop_guard(vm);
 
-            stage_assembler::Car entry;
-            entry.car_id = car.car_id;
+            stage_assembler::Car_info car_info(stage_assembler, car.car_id);
 
-            make_userdata(vm, entry).push();
+            auto car_info_udata = make_userdata(vm, car_info);
+			car_info_udata.push();
+
             sq_arrayappend(vm, -2);
         }
 
@@ -164,4 +193,24 @@ SQInteger ts::script_api::stage_assembler::carList(HSQUIRRELVM vm)
         report_argument_errors(get_module_by_vm(vm), argument_stream);
         return 0;
     }    
+}
+
+SQInteger ts::script_api::stage_assembler::Car_info::getId(HSQUIRRELVM vm)
+{
+    Userdata<stage_assembler::Car_info> car_info_udata;
+
+    Argument_stream argument_stream(vm);
+    argument_stream(make_reader(car_info_udata));
+
+    if (argument_stream)
+    {
+        sq_pushinteger(vm, car_info_udata->car_id);
+        return 1;
+    }
+
+    else
+    {
+        report_argument_errors(get_module_by_vm(vm), argument_stream);
+        return 0;
+    }
 }

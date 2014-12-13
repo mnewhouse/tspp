@@ -19,16 +19,15 @@
 
 #include "stdinc.hpp"
 #include "stage_assembler.hpp"
-#include "server_cup_script.hpp"
 
 #include "cup/cup_listener.hpp"
 #include "cup/cup_controller.hpp"
 #include "cup/stage_data.hpp"
 
 struct ts::server::Stage_assembler::Impl
-    : public cup::Cup_listener
+    : private cup::Scoped_cup_listener
 {
-    Impl(cup::Cup_controller* cup_controller, Cup_script_interface* script_interface, Stage_assembler* self);
+    Impl(Stage_assembler* self, cup::Cup_controller* cup_controller);
     ~Impl();
 
     std::uint32_t add_car(const resources::Player_definition& player_definition, const resources::Car_handle& car_handle,
@@ -41,24 +40,23 @@ struct ts::server::Stage_assembler::Impl
     virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
 
     cup::Stage_data stage_data_;
-    std::uint32_t car_id_ = 0;
+    std::list<Stage_assembler::Modifier> modifiers_;
 
-    cup::Cup_controller* cup_controller_;
-    Cup_script_interface* script_interface_;
-    Stage_assembler* self_;
+    Stage_assembler* self_ = nullptr;
+    cup::Cup_controller* cup_controller_ = nullptr;    
+
+    std::uint32_t car_id_ = 0;    
 };
 
-ts::server::Stage_assembler::Impl::Impl(cup::Cup_controller* cup_controller, Cup_script_interface* script_interface, Stage_assembler* self)
-: cup_controller_(cup_controller),
-  script_interface_(script_interface),
-  self_(self)
+ts::server::Stage_assembler::Impl::Impl(Stage_assembler* self, cup::Cup_controller* cup_controller)
+: Scoped_listener<cup::Cup_listener>(cup_controller->cup_listener_host()),
+  self_(self),
+  cup_controller_(cup_controller)
 {
-    cup_controller_->add_cup_listener(this);
 }
 
 ts::server::Stage_assembler::Impl::~Impl()
 {
-    cup_controller_->remove_cup_listener(this);
 }
 
 void ts::server::Stage_assembler::Impl::on_state_change(cup::Cup_state old_state, cup::Cup_state new_state)
@@ -67,7 +65,11 @@ void ts::server::Stage_assembler::Impl::on_state_change(cup::Cup_state old_state
     {
         initialize_stage_data();
 
-        script_interface_->handle_pre_initialization(self_);
+        // Apply the stage data modifiers
+        for (const auto& modifier : modifiers_)
+        {
+            modifier(*self_);
+        }        
 
         cup_controller_->initialize_action(stage_data_);
     }
@@ -155,8 +157,8 @@ void ts::server::Stage_assembler::Impl::remove_car_by_id(std::uint32_t car_id)
     }), cars.end());
 }
 
-ts::server::Stage_assembler::Stage_assembler(cup::Cup_controller* cup_controller, Cup_script_interface* script_interface)
-: impl_(std::make_unique<Impl>(cup_controller, script_interface, this))
+ts::server::Stage_assembler::Stage_assembler(cup::Cup_controller* cup_controller)
+: impl_(std::make_unique<Impl>(this, cup_controller))
 {
 }
 
@@ -178,4 +180,15 @@ void ts::server::Stage_assembler::remove_car_by_id(std::uint32_t car_id)
 const ts::cup::Stage_data& ts::server::Stage_assembler::stage_data() const
 {
     return impl_->stage_data_;
+}
+
+ts::server::Stage_assembler::Modifier_handle ts::server::Stage_assembler::add_modifier(Modifier modifier)
+{
+    impl_->modifiers_.push_back(std::move(modifier));
+    return std::prev(impl_->modifiers_.end());
+}
+
+void ts::server::Stage_assembler::remove_modifier(Modifier_handle modifier_handle)
+{
+    impl_->modifiers_.erase(modifier_handle);
 }

@@ -26,6 +26,9 @@
 #include "client_control_interface.hpp"
 #include "chatbox_interface.hpp"
 
+#include "scene/scene.hpp"
+#include "scene/loading_sequence.hpp"
+
 #include "server/server.hpp"
 
 #include "cup/chatbox.hpp"
@@ -57,19 +60,22 @@ public:
     Impl(const server::Server* server, resources::Resource_store* resource_store);
 
     Message_center message_center_;
-    Client_interface client_interface_;
     Local_message_dispatcher message_dispatcher_;
 
     Chatbox_interface chatbox_interface_;
+    Client_interface client_interface_;
 
-    std::unique_ptr<Control_interface> control_interface_;    
+    std::unique_ptr<Control_interface> control_interface_;
+
+    scene::Loading_sequence loading_sequence_;
 };
 
 ts::client::Local_client::Impl::Impl(const server::Server* server, resources::Resource_store* resource_store)
 : message_center_(),
-  client_interface_(&message_center_, server->cup()),
   message_dispatcher_(&message_center_, server->message_center()),
-  chatbox_interface_(&message_center_)
+  chatbox_interface_(&message_center_),
+  client_interface_(&message_center_, server->cup(), chatbox_interface_.chatbox(), resource_store),  
+  loading_sequence_(resource_store)
 {
 }
 
@@ -119,23 +125,34 @@ const ts::client::Client_interface* ts::client::Local_client::client_interface()
     return &impl_->client_interface_;
 }
 
-ts::controls::Control_interface* ts::client::Local_client::make_control_interface(const action::Stage* stage)
+std::unique_ptr<ts::controls::Control_interface> ts::client::Local_client::make_control_interface(const action::Stage* stage) const
 {
-    impl_->control_interface_ = std::make_unique<Control_interface>(stage, &impl_->message_center_);
-    return impl_->control_interface_.get();
+    return std::make_unique<Control_interface>(stage, &impl_->message_center_);
 }
 
-const ts::cup::Chatbox* ts::client::Local_client::chatbox() const
+void ts::client::Local_client::update(std::size_t frame_duration)
 {
-    return impl_->chatbox_interface_.chatbox();
+    impl_->loading_sequence_.poll();
 }
 
-void ts::client::Local_client::add_chatbox_listener(cup::Chatbox_listener* listener)
+const ts::resources::Loading_interface* ts::client::Local_client::async_load_scene(const action::Stage* stage,
+                                                                                   Scene_completion_callback callback)
 {
-    impl_->chatbox_interface_.add_chatbox_listener(listener);
+    auto completion_handler = [this, callback]()
+    {
+        impl_->client_interface_.signal_ready();
+
+        callback();
+    };
+
+    impl_->loading_sequence_.set_completion_handler(completion_handler);
+    impl_->loading_sequence_.async_load(stage);
+
+    return &impl_->loading_sequence_;
 }
 
-void ts::client::Local_client::remove_chatbox_listener(cup::Chatbox_listener* listener)
+
+ts::scene::Scene ts::client::Local_client::acquire_scene()
 {
-    impl_->chatbox_interface_.remove_chatbox_listener(listener);
+    return impl_->loading_sequence_.transfer_result();
 }

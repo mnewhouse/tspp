@@ -23,6 +23,8 @@
 
 #include "client/client_interface.hpp"
 
+#include "cup/cup.hpp"
+
 ts::states::impl::Client_cup_state_members::Client_cup_state_members(resources::Resource_store* resource_store)
 : client_(resource_store)
 {}
@@ -31,12 +33,10 @@ ts::states::Client_cup_state::Client_cup_state(state_machine_type* state_machine
 : Client_cup_state_members(resource_store),
   Cup_state_base(client_.client_interface(), state_machine, context, resource_store)
 {
-    client_.add_cup_listener(this);
 }
 
 ts::states::Client_cup_state::~Client_cup_state()
 {
-    client_.remove_cup_listener(this);
 }
 
 void ts::states::Client_cup_state::update(std::size_t frame_duration)
@@ -48,12 +48,18 @@ void ts::states::Client_cup_state::update(std::size_t frame_duration)
 
 void ts::states::Client_cup_state::on_initialize(const cup::Stage_data& stage_data)
 {
-    auto stage_loader = client_.async_load_stage(stage_data, [this](const action::Stage* stage)
+    auto completion_callback = [this]()
     {
-        load_scene(stage);
-    });
+        ready_for_action();
+    };
 
-    show_stage_loading(stage_loader);
+    auto loading_interface = client_.async_load_stage(stage_data, completion_callback);
+    show_stage_loading(loading_interface);
+}
+
+std::unique_ptr<ts::states::Action_state_base> ts::states::Client_cup_state::make_action_state()
+{
+    return std::make_unique<Client_action_state>(&client_, state_machine(), context(), resource_store());
 }
 
 void ts::states::Client_cup_state::async_connect(utf8_string remote_address, std::uint16_t remote_port)
@@ -79,9 +85,4 @@ const ts::utf8_string& ts::states::Client_cup_state::registration_error() const
 ts::client::Connection_status ts::states::Client_cup_state::connection_status() const
 {
     return client_.connection_status();
-}
-
-std::unique_ptr<ts::states::Action_state_base> ts::states::Client_cup_state::make_action_state(game::Loaded_scene loaded_scene)
-{
-    return std::make_unique<ts::states::Client_action_state>(std::move(loaded_scene), &client_,                                                             state_machine(), context(), resource_store());
 }

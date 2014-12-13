@@ -107,6 +107,11 @@ ts::action::Stage_data ts::action::Stage::stage_data() const
     return result;
 }
 
+ts::core::Listener_host<ts::world::World_listener>* ts::action::Stage::world_listener_host() const
+{
+    return world_.get();
+}
+
 const ts::world::World& ts::action::Stage::world() const
 {
     return *world_;
@@ -115,16 +120,6 @@ const ts::world::World& ts::action::Stage::world() const
 ts::Vector2u ts::action::Stage::world_size() const
 {
     return world_->track().size();
-}
-
-void ts::action::Stage::add_world_listener(world::World_listener* listener) const
-{
-    world_->add_world_listener(listener);
-}
-
-void ts::action::Stage::remove_world_listener(world::World_listener* listener) const
-{
-    world_->remove_world_listener(listener);
 }
 
 const ts::controls::Control_center& ts::action::Stage::control_center() const

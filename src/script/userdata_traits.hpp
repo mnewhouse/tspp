@@ -47,15 +47,20 @@ namespace ts
         }
 
 
-        template <typename T>
-        struct Userdata_traits
-        {
-            using base_types = std::tuple<>;
-            static const char* const type_name;
-        };
+		struct Default_userdata_traits
+		{
+			using base_types = std::tuple<>;
+			static const bool copyable = false;
+		};
 
-        template <typename T>
-        const char* const Userdata_traits<T>::type_name = "unknown userdata";
+		template <typename T>
+		struct Userdata_traits
+			: Default_userdata_traits
+		{
+		};
+
+		template <typename T>
+		const char* userdata_type_name();
     }
 }
 

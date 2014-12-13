@@ -58,6 +58,7 @@
 #include "core/rotation.hpp"
 #include "core/bresenham.hpp"
 #include "core/line_intersection.hpp"
+#include "core/listener_utilities.hpp"
 #include "core/config.hpp"
 #include "core/utility.hpp"
 #include "core/rect.hpp"

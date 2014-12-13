@@ -47,9 +47,6 @@ namespace ts
             struct optional_t {};
             static const optional_t optional;
         }
-        
-
-
 
         class Argument_stream
         {
@@ -110,6 +107,35 @@ namespace ts
         };
 
         static const Ignore_argument_t ignore_argument;
+
+        template <typename IntegerType>
+        struct Integer_reader
+        {
+            Integer_reader(IntegerType& result)
+                : result_(result)
+            {}
+
+            bool operator()(HSQUIRRELVM vm, SQInteger index) const
+            {
+                SQInteger integer;
+                if (SQ_SUCCEEDED(sq_getinteger(vm, index, &integer)))
+                {
+                    result_ = static_cast<IntegerType>(integer);
+                    return true;
+                }
+
+                return false;
+            }
+
+        private:
+            IntegerType& result_;
+        };
+
+        template <typename IntegerType>
+        Integer_reader<IntegerType> make_integer_reader(IntegerType& out)
+        {
+            return Integer_reader<IntegerType>(out);
+        }
 
         struct Numeric_reader
         {

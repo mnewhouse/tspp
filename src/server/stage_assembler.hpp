@@ -40,12 +40,10 @@ namespace ts
 
     namespace server
     {
-        class Cup_script_interface;
-
         class Stage_assembler
         {
         public:
-            Stage_assembler(cup::Cup_controller* cup_controller, Cup_script_interface* script_interface);
+            Stage_assembler(cup::Cup_controller* cup_controller);
             ~Stage_assembler();
 
             const cup::Stage_data& initialize_stage_data(const cup::Cup_controller* cup_controller);
@@ -56,6 +54,12 @@ namespace ts
             void remove_car_by_id(std::uint32_t car_id);
 
             const cup::Stage_data& stage_data() const;
+
+            using Modifier = std::function<void(Stage_assembler&)>;
+            using Modifier_handle = std::list<Modifier>::const_iterator;
+
+            Modifier_handle add_modifier(Modifier modifier);
+            void remove_modifier(Modifier_handle handle);           
 
         private:
             struct Impl;

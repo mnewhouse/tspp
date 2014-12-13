@@ -33,7 +33,7 @@ namespace ts
 
     namespace script_api
     {
-        script::API_definition client_api(server::Client_map* client_map);
+        script::API_definition client_api(const server::Client_map* client_map);
     }
 }
 

@@ -52,12 +52,12 @@ const ts::cup::Chatbox* ts::client::Chatbox_interface::chatbox() const
     return &chatbox_;
 }
 
-void ts::client::Chatbox_interface::add_chatbox_listener(cup::Chatbox_listener* listener)
+ts::cup::Chatbox* ts::client::Chatbox_interface::chatbox()
 {
-    chatbox_.add_chatbox_listener(listener);
+    return &chatbox_;
 }
 
-void ts::client::Chatbox_interface::remove_chatbox_listener(cup::Chatbox_listener* listener)
+ts::core::Listener_host<ts::cup::Chatbox_listener>* ts::client::Chatbox_interface::chatbox_listener_host()
 {
-    chatbox_.remove_chatbox_listener(listener);
+    return &chatbox_;
 }

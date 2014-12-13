@@ -27,36 +27,44 @@ namespace ts
     namespace cup
     {
         struct Stage_data;
-        class Cup_controller;
-    }
-
-    namespace game
-    {
-        class Stage_loader;
     }
 
     namespace action
     {
+        class Stage_interface;
         class Stage;
+    }
+
+    namespace resources
+    {
+        class Loading_interface;
+    }
+
+    namespace script
+    {
+        class Engine;
     }
 
     namespace server
     {
+        class Script_event_interface;
+
         class Stage_interface
         {
         public:
             Stage_interface(Message_center* message_center);
             ~Stage_interface();
 
-            const game::Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback);
+            const resources::Loading_interface* async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback);
+            const action::Stage_interface* base() const;
 
             void update(std::size_t frame_duration);
             const action::Stage* stage() const;
 
-            void poll_loader();
-            void clean_stage();
-            void launch_action();
+            void poll();
+            void clear();
 
+            void launch_action();
             cup::Stage_data stage_data() const;
 
         private:

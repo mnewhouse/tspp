@@ -37,16 +37,21 @@ namespace ts
             : public Action_state_base
         {
         public:
-            Client_action_state(game::Loaded_scene loaded_scene, client::Client* client, 
-                                state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store);
+            Client_action_state(client::Client* client, state_machine_type* state_machine, 
+                gui::Context* context, resources::Resource_store* resource_store);
 
             virtual ~Client_action_state();
 
             virtual void update(std::size_t frame_duration) override;
             virtual void on_activate() override;
 
-        private:            
+            virtual scene::Scene acquire_scene() override;
+
+        private:
             client::Client* client_;
+
+            struct Members;
+            std::unique_ptr<Members> members_;
         };
     }
 }

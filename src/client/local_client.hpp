@@ -41,6 +41,7 @@ namespace ts
     namespace resources
     {
         struct Resource_store;
+        class Loading_interface;
     }
 
     namespace controls
@@ -53,6 +54,16 @@ namespace ts
         class Stage;
     }
 
+    namespace scene
+    {
+        struct Scene;
+    }
+
+    namespace gui
+    {
+        class Context;
+    }
+
     namespace client
     {
         class Client_interface;
@@ -63,14 +74,18 @@ namespace ts
             Local_client(server::Server* server, resources::Resource_store* resource_store);
             ~Local_client();
 
+            void update(std::size_t frame_duration);
+
             const Client_interface* client_interface() const;
 
             // This returns a non-owning pointer.
-            controls::Control_interface* make_control_interface(const action::Stage* stage);
+            std::unique_ptr<controls::Control_interface> make_control_interface(const action::Stage* stage) const;
+            scene::Scene acquire_scene();
 
-            const cup::Chatbox* chatbox() const;
-            void add_chatbox_listener(cup::Chatbox_listener* listener);
-            void remove_chatbox_listener(cup::Chatbox_listener* listener);
+            using Scene_completion_callback = std::function<void()>;
+
+            // Ditto.
+            const resources::Loading_interface* async_load_scene(const action::Stage* stage, Scene_completion_callback);
 
         private:
             class Impl;

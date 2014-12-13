@@ -136,16 +136,6 @@ std::size_t ts::cup::Cup::player_count() const
     return player_map_.size();
 }
 
-void ts::cup::Cup::add_cup_listener(Cup_listener* cup_listener)
-{
-    cup_listeners_.push_back(cup_listener);
-}
-
-void ts::cup::Cup::remove_cup_listener(Cup_listener* cup_listener)
-{
-    cup_listeners_.erase(std::remove(cup_listeners_.begin(), cup_listeners_.end(), cup_listener), cup_listeners_.end());
-}
-
 void ts::cup::Cup::set_cup_state(Cup_state new_state)
 {
     if (new_state != state_)
@@ -153,10 +143,7 @@ void ts::cup::Cup::set_cup_state(Cup_state new_state)
         auto old_state = state_;
         state_ = new_state;
 
-        for (auto listener : cup_listeners_)
-        {
-            listener->on_state_change(old_state, state_);
-        }        
+        call_listeners(&Cup_listener::on_state_change, old_state, new_state);    
     }
 }
 
@@ -183,8 +170,5 @@ ts::cup::Player_handle ts::cup::Cup::get_player_by_id(Player_id player_id) const
 
 void ts::cup::Cup::initialize_action(const Stage_data& stage_data)
 {
-    for (auto cup_listener : cup_listeners_)
-    {
-        cup_listener->on_initialize(stage_data);
-    }   
+    call_listeners(&Cup_listener::on_initialize, stage_data);
 }

@@ -24,12 +24,17 @@
 #include "server_stage_interface.hpp"
 #include "server_load_errors.hpp"
 #include "resource_download_server.hpp"
-#include "server_cup_script.hpp"
 #include "command_center.hpp"
-#include "server_interaction_events.hpp"
 #include "stage_assembler.hpp"
 
+#include "script/server_script_engine.hpp"
+#include "script/server_script_api.hpp"
+#include "script/cup_module_manager.hpp"
+#include "script/stage_module_manager.hpp"
+#include "script/script_stage_modifier.hpp"
+
 #include "cup/cup_controller.hpp"
+#include "cup/stage_data.hpp"
 
 #include "network/server_connection.hpp"
 
@@ -61,6 +66,8 @@ public:
     void dispatch_message(const Client_message& message);
     void end_action();
 
+    void register_script_apis(const resources::Resource_store* resource_store);
+
     cup::Cup_controller cup_controller_;
     network::Server_connection server_connection_;
 
@@ -71,17 +78,18 @@ public:
     Client_map client_map_;
     Stage_interface stage_interface_;
     Command_center command_center_;
-    Interaction_interface interaction_interface_;    
+    Interaction_interface interaction_interface_;
+    Stage_assembler stage_assembler_;
 
-    Resource_download_server download_server_;    
+    Resource_download_server download_server_;
+    
 
     using Local_client_link = std::function<void(const Client_message&)>;
     Local_client_link local_client_link_;
 
-    Cup_script_interface cup_script_interface_;
-    Stage_assembler stage_assembler_;
-
-    Interaction_event_listener interaction_event_listener_;
+    Script_engine script_engine_;
+    Cup_module_manager cup_module_manager_;
+    Stage_module_manager stage_module_manager_;
 };
 
 ts::server::Server_message_dispatcher::Server_message_dispatcher(impl::Server* server, Message_center* message_center)
@@ -104,11 +112,16 @@ ts::server::impl::Server::Server(resources::Resource_store* resource_store)
   stage_interface_(&message_center_),
   command_center_(),
   interaction_interface_(&message_center_, &client_map_, &cup_controller_, &stage_interface_, &command_center_),
-  download_server_(&message_center_, resource_store),  
-  cup_script_interface_(&message_center_, &command_center_, &cup_controller_, &client_map_, resource_store),
-  stage_assembler_(&cup_controller_, &cup_script_interface_),
-  interaction_event_listener_(&interaction_interface_, &cup_script_interface_)
+  stage_assembler_(&cup_controller_),
+  download_server_(&message_center_, resource_store),
+  local_client_link_(),
+  script_engine_(),
+  cup_module_manager_(&cup_controller_, script_engine_.cup_engine()),
+  stage_module_manager_(script_engine_.stage_engine())
 {
+    register_script_apis(resource_store);
+
+    cup_module_manager_.load_script_modules();
 }
 
 void ts::server::impl::Server::dispatch_message(const Client_message& message)
@@ -186,7 +199,8 @@ void ts::server::impl::Server::poll()
 
     try
     {
-        stage_interface_.poll_loader();
+        stage_interface_.poll();
+        stage_module_manager_.poll();
     }
 
     catch (const std::exception& error)
@@ -195,14 +209,42 @@ void ts::server::impl::Server::poll()
     }
 }
 
-void ts::server::Server::launch_action()
+void ts::server::impl::Server::register_script_apis(const resources::Resource_store* resource_store)
+{
+    auto cup_engine = script_engine_.cup_engine();
+    auto stage_engine = script_engine_.stage_engine();
+
+    // APIs for Cup engine
+    script_api::register_core_api(cup_engine);
+    script_api::register_event_api(cup_engine, &script_engine_);
+    script_api::register_resource_api(cup_engine, resource_store);
+    script_api::register_message_api(cup_engine, &message_center_);
+    script_api::register_command_api(cup_engine, &command_center_);
+    script_api::register_client_api(cup_engine, &client_map_);
+    script_api::register_stage_assembler_api(cup_engine);    
+
+    stage_assembler_.add_modifier(script_api::Stage_modifier(&script_engine_));
+
+    // APIs for Stage engine
+    script_api::register_core_api(stage_engine);
+    script_api::register_event_api(stage_engine, &script_engine_);
+    script_api::register_message_api(stage_engine, &message_center_);
+    script_api::register_client_api(stage_engine, &client_map_);
+    script_api::register_stage_api(stage_engine, stage_interface_.base());
+
+    script_api::register_stdout_console(cup_engine);
+    script_api::register_stdout_console(stage_engine);
+}
+
+ts::Generic_scope_exit ts::server::Server::launch_action()
 {
     impl_->stage_interface_.launch_action();
+    return Generic_scope_exit([this]() { end_action(); });
 }
 
 void ts::server::Server::end_action()
 {
-    impl_->stage_interface_.clean_stage();
+    impl_->stage_interface_.clear();
 }
 
 ts::server::Server::Server(resources::Resource_store* resource_store)
@@ -217,6 +259,7 @@ ts::server::Server::~Server()
 void ts::server::Server::update(std::size_t frame_duration)
 {
     impl_->poll();
+
     impl_->stage_interface_.update(frame_duration);
 }
 
@@ -243,27 +286,34 @@ const ts::cup::Cup* ts::server::Server::cup() const
     return impl_->cup_controller_.cup();
 }
 
+
+ts::core::Listener_host<ts::cup::Cup_listener>* ts::server::Server::cup_listener_host()
+{
+    return impl_->cup_controller_.cup_listener_host();
+}
+
 void ts::server::Server::listen(std::uint16_t port)
 {
     impl_->server_connection_.listen(port);
 }
 
-void ts::server::Server::remove_cup_listener(cup::Cup_listener* listener)
+const ts::resources::Loading_interface* ts::server::Server::async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback)
 {
-    impl_->cup_controller_.remove_cup_listener(listener);
-}
+    auto callback_hook = [this, stage_data, completion_callback](const action::Stage* stage)
+    {
+        auto script_loader_callback = [completion_callback, stage]()
+        {
+            completion_callback(stage);
+        };
 
-void ts::server::Server::add_cup_listener(cup::Cup_listener* listener)
-{
-    impl_->cup_controller_.add_cup_listener(listener);
-}
+        impl_->stage_module_manager_.async_load_modules(stage_data.script_resources, script_loader_callback);
+    };
 
-const ts::game::Stage_loader* ts::server::Server::async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback)
-{
-    return impl_->stage_interface_.async_load_stage(stage_data, completion_callback);
+    return impl_->stage_interface_.async_load_stage(stage_data, callback_hook);
 }
 
 const ts::action::Stage* ts::server::Server::stage() const
 {
     return impl_->stage_interface_.stage();
 }
+

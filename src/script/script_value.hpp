@@ -100,7 +100,7 @@ namespace ts
 
 
             Type type() const;
-            void push(HSQUIRRELVM vm) const;
+            void push(HSQUIRRELVM vm) const;            
 
         private:
             using variant_t = boost::variant<null_t, bool_t, integer_t, float_t, string_t, string_view_t, userdata_t, userpointer_t, object_t, function_t>;

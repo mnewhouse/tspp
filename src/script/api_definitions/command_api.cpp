@@ -31,6 +31,19 @@
 
 namespace ts
 {
+	namespace script
+	{
+		template <>
+		struct Userdata_traits<server::Command_center::Command_handle>
+			: script::Default_userdata_traits
+		{
+			static const bool copyable = false;
+			static const char* const type_name;
+		};
+
+		const char* const Userdata_traits<server::Command_center::Command_handle>::type_name = "CommandHandle";
+	}
+
     namespace script_api
     {
         using namespace script;

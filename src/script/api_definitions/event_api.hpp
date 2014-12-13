@@ -24,11 +24,19 @@
 
 #include "script/script_api.hpp"
 
+
 namespace ts
 {
+    namespace script
+    {
+        class Event_interface;
+    }
+
     namespace script_api
     {
-        script::API_definition event_api();
+        script::API_definition event_api(const script::Event_interface* event_interface);
+
+        const script::Event_interface* get_event_interface(HSQUIRRELVM vm);
     }
 }
 

@@ -30,6 +30,8 @@ namespace ts
 
 std::pair<ts::utf8_string, ts::utf8_string> ts::server::split_command_string(const utf8_string& string)
 {
+    
+
     auto cmd_start = std::next(string.begin());
     auto cmd_end = std::find_if(cmd_start, string.end(), boost::is_space());
     auto result = std::make_pair(utf8_string(), utf8_string());

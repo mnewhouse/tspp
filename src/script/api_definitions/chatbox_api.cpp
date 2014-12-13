@@ -78,7 +78,7 @@ namespace ts
     }
 }
 
-ts::script::API_definition ts::script_api::server_chatbox_api(server::Message_center* message_center)
+ts::script::API_definition ts::script_api::server_chatbox_api(const server::Message_center* message_center)
 {
     API_definition result;
     result.interfaces.push_back(make_interface(message_center));
@@ -111,7 +111,7 @@ SQInteger ts::script_api::chatbox_server::outputChatMessage(HSQUIRRELVM vm)
 
     if (argument_stream)
     {
-        auto message_center = get_interface<server::Message_center>(vm);
+        auto message_center = get_interface<const server::Message_center>(vm);
         
         server::Client_message message;
         message.message = cup::make_chatbox_output_message(chat_message);

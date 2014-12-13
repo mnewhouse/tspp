@@ -43,7 +43,7 @@ namespace ts
         {
         public:
             template <typename... Args>
-            void trigger_event(const utf8_string& event_name, Args&&... args);
+            void trigger_event(const utf8_string& event_name, Args&&... args) const;
 
             Event_handler register_event_handler(const utf8_string& event_name, const Function& function);
             void remove_event_handler(const Event_handler& event_handler);
@@ -55,7 +55,7 @@ namespace ts
 }
 
 template <typename... Args>
-void ts::script::Event_manager::trigger_event(const utf8_string& event_name, Args&&... args)
+void ts::script::Event_manager::trigger_event(const utf8_string& event_name, Args&&... args) const
 {
     auto list_it = event_handlers_.find(event_name);
     if (list_it != event_handlers_.end())

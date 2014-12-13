@@ -25,29 +25,12 @@
 #include "squirrel_include.hpp"
 #include "script_api.hpp"
 #include "script_console.hpp"
+#include "module_handle.hpp"
 
 namespace ts
 {
     namespace script
     {
-        class Module;
-
-        struct Module_handle
-            : private Pointer_handle<Module>
-        {
-        public:
-            Module_handle() = default;
-            Module_handle(Module* module, const utf8_string* module_name);
-
-            using Pointer_handle<Module>::operator->;
-            using Pointer_handle<Module>::operator*;            
-            using Pointer_handle<Module>::operator bool;
-
-            const utf8_string& module_name() const;
-        private:
-            const utf8_string* module_name_ = nullptr;
-        };
-
         class Engine
         {
         public:
@@ -57,11 +40,16 @@ namespace ts
             Engine(const Engine&) = delete;
             Engine& operator=(const Engine&) = delete;
 
+            Unique_module_handle create_module(utf8_string module_name, take_ownership_t);
             Module_handle create_module(utf8_string module_name);
-            Module_handle get_module_by_name(const utf8_string& module_name);
+
             void unload_module(Module_handle module_handle);
+            void unload_all_modules();
+
+            Module_handle get_module_by_name(const utf8_string& module_name);
 
             void register_api(const API_definition& api_definition);
+            const std::vector<API_definition>& api_definitions() const;
 
             template <typename ConsoleType>
             void register_console(ConsoleType console);
@@ -69,7 +57,7 @@ namespace ts
             void write_console_line(const utf8_string& string, Error_level error_level = Error_level::none);   
 
             template <typename... Args>
-            void trigger_event(const utf8_string& event_name, Args&&... args);
+            void trigger_event(const utf8_string& event_name, Args&&... args) const;
 
         private:
             std::vector<Console> consoles_;
@@ -87,7 +75,7 @@ void ts::script::Engine::register_console(ConsoleType console)
 }
 
 template <typename... Args>
-void ts::script::Engine::trigger_event(const utf8_string& event_name, Args&&... args)
+void ts::script::Engine::trigger_event(const utf8_string& event_name, Args&&... args) const
 {
     for (auto& module : module_map_)
     {

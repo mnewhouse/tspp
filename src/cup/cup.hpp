@@ -43,13 +43,11 @@ namespace ts
         };
 
         class Cup
+            : public core::Listener_host<Cup_listener>
         {
         public:
             Cup(Locality locality);
             ~Cup();
-
-            void add_cup_listener(Cup_listener* cup_listener);
-            void remove_cup_listener(Cup_listener* cup_listener);
 
             bool is_local() const;
             Cup_state cup_state() const;
@@ -95,8 +93,6 @@ namespace ts
             std::vector<Player_handle> player_list_;
             std::vector<Player_handle> action_players_;
             std::vector<Player_handle> local_players_;
-
-            std::vector<Cup_listener*> cup_listeners_;
         };
     }
 }

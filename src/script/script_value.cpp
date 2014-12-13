@@ -51,9 +51,38 @@ struct ts::script::Value::push_visitor
     void operator()(const string_view_t& value) const { sq_pushstring(vm, value.data(), value.size()); }
     
     void operator()(userpointer_t value) const { sq_pushuserpointer(vm, value); }
-    void operator()(const userdata_t& value) const { value.push(); }
-    void operator()(const function_t& function) const { function.push(); }
-    void operator()(const object_t& object) const { object.push(); }
+
+    void operator()(const userdata_t& value) const 
+    { 
+		auto new_value = value;
+        if (value && value.vm() != vm)
+        {
+			new_value = value.clone(vm);
+        }
+
+		if (new_value)
+		{
+			new_value.push();
+		}
+
+		else
+		{
+			sq_pushnull(vm);
+		}
+    }
+
+    void operator()(const object_t& object) const 
+	{
+        if (!object || object.vm() != vm)
+        {
+            sq_pushnull(vm);
+        }
+
+        else
+        {
+            object.push();
+        }        
+    }
 
     HSQUIRRELVM vm;
 };
@@ -101,8 +130,7 @@ struct ts::script::Value::copy_visitor
 
     Value operator()(const userdata_t& value) const
     {
-        // TODO
-        return nullptr;
+        return value.clone(vm);
     }
 
     Value operator()(const function_t& function) const

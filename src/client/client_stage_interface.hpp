@@ -34,16 +34,13 @@ namespace ts
     namespace action
     {
         class Stage;
-    }
-
-    namespace game
-    {
-        class Stage_loader;
+        class Stage_interface;
     }
 
     namespace resources
     {
         class Network_settings;
+        class Loading_interface;
     }
 
     namespace client
@@ -54,15 +51,16 @@ namespace ts
             Stage_interface(Message_center* message_center, resources::Network_settings* network_settings);
             ~Stage_interface();
 
-            const game::Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback);
+            const resources::Loading_interface* async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback);
+            const action::Stage* stage() const;
+            action::Stage_interface* base();
 
             void update(std::size_t frame_duration);
 
-            void poll_loader();
-            void clean_stage();
-            void launch_action();
+            void poll();
+            void clear();
 
-            const action::Stage* stage() const;
+            void launch_action();            
 
         private:
             class Impl;

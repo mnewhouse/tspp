@@ -35,7 +35,7 @@ namespace ts
 
     namespace script_api
     {
-        script::API_definition server_chatbox_api(server::Message_center* message_center);
+        script::API_definition server_chatbox_api(const server::Message_center* message_center);
 
         namespace classes
         {

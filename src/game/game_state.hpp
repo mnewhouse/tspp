@@ -60,7 +60,7 @@ namespace ts
             void add_render_scene(graphics::Render_scene* render_scene);
 
             virtual void update(std::size_t frame_duration) {}
-            virtual void handle_event(const sf::Event& event) {}            
+            virtual void handle_event(const sf::Event& event) {}
 
             void activate() { on_activate(); };
 

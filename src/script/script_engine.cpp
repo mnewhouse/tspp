@@ -21,17 +21,6 @@
 #include "script_engine.hpp"
 #include "script_module.hpp"
 
-ts::script::Module_handle::Module_handle(Module* module, const utf8_string* module_name)
-: Pointer_handle<Module>(module),
-  module_name_(module_name)
-{
-}
-
-const ts::utf8_string& ts::script::Module_handle::module_name() const
-{
-    return *module_name_;
-}
-
 ts::script::Engine::Engine()
 {
 }
@@ -43,6 +32,16 @@ ts::script::Engine::~Engine()
 void ts::script::Engine::register_api(const API_definition& api_definition)
 {
     script_apis_.push_back(api_definition);
+}
+
+const std::vector<ts::script::API_definition>& ts::script::Engine::api_definitions() const
+{
+    return script_apis_;
+}
+
+ts::script::Unique_module_handle ts::script::Engine::create_module(utf8_string module_name, take_ownership_t)
+{
+    return Unique_module_handle(create_module(std::move(module_name)), this);
 }
 
 ts::script::Module_handle ts::script::Engine::create_module(utf8_string module_name)

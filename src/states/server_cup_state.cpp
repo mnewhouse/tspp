@@ -52,12 +52,10 @@ ts::states::Server_cup_state::Server_cup_state(state_machine_type* state_machine
   : Server_cup_state_members(resource_store),
     Cup_state_base(local_client_.client_interface(), state_machine, context, resource_store)
 {
-    server_.add_cup_listener(this);
 }
 
 ts::states::Server_cup_state::~Server_cup_state()
 {
-    server_.remove_cup_listener(this);
 }
 
 void ts::states::Server_cup_state::update(std::size_t frame_duration)
@@ -65,6 +63,7 @@ void ts::states::Server_cup_state::update(std::size_t frame_duration)
     Cup_state_base::update(frame_duration);
 
     server_.update(frame_duration);
+    local_client_.update(frame_duration);
 }
 
 void ts::states::Server_cup_state::listen(std::uint16_t port)
@@ -78,23 +77,30 @@ void ts::states::Server_cup_state::on_activate()
 
     if (server_.cup()->cup_state() == cup::Cup_state::Action)
     {
+        // Action state was closed without the cup being advanced.
+        // Request for the cup the be advanced now.
         local_client_.client_interface()->request_advance();
     }
 }
 
 void ts::states::Server_cup_state::on_initialize(const cup::Stage_data& stage_data)
 {
-    auto stage_loader = server_.async_load_stage(stage_data, [this](const action::Stage* stage)
+    auto stage_callback = [this](const action::Stage* stage)
     {
-        load_scene(stage);
-    });
+        auto scene_callback = [this]()
+        {
+            ready_for_action();
+        };
 
+        auto scene_loader = local_client_.async_load_scene(stage, scene_callback);
+        show_stage_loading(scene_loader);
+    };
+
+    auto stage_loader = server_.async_load_stage(stage_data, stage_callback);
     show_stage_loading(stage_loader);
 }
 
-std::unique_ptr<ts::states::Action_state_base> ts::states::Server_cup_state::make_action_state(game::Loaded_scene loaded_scene)
+std::unique_ptr<ts::states::Action_state_base> ts::states::Server_cup_state::make_action_state()
 {
-    return std::make_unique<Server_action_state>(std::move(loaded_scene), &server_, &local_client_,
-                                                 state_machine(), context(), resource_store());
+    return std::make_unique<Server_action_state>(&server_, &local_client_, state_machine(), context(), resource_store());
 }
-

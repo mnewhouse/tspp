@@ -220,14 +220,9 @@ const std::vector<ts::cup::Stage_player>& ts::cup::Cup_controller::stage_players
     return impl_->stage_players_;
 }
 
-void ts::cup::Cup_controller::add_cup_listener(Cup_listener* listener)
+ts::core::Listener_host<ts::cup::Cup_listener>* ts::cup::Cup_controller::cup_listener_host()
 {
-    impl_->cup_.add_cup_listener(listener);
-}
-
-void ts::cup::Cup_controller::remove_cup_listener(Cup_listener* listener)
-{
-    impl_->cup_.remove_cup_listener(listener);
+    return &impl_->cup_;
 }
 
 void ts::cup::Cup_controller::add_cup_controller_listener(Cup_controller_listener* listener)

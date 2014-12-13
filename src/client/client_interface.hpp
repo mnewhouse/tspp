@@ -31,6 +31,12 @@ namespace ts
     namespace cup
     {
         class Cup;
+        class Chatbox;
+    }
+
+    namespace resources
+    {
+        struct Resource_store;
     }
 
     namespace client
@@ -40,7 +46,8 @@ namespace ts
         class Client_interface
         {
         public:
-            Client_interface(Message_center* message_center, const cup::Cup* cup);
+            Client_interface(Message_center* message_center, const cup::Cup* cup, const cup::Chatbox* chatbox, 
+                const resources::Resource_store* resource_store);
             ~Client_interface();
 
             void select_cars(const std::vector<Car_selection>& car_selection) const;
@@ -50,6 +57,9 @@ namespace ts
             void quit() const;
 
             const cup::Cup* cup() const;
+            const cup::Chatbox* chatbox() const;
+            const resources::Resource_store* resource_store() const;
+
             Message_center* message_center() const;
 
             void load_error(const utf8_string& load_error) const;
@@ -57,6 +67,8 @@ namespace ts
         private:
             Message_center* message_center_;
             const cup::Cup* cup_;
+            const cup::Chatbox* chatbox_;
+            const resources::Resource_store* resource_store_;
 
             mutable Server_message message_buffer_;
         };

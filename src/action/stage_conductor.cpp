@@ -103,6 +103,7 @@ void ts::action::Stage_conductor::poll()
     // See if there are any events for this exact frame
     for (; it != control_event_queue_.end() && it->stage_time == stage_time; ++it)
     {
+		std::sin(10.0);
         handle_control_event_message(*it);
     }    
 }

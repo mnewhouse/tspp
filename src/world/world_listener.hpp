@@ -36,13 +36,16 @@ namespace ts
         {
             virtual void on_start() {}
 
-            virtual void on_tick(std::size_t new_ticks) {};
-            virtual void on_update() {};
+            virtual void on_tick(std::size_t new_ticks) {}
+            virtual void on_update() {}
 
-            virtual void on_entity_destroy(Entity* entity) {};
+            virtual void on_entity_destroy(Entity* entity) {}
 
-            virtual void on_collision(Entity* subject, Entity* object, const Collision_info& collision_info) {};
+            virtual void on_collision(Entity* subject, Entity* object, const Collision_info& collision_info) {}
         };
+
+        using World_listener_host = core::Listener_host<World_listener>;
+        using Scoped_world_listener = core::Scoped_listener<World_listener>;
     }
 }
 

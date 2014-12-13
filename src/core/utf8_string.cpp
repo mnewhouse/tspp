@@ -247,7 +247,7 @@ bool ts::operator==(const utf8_string& lhs, const utf8_string& rhs)
 {
     if (lhs.size() != rhs.size()) return false;
 
-    return std::equal(lhs.data(), lhs.data() + lhs.size(), rhs.data());
+	return std::equal(lhs.data(), lhs.data() + lhs.size(), rhs.data());
 }
 
 bool ts::operator<(const utf8_string& lhs, const utf8_string& rhs)

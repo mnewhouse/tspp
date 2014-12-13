@@ -53,10 +53,10 @@ ts::script::Engine* ts::script::get_engine_by_vm(HSQUIRRELVM vm)
 ts::utf8_string ts::script::get_value_string(HSQUIRRELVM vm, SQInteger index)
 {
     auto type = sq_gettype(vm, index);
-    switch (type)
-    {
-    case OT_NULL:
-        return "null";
+	switch (type)
+	{
+	case OT_NULL:
+		return "null";
 
     case OT_BOOL:
     {

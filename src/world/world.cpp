@@ -54,7 +54,7 @@ ts::world::World::World(std::unique_ptr<resources::Track> track, resources::Patt
   scenery_bitmap_(terrain_map_, track_->terrain_library(), track_->num_levels()),
   control_point_manager_(track_->control_points().begin(), track_->control_points().end())
 {
-    add_world_listener(&control_point_manager_);
+    add_listener(&control_point_manager_);
 
     start_game_timer();
 }
@@ -76,10 +76,7 @@ ts::world::Car* ts::world::World::create_car(const resources::Car_definition& ca
 
 void ts::world::World::launch_game()
 {
-    for (auto listener : world_listeners_)
-    {
-        listener->on_start();
-    }
+    call_listeners(&World_listener::on_start);
 }
 
 const ts::resources::Terrain_definition& ts::world::World::terrain_at(Vector2i point) const
@@ -225,19 +222,10 @@ void ts::world::World::update(std::size_t frame_duration)
         subject_state.current_position = static_cast<Vector2i>(target_position);
     }
 
-    for (auto listener : world_listeners_)
-    {
-        listener->on_update();
-    }
+    call_listeners(&World_listener::on_update);
 
     auto old_game_time = game_timer_.time();
     game_timer_.update(frame_duration);
-    world_time_ += frame_duration;
-
-    for (auto listener : world_listeners_)
-    {
-        listener->on_tick(game_timer_.time());
-    }
 }
 
 
@@ -285,10 +273,7 @@ void ts::world::World::terrain_transition(Entity_update_state& state, const reso
 
 void ts::world::World::handle_collision(Entity* subject, Entity* object, const Collision_info& collision_info)
 {
-    for (auto listener : world_listeners_)
-    {
-        listener->on_collision(subject, object, collision_info);
-    }
+    call_listeners(&World_listener::on_collision, subject, object, collision_info);
 }
 
 bool ts::world::World::entity_state_collides(const Entity_update_state& state)
@@ -426,16 +411,6 @@ void ts::world::World::register_entity(Entity* entity)
 {
     entity_set_.insert(entity);
     entity_list_.push_back(entity);
-}
-
-void ts::world::World::add_world_listener(World_listener* world_listener)
-{
-    world_listeners_.push_back(world_listener);
-}
-
-void ts::world::World::remove_world_listener(World_listener* world_listener)
-{
-    world_listeners_.erase(std::remove(world_listeners_.begin(), world_listeners_.end(), world_listener), world_listeners_.end());
 }
 
 const ts::resources::Track& ts::world::World::track() const

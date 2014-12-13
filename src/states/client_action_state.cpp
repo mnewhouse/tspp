@@ -21,33 +21,31 @@
 #include "client_action_state.hpp"
 
 #include "client/client.hpp"
+#include "client/scene/scene.hpp"
+
+#include "controls/control_interface.hpp"
 
 #include "action/stage.hpp"
 
-#include "game/chatbox_display.hpp"
+struct ts::states::Client_action_state::Members
+{
+    Generic_scope_exit action_;
+};
 
-ts::states::Client_action_state::Client_action_state(game::Loaded_scene loaded_scene, client::Client* client,
-                                                     state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
-    : Action_state_base(std::move(loaded_scene), 
-           std::make_unique<game::Chatbox_display>(*client->chatbox(), client->client_interface(), context),
-           client->make_control_interface(), state_machine, context, resource_store),
-      client_(client) 
+ts::states::Client_action_state::Client_action_state(client::Client* client, state_machine_type* state_machine, 
+                                                     gui::Context* context, resources::Resource_store* resource_store)
+: Action_state_base(client->make_control_interface(), client->client_interface(), state_machine, context, resource_store),
+  client_(client),
+  members_(std::make_unique<Members>())
 {    
 }
 
-
 ts::states::Client_action_state::~Client_action_state()
 {
-    client_->stage()->remove_world_listener(this);
-
-    client_->remove_cup_listener(this);
-    client_->end_action();
 }
 
 void ts::states::Client_action_state::update(std::size_t frame_duration)
 {
-    Action_state_base::update(frame_duration);
-
     client_->update(frame_duration);
 }
 
@@ -55,8 +53,10 @@ void ts::states::Client_action_state::on_activate()
 {
     Action_state_base::on_activate();
 
-    client_->add_cup_listener(this);
-    client_->launch_action();
+    members_->action_ = client_->launch_action();
+}
 
-    client_->stage()->add_world_listener(this);
+ts::scene::Scene ts::states::Client_action_state::acquire_scene()
+{
+    return client_->acquire_scene();
 }

@@ -33,6 +33,8 @@ namespace ts
         {
         public:
             controls::Key_mapping key_mapping;
+
+            sf::Keyboard::Key chatbox_key = sf::Keyboard::T;
         };
     }
 }

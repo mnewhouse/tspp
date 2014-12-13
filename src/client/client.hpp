@@ -48,6 +48,7 @@ namespace ts
     namespace resources
     {
         struct Resource_store;
+        class Loading_interface;
     }
 
     namespace action
@@ -55,9 +56,9 @@ namespace ts
         class Stage;
     }
 
-    namespace game
+    namespace scene
     {
-        class Stage_loader;
+        struct Scene;
     }
 
     namespace client
@@ -78,20 +79,14 @@ namespace ts
             ~Client();
 
             const Client_interface* client_interface() const;
-            controls::Control_interface* make_control_interface();
 
             Connection_status connection_status() const;
             Registration_status registration_status() const;
 
             const utf8_string& registration_error() const;
 
-            void add_cup_listener(cup::Cup_listener* listener);
-            void remove_cup_listener(cup::Cup_listener* listener);
-
-            void add_chatbox_listener(cup::Chatbox_listener* listener);
-            void remove_chatbox_listener(cup::Chatbox_listener* listener);
-
             const cup::Chatbox* chatbox() const;
+            const cup::Cup* cup() const;
 
             void async_connect(utf8_string remote_address, std::uint16_t remote_port);
             void send_registration_request();
@@ -101,11 +96,14 @@ namespace ts
 
             void update(std::size_t frame_duration);
 
-            void launch_action();
+            Generic_scope_exit launch_action();
             void end_action();
-            const action::Stage* stage() const;
 
-            const game::Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback);
+            const action::Stage* stage() const;
+            const resources::Loading_interface* async_load_stage(const cup::Stage_data& stage_data, std::function<void()> completion_callback);
+
+            scene::Scene acquire_scene();
+            std::unique_ptr<controls::Control_interface> make_control_interface() const;
 
         private:
             std::unique_ptr<impl::Client> impl_;

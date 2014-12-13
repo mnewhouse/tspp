@@ -41,14 +41,10 @@ namespace ts
         class Stage;
     }
 
-    namespace game
-    {
-        class Stage_loader;
-    }
-
     namespace resources
     {
         struct Resource_store;
+        class Loading_interface;
     }
 
     namespace server
@@ -77,13 +73,12 @@ namespace ts
             const Message_center* message_center() const;
             const cup::Cup* cup() const; 
 
-            void add_cup_listener(cup::Cup_listener* cup_listener);
-            void remove_cup_listener(cup::Cup_listener* cup_listener);
+            core::Listener_host<cup::Cup_listener>* cup_listener_host();
 
-            const game::Stage_loader* async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback);
+            const resources::Loading_interface* async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback);
             const action::Stage* stage() const;
 
-            void launch_action();
+            Generic_scope_exit launch_action();
             void end_action();
 
         private:

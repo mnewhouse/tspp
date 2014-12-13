@@ -23,11 +23,11 @@
 #define SCRIPT_MODULE_HPP
 
 #include "script_vm.hpp"
-#include "event_manager.hpp"
-#include "error_level.hpp"
-#include "execution_context.hpp"
-#include "script_userdata.hpp"
 #include "script_interface.hpp"
+#include "event_manager.hpp"
+#include "execution_context.hpp"
+#include "userdata_forwarder.hpp"
+#include "error_level.hpp"
 
 namespace ts
 {
@@ -79,18 +79,19 @@ namespace ts
         public:
             Module(Engine* engine);
 
-            void register_api(const API_definition& api_definition);
-
             template <typename InterfaceType>
             void register_interface(InterfaceType* interface);
 
-            void do_file(const utf8_string& file_name);
+            void register_api(const API_definition& api_definition);
+
+            void load_file(const utf8_string& file_name);
+            void execute(const std::vector<API_definition>& api_definitions);
 
             Event_handler add_event_handler(const utf8_string& event_name, Function function);
             void remove_event_handler(const Event_handler& event_handler);
 
             template <typename... Args>
-            void trigger_event(const utf8_string& event_name, Args&&... args);
+            void trigger_event(const utf8_string& event_name, Args&&... args) const;
 
             void report_error(const utf8_string& error_string, Error_level error_level);
 
@@ -110,6 +111,8 @@ namespace ts
             Engine* engine_;
             Virtual_machine vm_;
             Event_manager event_manager_;
+
+            std::vector<Function> execution_list_;
         };
 
         SQInteger error_handler(HSQUIRRELVM vm);
@@ -118,7 +121,7 @@ namespace ts
 }
 
 template <typename... Args>
-void ts::script::Module::trigger_event(const utf8_string& event_name, Args&&... args)
+void ts::script::Module::trigger_event(const utf8_string& event_name, Args&&... args) const
 {
     event_manager_.trigger_event(event_name, forward_argument<Args>(args)...);
 }

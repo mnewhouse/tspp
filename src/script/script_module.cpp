@@ -91,7 +91,6 @@ void ts::script::Module::register_api(const API_definition& api_definition)
     Stack_guard stack_guard(vm_);
 
     sq_pushroottable(vm_);
-
     for (const auto& func_def : api_definition.static_functions)
     {
         sq_pushstring(vm_, func_def.name, -1);
@@ -114,6 +113,11 @@ void ts::script::Module::register_api(const API_definition& api_definition)
     {
         register_class_definition(vm_, class_def);
     }
+
+    for (const auto& callback : api_definition.launch_callbacks)
+    {
+        callback(vm_);
+    }
 }
 
 void ts::script::Module::report_error(const utf8_string& error_message, Error_level error_level)
@@ -126,7 +130,7 @@ ts::script::Engine* ts::script::Module::engine()
     return engine_;
 }
 
-void ts::script::Module::do_file(const utf8_string& file_name)
+void ts::script::Module::load_file(const utf8_string& file_name)
 {
     boost::filesystem::ifstream stream(file_name.string(), std::ios::in);
     if (stream)
@@ -138,7 +142,7 @@ void ts::script::Module::do_file(const utf8_string& file_name)
         if (SQ_SUCCEEDED(result))
         {
             Function script(vm_, -1);
-            script(get_root_table(vm_));
+            execution_list_.push_back(std::move(script));
         }
 
         else
@@ -150,6 +154,21 @@ void ts::script::Module::do_file(const utf8_string& file_name)
     else
     {
         // Reading from the file failed.
+    }
+}
+
+void ts::script::Module::execute(const std::vector<API_definition>& api_definitions)
+{
+    auto scripts = std::move(execution_list_);
+
+    for (const auto& api : api_definitions)
+    {
+        register_api(api);
+    }
+
+    for (const auto& script : scripts)
+    {
+        script(get_root_table(vm_));
     }
 }
 
@@ -176,5 +195,5 @@ SQInteger ts::script::error_handler(HSQUIRRELVM vm)
 
 void ts::script::compile_error_handler(HSQUIRRELVM vm, const SQChar* desc, const SQChar* source, SQInteger line, SQInteger column)
 {
-    std::cout << desc << " on line " << line << std::endl;
+    printf_console<Error_level::syntax_error>(vm, "%s in %s (line %d, column %d)", desc, source, line, column);
 }

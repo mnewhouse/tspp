@@ -119,7 +119,7 @@ namespace ts
 
                 push();
 
-                SQUserPointer pointer;
+                SQUserPointer pointer = nullptr;
                 sq_getuserdata(vm(), -1, &pointer, &type_tag);
 
                 storage = static_cast<Userdata_storage_base*>(pointer);
@@ -279,12 +279,22 @@ namespace ts
                 self_->push();
             }
 
-        private:
-            HSQUIRRELVM vm_handle()
+            Generic_userdata clone(HSQUIRRELVM vm) const
+            {
+                return self_->clone(vm);
+            }        
+
+            HSQUIRRELVM vm() const
             {
                 return self_->vm_handle();
             }
 
+			explicit operator bool() const
+			{
+				return self_ != nullptr;
+			}
+
+        private:
             Generic_userdata_handle self_;
 
             template <typename T>
@@ -306,7 +316,7 @@ namespace ts
         template <typename T>
         Userdata<T> userdata_cast(const Generic_userdata& userdata)
         {
-            auto vm = userdata.vm_handle();
+            auto vm = userdata.vm();
 
             Stack_guard stack_guard(vm);
             userdata.push();
@@ -331,34 +341,30 @@ namespace ts
             }
         };
 
-        template <typename T>
-        struct Userdata_forwarder
-        {
-            template <typename U>
-            explicit Userdata_forwarder(U&& value, typename std::enable_if<!std::is_same<Userdata_forwarder<T>, typename std::decay<U>::type>::value>::type* = nullptr)
-                : value(std::forward<U>(value))
-            {}
-
-            T value;
-        };
+		template <typename T>
+		Userdata_reader<T> make_reader(Userdata<T>& udata)
+		{
+			return Userdata_reader<T>(udata);
+		}
 
         namespace impl
         {
-            template <typename T>
             struct clone_helper
             {
+                template <typename T>
                 Generic_userdata operator()(HSQUIRRELVM vm, const T& object) const
                 {
-                    return clone_impl<T>(vm, object, 0);
+                    return clone_impl(vm, object, 0);
                 }
 
-                template <typename U, typename std::enable_if<std::is_copy_constructible<U>::value>::type = 0>
-                Generic_userdata clone_impl(HSQUIRRELVM vm, const T& object, int) const
+                template <typename T>
+                typename std::enable_if<Userdata_traits<T>::copyable, Generic_userdata>::type
+                    clone_impl(HSQUIRRELVM vm, const T& object, int) const
                 {
                     return make_userdata(vm, object);
                 }
 
-                template <typename U>
+                template <typename T>
                 Generic_userdata clone_impl(HSQUIRRELVM vm, const T& object, ...) const
                 {
                     return Generic_userdata();
@@ -381,14 +387,8 @@ namespace ts
         template <typename T>
         Generic_userdata Userdata_storage<T>::clone(HSQUIRRELVM vm) const
         {
-            impl::clone_helper<T> clone_helper;
+            impl::clone_helper clone_helper;
             return clone_helper(vm, *static_cast<const T*>(static_cast<const void*>(&data_)));
-        }
-
-        template <typename T>
-        Userdata_forwarder<T&&> forward_as_userdata(T&& value)
-        {
-            return Userdata_forwarder<T&&>(std::forward<T>(value));
         }
     }
 }

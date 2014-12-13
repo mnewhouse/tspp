@@ -29,8 +29,7 @@
 #include "resources/track_handle.hpp"
 #include "resources/car_handle.hpp"
 #include "resources/car_store.hpp"
-
-#include "game/car_image_generator.hpp"
+#include "resources/car_image_generator.hpp"
 
 #include "user_interface/document.hpp"
 #include "user_interface/elements/elements.hpp"
@@ -681,7 +680,8 @@ void ts::states::Car_selection_dialog::load_car_textures()
     const auto& car_store = resource_store_->car_store();
 
     // Generate a compound texture with all player+car combinations.
-    game::Car_image_generator image_generator;
+    using resources::Car_image_generator;
+    Car_image_generator image_generator;
 
     std::vector<sf::Image> temp_images;
     temp_images.reserve(local_players_.size() * possible_cars_.size());
@@ -700,7 +700,7 @@ void ts::states::Car_selection_dialog::load_car_textures()
 
             if (auto car_handle = car_store.get_car_by_name(car.car_name))
             {
-                temp_image = image_generator(*car_handle, player.color, game::Car_image_generator::Single_frame);
+                temp_image = image_generator(*car_handle, player.color, Car_image_generator::Single_frame);
                 auto image_size = temp_image.getSize();
 
                 texture_mapping_[mapping_pair] = Int_rect(x_position, 0, image_size.x, image_size.y);

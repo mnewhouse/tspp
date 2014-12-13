@@ -58,7 +58,7 @@ ts::Range<const ts::script_api::Member_function_definition*> ts::script_api::Del
     return make_range(std::begin(client::member_functions), std::end(client::member_functions));
 }
 
-ts::script::API_definition ts::script_api::client_api(server::Client_map* client_map)
+ts::script::API_definition ts::script_api::client_api(const server::Client_map* client_map)
 {
     API_definition result;
     result.interfaces.push_back(make_interface(client_map));
@@ -76,7 +76,7 @@ SQInteger ts::script_api::client::getName(HSQUIRRELVM vm)
 
     if (argument_stream)
     {
-        auto client_map = get_interface<server::Client_map>(vm);
+        auto client_map = get_interface<const server::Client_map>(vm);
         auto name = client_map->client_name(*client_udata);
         sq_pushstring(vm, name.data(), name.size());
         return 1;
@@ -99,7 +99,7 @@ SQInteger ts::script_api::client::getIpAddress(HSQUIRRELVM vm)
 
     if (argument_stream)
     {
-        auto client_map = get_interface<server::Client_map>(vm);
+        auto client_map = get_interface<const server::Client_map>(vm);
         auto ip_address = client_map->client_address(*client_udata).toString();
         sq_pushstring(vm, ip_address.data(), ip_address.size());
         return 1;

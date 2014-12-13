@@ -20,8 +20,22 @@
 #include "stdinc.hpp"
 #include "entity_api.hpp"
 
+#include "script/script_delegates.hpp"
+
+#include "world/entity.hpp"
+#include "world/car.hpp"
+
 namespace ts
 {
+    namespace script
+    {
+        template <>
+        struct Userdata_traits<world::Car*>
+        {
+
+        };
+    }
+
     namespace script_api
     {
         using namespace script;
@@ -32,7 +46,13 @@ namespace ts
             SQInteger getVelocity(HSQUIRRELVM vm);
             SQInteger getRotation(HSQUIRRELVM vm);
             SQInteger getZPosition(HSQUIRRELVM vm);
-        }
+        }        
+
+        template <>
+        struct Delegate_traits<const world::Entity*>
+        {
+
+        };
     }
 }
 

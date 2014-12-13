@@ -63,8 +63,7 @@ namespace ts
 
             const Cup* cup() const;
 
-            void add_cup_listener(Cup_listener* listener);
-            void remove_cup_listener(Cup_listener* listener);
+            core::Listener_host<cup::Cup_listener>* cup_listener_host();
 
             void add_cup_controller_listener(Cup_controller_listener* listener);
             void remove_cup_controller_listener(Cup_controller_listener* listener);

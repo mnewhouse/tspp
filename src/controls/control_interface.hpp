@@ -31,6 +31,8 @@ namespace ts
         class Control_interface
         {
         public:
+            virtual ~Control_interface() = default;
+
             virtual void handle_event(const Control_event& event) = 0;
             virtual void update(std::size_t frame_duration) = 0;
         };

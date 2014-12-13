@@ -19,21 +19,21 @@
 
 #pragma once
 
-#ifndef SCRIPT_WORLD_API_HPP
-#define SCRIPT_WORLD_API_HPP
+#ifndef SCRIPT_STAGE_API_HPP
+#define SCRIPT_STAGE_API_HPP
 
 #include "script/script_api.hpp"
 
 namespace ts
 {
-    namespace action
-    {
-        class Stage;
-    }
+	namespace action
+	{
+		class Stage_interface;
+	}
 
     namespace script_api
     {
-        script::API_definition stage_api(const action::Stage* stage);
+        script::API_definition stage_api(const action::Stage_interface* stage_interface);
     }
 }
 

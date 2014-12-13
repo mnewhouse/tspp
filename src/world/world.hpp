@@ -46,6 +46,7 @@ namespace ts
         class Car;    
 
         class World
+            : public core::Listener_host<World_listener>
         {
         public:
             explicit World(std::unique_ptr<resources::Track> track, resources::Pattern track_pattern);
@@ -53,9 +54,6 @@ namespace ts
 
             Car* create_car(const resources::Car_definition& car_def, std::uint16_t car_id);
             Car* create_car(const resources::Car_definition& car_def);
-
-            void add_world_listener(World_listener* world_listener);
-            void remove_world_listener(World_listener* world_listener);
 
             void update(std::size_t frame_duration);
             static double max_entity_speed();
@@ -107,14 +105,10 @@ namespace ts
 
             void load_track_objects();
 
-            std::size_t world_time_ = 0;
-
             std::vector<std::unique_ptr<Car>> car_list_;
 
             std::vector<Entity*> entity_list_;
-            std::unordered_set<Entity*> entity_set_;            
-
-            std::vector<World_listener*> world_listeners_;
+            std::unordered_set<Entity*> entity_set_;
 
             std::vector<Entity_update_state> state_buffer_;
             std::vector<Entity_step> step_buffer_;

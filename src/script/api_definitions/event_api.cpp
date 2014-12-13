@@ -20,6 +20,8 @@
 #include "stdinc.hpp"
 #include "event_api.hpp"
 
+#include "script/event_interface.hpp"
+
 #include "script/argument_stream.hpp"
 #include "script/script_utility.hpp"
 #include "script/script_module.hpp"
@@ -69,9 +71,10 @@ ts::Range<const ts::script::Member_function_definition*> ts::script_api::Delegat
     return Range<const Member_function_definition*>(std::begin(event_handler_member_functions), std::end(event_handler_member_functions));
 }
 
-ts::script::API_definition ts::script_api::event_api()
+ts::script::API_definition ts::script_api::event_api(const script::Event_interface* event_interface)
 {
     API_definition result;
+    result.interfaces.push_back(make_interface(event_interface));
     result.static_functions.assign(std::begin(static_functions), std::end(static_functions));
     result.delegates.push_back(create_delegate_definition<Event_handler>());
 
@@ -163,15 +166,15 @@ SQInteger ts::script_api::triggerEvent(HSQUIRRELVM vm)
         argument_list.push_back(value);
     }
 
-    auto module = get_module_by_vm(vm);
     if (argument_stream)
-    {        
-        module->trigger_event(event_name, source, argument_list);
+    {   
+        auto event_interface = get_interface<const Event_interface>(vm);
+        event_interface->trigger_event(event_name, source, argument_list);
     }
 
     else
     {
-        report_argument_errors(module, argument_stream);
+        report_argument_errors(get_module_by_vm(vm), argument_stream);
     }
 
     return 0;

@@ -22,13 +22,13 @@
 #include "server_stage_conductor.hpp"
 #include "server_messages.hpp"
 
-#include "game/stage_interface.hpp"
+#include "action/stage_interface.hpp"
 
-#include "script/interfaces/server_script_interface.hpp"
 #include "script/script_module.hpp"
 
+
 class ts::server::Stage_interface::Impl
-    : public game::Stage_interface
+    : public action::Stage_interface
 {
 public:
     Impl(Message_center* message_center);
@@ -37,12 +37,8 @@ public:
     void launch_action();
     void update(std::size_t frame_duration);
 
-    void load_scripts(const cup::Stage_data& stage_data, const action::Stage* stage);
-
     Message_center* message_center_;
-
     std::unique_ptr<Stage_conductor> stage_conductor_;
-    std::unique_ptr<script_api::Server_interface> script_interface_;
 };
 
 ts::server::Stage_interface::Impl::Impl(Message_center* message_center)
@@ -52,20 +48,6 @@ ts::server::Stage_interface::Impl::Impl(Message_center* message_center)
 
 ts::server::Stage_interface::Impl::~Impl()
 {
-}
-
-void ts::server::Stage_interface::Impl::load_scripts(const cup::Stage_data& stage_data, const action::Stage* stage)
-{
-    script_interface_ = std::make_unique<script_api::Server_interface>(stage);
-
-    for (auto resource : stage_data.script_resources)
-    {
-        auto module = script_interface_->create_module(resource->name());
-        for (const auto& file : resource->server_scripts())
-        {
-            module->do_file(file);
-        }
-    }
 }
 
 void ts::server::Stage_interface::Impl::update(std::size_t frame_duration)
@@ -92,14 +74,9 @@ ts::server::Stage_interface::~Stage_interface()
 {
 }
 
-const ts::game::Stage_loader* ts::server::Stage_interface::async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback)
+const ts::resources::Loading_interface* ts::server::Stage_interface::async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback)
 {
-    auto script_loader = [=](const action::Stage* stage)
-    {
-        impl_->load_scripts(stage_data, stage);
-    };
-
-    return impl_->async_load_stage(stage_data, script_loader, completion_callback);
+    return impl_->async_load_stage(stage_data, completion_callback);
 }
 
 void ts::server::Stage_interface::launch_action()
@@ -107,12 +84,11 @@ void ts::server::Stage_interface::launch_action()
     impl_->launch_action();
 }
 
-void ts::server::Stage_interface::clean_stage()
+void ts::server::Stage_interface::clear()
 {
     impl_->stage_conductor_ = nullptr;
-    impl_->script_interface_ = nullptr;
 
-    impl_->clean_stage();    
+    impl_->clear();    
 }
 
 void ts::server::Stage_interface::update(std::size_t frame_duration)
@@ -120,9 +96,9 @@ void ts::server::Stage_interface::update(std::size_t frame_duration)
     impl_->update(frame_duration);
 }
 
-void ts::server::Stage_interface::poll_loader()
+void ts::server::Stage_interface::poll()
 {
-    impl_->poll_loader();
+    impl_->poll();
 }
 
 const ts::action::Stage* ts::server::Stage_interface::stage() const
@@ -130,7 +106,35 @@ const ts::action::Stage* ts::server::Stage_interface::stage() const
     return impl_->stage();
 }
 
+const ts::action::Stage_interface* ts::server::Stage_interface::base() const
+{
+    return impl_.get();
+}
+
+
+namespace ts
+{
+    namespace server
+    {
+        struct Invalid_stage_error
+            : std::logic_error
+        {
+            Invalid_stage_error()
+                : std::logic_error("invalid stage")
+            {
+            }
+        };
+    }
+}
+
+
 ts::cup::Stage_data ts::server::Stage_interface::stage_data() const
 {
-    return impl_->stage()->stage_data();
+    if (stage() == nullptr)
+    {
+        throw Invalid_stage_error();
+    }
+
+
+    return stage()->stage_data();
 }

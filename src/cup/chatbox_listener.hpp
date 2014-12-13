@@ -32,6 +32,9 @@ namespace ts
         {
             virtual void on_chat_message(const Chat_message& message) = 0;
         };
+
+        using Chatbox_listener_host = core::Listener_host<Chatbox_listener>;
+        using Scoped_chatbox_listener = core::Scoped_listener<Chatbox_listener>;
     }
 }
 

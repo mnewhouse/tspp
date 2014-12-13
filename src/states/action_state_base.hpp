@@ -22,54 +22,50 @@
 #ifndef STATES_ACTION_HPP
 #define STATES_ACTION_HPP
 
-#include "game/loaded_scene.hpp"
-
 #include "user_interface/gui_state.hpp"
 
 #include "cup/cup_listener.hpp"
-
-#include "world/world_listener.hpp"
 
 namespace ts
 {
     namespace controls
     {
-        class Event_translator;
         class Control_interface;
     }
 
-    namespace game
+    namespace client
     {
-        class Chatbox_display;
+        class Client_interface;
     }
 
+    namespace scene
+    {
+        struct Scene;
+    }
 
     namespace states
     {
         class Action_state_base
-            : public gui::State, public cup::Cup_listener, public world::World_listener
+            : public gui::State, public cup::Scoped_cup_listener
         {
         public:
-            Action_state_base(game::Loaded_scene loaded_scene, std::unique_ptr<game::Chatbox_display> chatbox_display,
-                              controls::Control_interface* control_interface,
+            Action_state_base(std::unique_ptr<controls::Control_interface> control_interface, const client::Client_interface* client_interface,
                               state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store);
 
             virtual ~Action_state_base();
 
-            virtual void handle_event(const sf::Event& event) override;
             virtual void update(std::size_t frame_duration) override;
 
             virtual void on_activate() override;
-            virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state);
+            virtual void handle_event(const sf::Event& event) override;
 
-            virtual void on_collision(world::Entity* subject, world::Entity* object, const world::Collision_info& collision_info) override;
-        private:            
-            game::Loaded_scene scene_;
+            virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
 
-            std::unique_ptr<controls::Event_translator> control_event_translator_;
-            controls::Control_interface* control_interface_;
+        private:
+            virtual scene::Scene acquire_scene() = 0;
 
-            std::unique_ptr<game::Chatbox_display> chatbox_display_;
+            struct Members;
+            std::unique_ptr<Members> members_;
         };
     }
 }

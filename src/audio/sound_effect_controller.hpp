@@ -35,10 +35,11 @@ namespace ts
             float pitch = 1.0;
             float volume = 1.0;
             float attenuation = 1.0;
-            float min_distance = 0.0;
+            float min_distance = 400.0;
             float offset = 0.0;
             Vector2<float> position;
             bool looped = false;
+            bool relative_to_listener = false;
         };
 
         struct Sound_effect_handle
@@ -46,6 +47,9 @@ namespace ts
         public:
             Sound_effect_handle() = default;
             explicit operator bool() const;
+
+            void set_position(Vector2<double> position);
+            void set_volume(double volume);
 
         private:
             Sound_effect_handle(std::size_t effect_id_);
@@ -64,6 +68,9 @@ namespace ts
 
             void stop_sound(Sound_effect_handle sound_handle);
 
+            void set_sound_volume(Sound_effect_handle handle, double volume);
+            void set_sound_position(Sound_effect_handle handle, Vector2<double> position);
+
             void update();
 
         private:
@@ -81,7 +88,7 @@ namespace ts
 
             std::vector<Sound_effect> sound_queue_;
             resources::Audio_settings audio_settings_;
-            std::size_t effect_id_;
+            std::size_t effect_id_ = 0;
         };
     }
 }

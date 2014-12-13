@@ -66,6 +66,7 @@ ts::audio::Sound_effect_handle ts::audio::Sound_effect_controller::play_sound(co
     sound.setMinDistance(properties.min_distance);
     sound.setPosition({ properties.position.x, properties.position.y, 0.0f });
     sound.setPlayingOffset(sf::seconds(properties.offset));
+    sound.setRelativeToListener(properties.relative_to_listener);
     sound.play();
 
     return Sound_effect_handle(sound_effect.effect_id);
@@ -112,8 +113,41 @@ void ts::audio::Sound_effect_controller::update()
     std::sort(sound_queue_.begin(), sound_queue_.end(), priority_comparison);
 }
 
+void ts::audio::Sound_effect_controller::set_sound_position(Sound_effect_handle sound, Vector2<double> position)
+{
+    if (sound)
+    {
+        auto it = std::find_if(sound_queue_.begin(), sound_queue_.end(), [sound](const Sound_effect& effect)
+        {
+            return effect.effect_id == sound.effect_id_;
+        });
+
+        if (it != sound_queue_.end())
+        {
+            it->sound->setPosition(static_cast<float>(position.x), static_cast<float>(position.y), 0.0);
+        }
+    }
+}
+
+void ts::audio::Sound_effect_controller::set_sound_volume(Sound_effect_handle sound, double volume)
+{
+    if (sound)
+    {
+        auto it = std::find_if(sound_queue_.begin(), sound_queue_.end(), [sound](const Sound_effect& effect)
+        {
+            return effect.effect_id == sound.effect_id_;
+        });
+
+        if (it != sound_queue_.end())
+        {
+            it->sound->setVolume(static_cast<float>(volume * volume * 100.0));
+        }
+    }
+}
+
+
 ts::audio::Sound_effect_handle::Sound_effect_handle(std::size_t effect_id)
-: effect_id_(effect_id)
+    : effect_id_(effect_id)
 {
 }
 

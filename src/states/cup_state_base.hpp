@@ -36,14 +36,13 @@ namespace ts
     namespace game
     {
         struct Loaded_scene;
-        class Loading_sequence;
-        class Stage_loader;
     }
 
-    namespace action
+    namespace resources
     {
-        class Stage;
+        class Loading_interface;
     }
+
 
     namespace states
     {
@@ -51,11 +50,11 @@ namespace ts
         class Cup_GUI;
 
         class Cup_state_base
-            : public gui::State, protected cup::Cup_listener
+            : public gui::State, protected cup::Scoped_cup_listener
         {
         public:
-            Cup_state_base(const client::Client_interface* client_interface, state_machine_type* state_machine, gui::Context* context,
-                           resources::Resource_store* resource_store);
+            Cup_state_base(const client::Client_interface* client_interface,
+                state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store);
 
             virtual ~Cup_state_base();
 
@@ -65,22 +64,21 @@ namespace ts
             virtual void on_activate() override;
 
             virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
-            
+
         protected:
-            void show_stage_loading(const game::Stage_loader* stage_loader);
-            void load_scene(const action::Stage* stage);
+            void show_stage_loading(const resources::Loading_interface* loading_interface);
+            void ready_for_action();
+            
             void launch_action(std::unique_ptr<Action_state_base> action_state);
-            virtual std::unique_ptr<Action_state_base> make_action_state(game::Loaded_scene loaded_scene) = 0;
+            virtual std::unique_ptr<Action_state_base> make_action_state() = 0;
 
         private:
             void return_to_main_menu();
 
             const client::Client_interface* client_interface_;
+            const resources::Loading_interface* loading_interface_ = nullptr;
 
-            std::unique_ptr<Cup_GUI> cup_gui_;
-            std::unique_ptr<game::Loading_sequence> loading_sequence_;
-
-            const game::Stage_loader* stage_loader_ = nullptr;
+            std::unique_ptr<Cup_GUI> cup_gui_;            
         };
     }
 }

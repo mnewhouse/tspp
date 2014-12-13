@@ -46,6 +46,9 @@ namespace ts
         protected:
             virtual ~Cup_listener() = default;
         };
+
+        using Cup_listener_host = core::Listener_host<Cup_listener>;
+        using Scoped_cup_listener = core::Scoped_listener<Cup_listener>;
     }
 }
 

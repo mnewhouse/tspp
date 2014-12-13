@@ -22,9 +22,12 @@
 
 #include "cup/cup_messages.hpp"
 
-ts::client::Client_interface::Client_interface(Message_center* message_center, const cup::Cup* cup)
+ts::client::Client_interface::Client_interface(Message_center* message_center, const cup::Cup* cup, 
+    const cup::Chatbox* chatbox, const resources::Resource_store* resource_store)
 : message_center_(message_center),
-  cup_(cup)
+  cup_(cup),
+  chatbox_(chatbox),
+  resource_store_(resource_store)
 {
 }
 
@@ -78,4 +81,14 @@ ts::client::Message_center* ts::client::Client_interface::message_center() const
 const ts::cup::Cup* ts::client::Client_interface::cup() const
 {
     return cup_;
+}
+
+const ts::cup::Chatbox* ts::client::Client_interface::chatbox() const
+{
+    return chatbox_;
+}
+
+const ts::resources::Resource_store* ts::client::Client_interface::resource_store() const
+{
+    return resource_store_;
 }

@@ -21,10 +21,10 @@
 #include "client_stage_interface.hpp"
 #include "client_stage_conductor.hpp"
 
-#include "game/stage_interface.hpp"
+#include "action/stage_interface.hpp"
 
 class ts::client::Stage_interface::Impl
-    : public game::Stage_interface
+    : public action::Stage_interface
 {
 public:
     Impl(Message_center* message_center, resources::Network_settings* network_settings);
@@ -65,9 +65,14 @@ ts::client::Stage_interface::~Stage_interface()
 {
 }
 
-const ts::game::Stage_loader* ts::client::Stage_interface::async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback)
+const ts::resources::Loading_interface* ts::client::Stage_interface::async_load_stage(const cup::Stage_data& stage_data, std::function<void(const action::Stage*)> completion_callback)
 {
-    return impl_->async_load_stage(stage_data, nullptr, completion_callback);
+    return impl_->async_load_stage(stage_data, completion_callback);
+}
+
+ts::action::Stage_interface* ts::client::Stage_interface::base()
+{
+    return impl_.get();
 }
 
 const ts::action::Stage* ts::client::Stage_interface::stage() const
@@ -75,16 +80,15 @@ const ts::action::Stage* ts::client::Stage_interface::stage() const
     return impl_->stage();
 }
 
-void ts::client::Stage_interface::clean_stage()
+void ts::client::Stage_interface::clear()
 {
     impl_->stage_conductor_ = nullptr;
-
-    impl_->clean_stage();
+    impl_->clear();
 }
 
-void ts::client::Stage_interface::poll_loader()
+void ts::client::Stage_interface::poll()
 {
-    impl_->poll_loader();
+    impl_->poll();
 }
 
 void ts::client::Stage_interface::update(std::size_t frame_duration)
