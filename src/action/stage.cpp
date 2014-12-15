@@ -62,11 +62,11 @@ void ts::action::Stage::create_stage_entities(const Stage_data& stage_data)
 
     for (const auto& car_data : stage_data.cars)
     {
-        if (car_data.start_pos < start_points.size() && car_lookup_.find(car_data.car_id) == car_lookup_.end())
+        if (car_data.car_def.model && car_data.start_pos < start_points.size() && car_lookup_.find(car_data.car_id) == car_lookup_.end())
         {
             const auto& start_point = start_points[car_data.start_pos];
 
-            auto car = world_->create_car(*car_data.car_def);
+            auto car = world_->create_car(*car_data.car_def.model);
             car->set_position(start_point.position);
             car->set_rotation(start_point.rotation);
             car->set_z_position(start_point.level);

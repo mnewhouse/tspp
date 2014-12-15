@@ -66,8 +66,6 @@ void ts::states::Cup_state_base::on_activate()
 
 void ts::states::Cup_state_base::update(std::size_t frame_duration)
 {
-    cup_gui_->update(frame_duration);
-
     if (loading_interface_)
     {
         cup_gui_->set_loading_progress(loading_interface_->progress() / loading_interface_->max_progress());
@@ -78,6 +76,12 @@ void ts::states::Cup_state_base::update(std::size_t frame_duration)
     {
         // No loading interface anymore and cup state equals Action - let's go!
         launch_action(make_action_state());
+    }
+
+    cup_gui_->update(frame_duration);
+    if (cup_gui_->quit_event_pending())
+    {
+        state_machine()->change_state();
     }
 }
 

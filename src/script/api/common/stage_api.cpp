@@ -101,7 +101,7 @@ SQInteger ts::script_api::stage::getGameTime(HSQUIRRELVM vm)
 {
 	Userdata<const action::Stage*> stage_udata;
 
-	Argument_stream argument_stream(vm);
+	Argument_stream argument_stream(vm, "Stage::getGameTime");
 	argument_stream(make_reader(stage_udata));
 
 	if (argument_stream)
@@ -113,7 +113,7 @@ SQInteger ts::script_api::stage::getGameTime(HSQUIRRELVM vm)
 
 	else
 	{
-		report_argument_errors(get_module_by_vm(vm), argument_stream);
+		report_argument_errors(vm, argument_stream);
 		return 0;
 	}
 
@@ -125,7 +125,7 @@ SQInteger ts::script_api::stage::startGameTimer(HSQUIRRELVM vm)
 {
 	Userdata<const action::Stage*> stage_udata;
 
-	Argument_stream argument_stream(vm);
+	Argument_stream argument_stream(vm, "Stage::startGameTimer");
 	argument_stream(make_reader(stage_udata));
 
 	if (argument_stream)
@@ -135,7 +135,7 @@ SQInteger ts::script_api::stage::startGameTimer(HSQUIRRELVM vm)
 
 	else
 	{
-		report_argument_errors(get_module_by_vm(vm), argument_stream);
+		report_argument_errors(vm, argument_stream);
 		return 0;
 	}
     
@@ -147,7 +147,7 @@ SQInteger ts::script_api::stage::getCarById(HSQUIRRELVM vm)
     Userdata<const action::Stage*> stage_udata;
     std::uint16_t car_id = 0;
 
-    Argument_stream argument_stream(vm);
+    Argument_stream argument_stream(vm, "Stage::getCarById");
     argument_stream(make_reader(stage_udata));
     argument_stream(make_integer_reader(car_id));
 
@@ -172,7 +172,7 @@ SQInteger ts::script_api::stage::getCarById(HSQUIRRELVM vm)
 
     else
     {
-        report_argument_errors(get_module_by_vm(vm), argument_stream);
+        report_argument_errors(vm, argument_stream);
         return 0;
     }
 }

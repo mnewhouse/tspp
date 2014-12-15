@@ -31,7 +31,7 @@ namespace ts
     namespace client
     {
         class Chatbox_interface
-            : public Message_listener
+            : public Scoped_message_listener
         {
         public:
             Chatbox_interface(Message_center* message_center);

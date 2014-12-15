@@ -53,21 +53,22 @@ namespace ts
 
             virtual ~Game_state() {}
 
-            state_machine_type* state_machine() const { return state_machine_; }
+            
 
             void render(sf::RenderTarget& render_target, double frame_time);
+            void activate() { on_activate(); }
 
             void add_render_scene(graphics::Render_scene* render_scene);
 
             virtual void update(std::size_t frame_duration) {}
-            virtual void handle_event(const sf::Event& event) {}
+            virtual void handle_event(const sf::Event& event) {}            
 
-            void activate() { on_activate(); };
-
+            state_machine_type* state_machine() const { return state_machine_; }
             resources::Resource_store* resource_store() const { return resource_store_; }
 
         private:
-            virtual void on_activate() {};
+            virtual void on_activate() {}
+            virtual void on_render() {}
 
             state_machine_type* state_machine_;
             resources::Resource_store* resource_store_;

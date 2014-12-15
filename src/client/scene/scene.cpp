@@ -22,6 +22,7 @@
 
 #include "action_scene.hpp"
 #include "sound_controller.hpp"
+#include "client_script_conductor.hpp"
 
 ts::scene::Scene::Scene()
 {
@@ -33,7 +34,8 @@ ts::scene::Scene::~Scene()
 
 ts::scene::Scene::Scene(Scene&& other)
 : action_scene(std::move(other.action_scene)),
-  sound_controller(std::move(other.sound_controller))
+  sound_controller(std::move(other.sound_controller)),
+  script_conductor(std::move(other.script_conductor))
 {
 }
 
@@ -41,6 +43,7 @@ ts::scene::Scene& ts::scene::Scene::operator=(Scene&& rhs)
 {
     action_scene = std::move(rhs.action_scene);
     sound_controller = std::move(rhs.sound_controller);
+    script_conductor = std::move(rhs.script_conductor);
 
     return *this;
 }
@@ -64,4 +67,6 @@ void ts::scene::Scene::start()
     {
         sound_controller->start();
     }
+
+    script_conductor.execute();
 }

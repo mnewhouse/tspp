@@ -24,104 +24,32 @@ namespace ts
 {
     namespace messages
     {
-        template <typename MessageType> class Listener_set;
-
         template <typename MessageType>
         class Message_listener
         {
         public:
             using message_type = MessageType;
-            using listener_set_type = Listener_set<MessageType>;
 
-            Message_listener(listener_set_type* listener_set = nullptr);
-            virtual ~Message_listener();
+            virtual ~Message_listener() = default;
             virtual void handle_message(const MessageType& message) = 0;
-
-            Message_listener(const Message_listener<MessageType>& other);
-            Message_listener<MessageType>& operator=(const Message_listener<MessageType>& rhs);
-
-        private:
-            listener_set_type* listener_set_;
         };
 
         template <typename MessageType>
-        class Listener_set
+        using Scoped_message_listener = core::Scoped_listener<Message_listener<MessageType>>;
+
+        template <typename MessageType>
+        class Message_listener_host
+            : public core::Listener_host<Message_listener<MessageType>>
         {
         public:
-            void handle_message(const MessageType& message) const;
-
             using listener_type = Message_listener<MessageType>;
-            void add_message_listener(listener_type* listener);
-            void remove_message_listener(listener_type* listener);
 
-        private:
-            std::vector<listener_type*> message_listeners_;
+            void handle_message(const MessageType& message) const
+            {
+                call_listeners(&listener_type::handle_message, message);
+            }
         };
     }
 }
-
-template <typename MessageType>
-ts::messages::Message_listener<MessageType>::Message_listener(listener_set_type* listener_set)
-: listener_set_(listener_set)
-{
-    if (listener_set)
-    {
-        listener_set->add_message_listener(this);
-    }
-}
-
-template <typename MessageType>
-ts::messages::Message_listener<MessageType>::~Message_listener()
-{
-    if (listener_set_)
-    {
-        listener_set_->remove_message_listener(this);
-    }
-}
-
-template <typename MessageType>
-ts::messages::Message_listener<MessageType>::Message_listener(const Message_listener<MessageType>& other)
-: listener_set_(other.listener_set_)
-{
-    if (listener_set_)
-    {
-        listener_set_->add_message_listener(this);
-    }
-}
-
-template <typename MessageType>
-ts::messages::Message_listener<MessageType>& ts::messages::Message_listener<MessageType>::operator=(const Message_listener<MessageType>& other)
-{
-    listener_set_ = other.listener_set_;
-
-    if (listener_set_)
-    {
-        listener_set_->add_message_listener(this);
-    }
-
-    return *this;
-}
-
-template <typename MessageType>
-void ts::messages::Listener_set<MessageType>::handle_message(const MessageType& message) const
-{
-    for (auto listener : message_listeners_)
-    {
-        listener->handle_message(message);
-    }
-}
-
-template <typename MessageType>
-void ts::messages::Listener_set<MessageType>::add_message_listener(listener_type* listener)
-{
-    message_listeners_.push_back(listener);
-}
-
-template <typename MessageType>
-void ts::messages::Listener_set<MessageType>::remove_message_listener(listener_type* listener)
-{
-    message_listeners_.erase(std::remove(message_listeners_.begin(), message_listeners_.end(), listener), message_listeners_.end());
-}
-    
 
 #endif

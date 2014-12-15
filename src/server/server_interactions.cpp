@@ -35,7 +35,7 @@
 #include "resources/resource_store.hpp"
 
 class ts::server::Interaction_interface::Impl
-    : private Message_listener, private cup::Scoped_cup_listener
+    : private Scoped_message_listener, private cup::Scoped_cup_listener
 {
 public:
     Impl(Message_center* message_center, Client_map* client_map, 
@@ -94,7 +94,7 @@ ts::server::Interaction_interface::~Interaction_interface()
 ts::server::Interaction_interface::Impl::Impl(Message_center* message_center, Client_map* client_map, 
                                               cup::Cup_controller* cup_controller, const Stage_interface* stage_interface,
                                               const Command_center* command_center)
-: Message_listener(message_center),
+: Scoped_message_listener(message_center),
   Scoped_listener<cup::Cup_listener>(cup_controller->cup_listener_host()),
   client_map_(client_map),
   message_center_(message_center),

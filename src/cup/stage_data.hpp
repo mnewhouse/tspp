@@ -24,7 +24,7 @@
 
 #include "cup_metadata.hpp"
 
-#include "resources/car_handle.hpp"
+#include "resources/car_model.hpp"
 #include "resources/track_handle.hpp"
 #include "resources/player_definition.hpp"
 #include "resources/script_resource.hpp"
@@ -38,16 +38,15 @@ namespace ts
             std::uint16_t car_id;
             Player_handle controller;
             resources::Player_definition player;
-            resources::Car_handle car_def;
+            resources::Car_model car_def;
             std::uint32_t start_pos;
         };
 
         struct Stage_data
         {
             resources::Track_handle track;
-            std::vector<Car_data> cars;
-
             std::vector<resources::Script_handle> script_resources;
+            std::vector<Car_data> cars;
         };
 
     }

@@ -75,17 +75,15 @@ namespace ts
             ~Local_client();
 
             void update(std::size_t frame_duration);
+            void on_render();
 
             const Client_interface* client_interface() const;
 
-            // This returns a non-owning pointer.
             std::unique_ptr<controls::Control_interface> make_control_interface(const action::Stage* stage) const;
-            scene::Scene acquire_scene();
-
-            using Scene_completion_callback = std::function<void()>;
+            std::shared_ptr<scene::Scene> acquire_scene();
 
             // Ditto.
-            const resources::Loading_interface* async_load_scene(const action::Stage* stage, Scene_completion_callback);
+            const resources::Loading_interface* async_load_scene(const action::Stage* stage, std::function<void()> completion_callback);
 
         private:
             class Impl;

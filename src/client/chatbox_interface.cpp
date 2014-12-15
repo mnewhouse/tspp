@@ -23,7 +23,7 @@
 #include "cup/cup_messages.hpp"
 
 ts::client::Chatbox_interface::Chatbox_interface(Message_center* message_center)
-: Message_listener(message_center)
+: Scoped_message_listener(message_center)
 {
 }
 

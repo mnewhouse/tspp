@@ -40,7 +40,8 @@ namespace ts
             Script_engine();
             ~Script_engine();
 
-            virtual void trigger_event(const utf8_string& event, const script::Value& source, const std::vector<script::Value>& arguments) const override;
+            virtual void trigger_event(const utf8_string& event, const script::Value& source, 
+                                       const std::vector<script::Value>& arguments) const override;
 
             script::Engine* cup_engine();
             const script::Engine* cup_engine() const;

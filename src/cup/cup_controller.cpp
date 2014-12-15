@@ -55,8 +55,8 @@ struct ts::cup::Cup_controller::Impl
 
     const resources::Resource_store* resource_store_;
 
-    std::vector<resources::Car_handle> selected_cars_;
-    std::unordered_map<Player_handle, resources::Car_handle> car_mapping_;
+    std::vector<resources::Car_model> selected_cars_;
+    std::unordered_map<Player_handle, resources::Car_model> car_mapping_;
 
     std::vector<Stage_player> stage_players_;
 
@@ -192,17 +192,27 @@ void ts::cup::Cup_controller::set_player_car(const Player_handle& player, const 
     const auto& car_store = impl_->resource_store_->car_store();
     if (auto car_handle = car_store.get_car_by_name(car_identifier.car_name))
     {
-        impl_->car_mapping_[player] = car_handle;
-    }    
+        impl_->car_mapping_[player].model = car_handle;
+    }
+
+    for (auto resource : impl_->loaded_resources_)
+    {
+        if (auto car_handle = resource->car_store()->get_car_by_name(car_identifier.car_name))
+        {
+            auto& car = impl_->car_mapping_[player];
+            car.model = car_handle;
+            car.resource = resource;
+        }
+    }
 }
 
-ts::resources::Car_handle ts::cup::Cup_controller::player_car(const Player_handle& player) const
+ts::resources::Car_model ts::cup::Cup_controller::player_car(const Player_handle& player) const
 {
     const auto& car_mapping = impl_->car_mapping_;
     auto it = car_mapping.find(player);
     if (it == car_mapping.end())
     {
-        return resources::Car_handle();
+        return resources::Car_model();
     }
 
     return it->second;
@@ -286,7 +296,7 @@ void ts::cup::Cup_controller::Impl::start_cup()
 void ts::cup::Cup_controller::Impl::preinitialize_action()
 {
     const auto& car_settings = cup_config_.car_settings();
-    const auto& car_store = resource_store_->car_store();
+    const auto& global_car_store = resource_store_->car_store();
     const auto car_mode = car_settings.car_mode();
 
     // Store selected cars away, so that it doesn't bug out when 
@@ -294,9 +304,25 @@ void ts::cup::Cup_controller::Impl::preinitialize_action()
     selected_cars_.clear();
     for (const auto& car_identifier : car_settings.selected_cars())
     {
-        if (auto car_handle = car_store.get_car_by_name(car_identifier.car_name))
+        if (auto car_handle = global_car_store.get_car_by_name(car_identifier.car_name))
         {
-            selected_cars_.push_back(car_handle);
+            selected_cars_.emplace_back();
+            selected_cars_.back().model = car_handle;
+        }
+
+        else
+        {
+            for (const auto& resource : loaded_resources_)
+            {
+                const auto car_store = resource->car_store();
+                if (auto car_handle = car_store->get_car_by_name(car_identifier.car_name))
+                {
+                    selected_cars_.emplace_back();
+                    selected_cars_.back().model = car_handle;
+                    selected_cars_.back().resource = resource;
+                    break;
+                }
+            }
         }
     }
 
@@ -337,12 +363,12 @@ void ts::cup::Cup_controller::Impl::wait_for_initialization()
         for (auto& stage_player : stage_players_)
         {
             auto it = car_mapping_.find(stage_player.player);
-            if (it == car_mapping_.end() || !it->second)
+            if (it == car_mapping_.end() || !it->second.model)
             {
                 // Player chose no car. Just give them the first available car.
                 // If the car list is empty too, we have to hope that a script or something else
                 // sets the car for this player.
-                stage_player.car = (selected_cars_.empty() ? resources::Car_handle() : selected_cars_.front());
+                stage_player.car = (selected_cars_.empty() ? resources::Car_model() : selected_cars_.front());
             }
 
             else
@@ -358,7 +384,7 @@ void ts::cup::Cup_controller::Impl::wait_for_initialization()
         // No car selection, but we still have to give them their car.
         for (auto& stage_player : stage_players_)
         {
-            stage_player.car = (selected_cars_.empty() ? resources::Car_handle() : selected_cars_.front());
+            stage_player.car = (selected_cars_.empty() ? resources::Car_model() : selected_cars_.front());
         }
     }
 

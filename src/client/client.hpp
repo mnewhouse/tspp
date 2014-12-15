@@ -85,9 +85,6 @@ namespace ts
 
             const utf8_string& registration_error() const;
 
-            const cup::Chatbox* chatbox() const;
-            const cup::Cup* cup() const;
-
             void async_connect(utf8_string remote_address, std::uint16_t remote_port);
             void send_registration_request();
             
@@ -95,6 +92,7 @@ namespace ts
             std::pair<std::size_t, std::size_t> download_progress() const;
 
             void update(std::size_t frame_duration);
+            void on_render();
 
             Generic_scope_exit launch_action();
             void end_action();
@@ -102,7 +100,7 @@ namespace ts
             const action::Stage* stage() const;
             const resources::Loading_interface* async_load_stage(const cup::Stage_data& stage_data, std::function<void()> completion_callback);
 
-            scene::Scene acquire_scene();
+            std::shared_ptr<scene::Scene> acquire_scene();
             std::unique_ptr<controls::Control_interface> make_control_interface() const;
 
         private:

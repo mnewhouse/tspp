@@ -43,9 +43,10 @@ namespace ts
             virtual ~Client_action_state();
 
             virtual void update(std::size_t frame_duration) override;
-            virtual void on_activate() override;
+            virtual void on_render() override;
 
-            virtual scene::Scene acquire_scene() override;
+            virtual std::shared_ptr<scene::Scene> acquire_scene() override;
+            virtual Generic_scope_exit launch_action();
 
         private:
             client::Client* client_;

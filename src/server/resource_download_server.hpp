@@ -52,7 +52,7 @@ namespace ts
     namespace server
     {
         class Resource_download_server
-            : public Message_listener
+            : public Scoped_message_listener
         {
         public:
             Resource_download_server(Message_center* message_center, const resources::Resource_store* resource_store);

@@ -25,7 +25,7 @@
 #include "cup/cup_metadata.hpp"
 
 #include "resources/settings/car_settings.hpp"
-#include "resources/car_handle.hpp"
+#include "resources/car_model.hpp"
 #include "resources/script_resource.hpp"
 
 namespace ts
@@ -51,7 +51,7 @@ namespace ts
         struct Stage_player
         {
             Player_handle player;
-            resources::Car_handle car;
+            resources::Car_model car;
             std::uint32_t start_pos = 0;
         };
 
@@ -87,7 +87,7 @@ namespace ts
             std::size_t cup_progress() const;
             void skip_stage();
 
-            resources::Car_handle player_car(const Player_handle& player_handle) const;
+            resources::Car_model player_car(const Player_handle& player_handle) const;
             void set_player_car(const Player_handle& player_handle, const resources::Car_identifier& car_identifier);
 
             Player_handle add_player(const Player& player);

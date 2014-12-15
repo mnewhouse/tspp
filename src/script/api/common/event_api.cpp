@@ -103,7 +103,7 @@ SQInteger ts::script_api::addEventHandler(HSQUIRRELVM vm)
 
     else
     {
-        report_argument_errors(module, argument_stream);
+        report_argument_errors(vm, argument_stream);
     }    
 
     return 0;
@@ -123,7 +123,7 @@ SQInteger ts::script_api::event_handler::remove(HSQUIRRELVM vm)
 
     else
     {
-        report_argument_errors(module, argument_stream);
+        report_argument_errors(vm, argument_stream);
     }
 
     return 0;
@@ -144,7 +144,7 @@ SQInteger ts::script_api::removeEventHandler(HSQUIRRELVM vm)
 
     else
     {
-        report_argument_errors(module, argument_stream);
+        report_argument_errors(vm, argument_stream);
     }
 
     return 0;
@@ -174,7 +174,7 @@ SQInteger ts::script_api::triggerEvent(HSQUIRRELVM vm)
 
     else
     {
-        report_argument_errors(get_module_by_vm(vm), argument_stream);
+        report_argument_errors(vm, argument_stream);
     }
 
     return 0;

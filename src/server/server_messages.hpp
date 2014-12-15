@@ -47,6 +47,9 @@ namespace ts
         using Message_center = messages::Message_center<Client_message>;
         using Message_listener = messages::Message_listener<Client_message>;
         using Message_dispatcher = messages::Message_dispatcher<Client_message>;
+
+        using Scoped_message_listener = messages::Scoped_message_listener<Client_message>;
+        using Scoped_message_dispatcher = messages::Scoped_message_dispatcher<Client_message>;
     }
 }
 

@@ -31,7 +31,8 @@ ts::script::Module_loader::~Module_loader()
 {
 }
 
-void ts::script::Module_loader::async_load_modules(std::vector<Module_definition> definitions, Completion_callback callback)
+const ts::resources::Loading_interface* ts::script::Module_loader::async_load_modules(std::vector<Module_definition> definitions, 
+                                                                                      Completion_callback callback)
 {
     std::vector<Unique_module_handle> module_list;
 
@@ -42,39 +43,51 @@ void ts::script::Module_loader::async_load_modules(std::vector<Module_definition
         module_list.push_back(std::move(module));
     }
 
-    auto loader_func = [this](const std::vector<Unique_module_handle>& modules, const std::vector<Module_definition>& definitions)
+    auto loader_func = [this](const std::vector<Unique_module_handle>& modules, const std::vector<Module_definition>& definitions, 
+                              Loading_interface* loading_interface)
     {
+        std::size_t file_count = 0;
+        for (const auto& def : definitions)
+        {
+            file_count += def.file_list.size();
+        }
+
+        double current_progress = 0.0;
+
+        loading_interface->set_max_progress(static_cast<double>(file_count));
+        loading_interface->set_loading(true);
+
         for (std::size_t index = 0; index != modules.size() && index != definitions.size(); ++index)
         {
             for (const auto& file : definitions[index].file_list)
             {
                 modules[index]->load_file(file);
+                loading_interface->set_progress(current_progress);
+                current_progress += 1.0;
             }
         }
     };
 
     auto completion_hook = [this, callback](std::vector<Unique_module_handle> modules)
     {
-        // Finally, when the modules are loaded, execute them synchronously again.
-        for (const auto& module : modules)
-        {
-            module->execute(engine_->api_definitions());
-        }
-
         // And inform the caller, transfering the ownership to them.
-        // callback(std::move(modules));
+        callback(std::move(modules));
     };
     
     loading_states_.emplace_back();
     loading_states_.back().modules = std::move(module_list);
     loading_states_.back().definitions = std::move(definitions);
     loading_states_.back().completion_callback = std::move(callback);
+    auto& loading_state = loading_states_.back();
+
 
     try
     {
         // Load and compile the script code asynchronously, because this is a potentially slow operation.
         loading_states_.back().future = std::async(std::launch::async, loader_func,
-            std::cref(loading_states_.back().modules), std::cref(loading_states_.back().definitions));
+            std::cref(loading_state.modules), std::cref(loading_state.definitions), &loading_state.interface);
+
+        return &loading_state.interface;
     }
 
     catch (...)
@@ -95,6 +108,8 @@ void ts::script::Module_loader::poll()
         {
             it->completion_callback(std::move(it->modules));
             future.get();
+
+            it->interface.set_finished();
         }
 
         // Now test if it's still valid - if not, erase this entry
@@ -109,4 +124,10 @@ void ts::script::Module_loader::poll()
             ++it;
         }
     }
+}
+
+
+ts::utf8_string ts::script::Module_loader::Loading_interface::progress_string() const
+{
+    return "Loading scripts...";
 }

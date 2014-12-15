@@ -41,7 +41,7 @@ namespace ts
     namespace client
     {
         class Resource_downloader
-            : public Message_listener
+            : public Scoped_message_listener
         {
         public:
             Resource_downloader(Message_center* message_center, resources::Resource_store* resource_store);

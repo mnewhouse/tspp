@@ -50,6 +50,7 @@ void ts::states::Client_cup_state::on_initialize(const cup::Stage_data& stage_da
 {
     auto completion_callback = [this]()
     {
+        std::cout << "READY!\n";
         ready_for_action();
     };
 

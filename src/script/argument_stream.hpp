@@ -51,7 +51,8 @@ namespace ts
         class Argument_stream
         {
         public:
-            Argument_stream(HSQUIRRELVM vm, utf8_string_view function_name = utf8_string_view());
+            Argument_stream(HSQUIRRELVM vm, utf8_string_view function_name);
+            ~Argument_stream();
 
             template <typename ReaderType>
             bool operator()(ReaderType&& reader, arg::optional_t optional)
@@ -85,6 +86,8 @@ namespace ts
 
             SQInteger argument_count() const;
 
+            const utf8_string_view& function_name() const;
+
         private:
             void error(SQInteger arg_index, const utf8_string& type_info);
 
@@ -96,6 +99,7 @@ namespace ts
             std::vector<utf8_string> error_messages_;
         };
 
+        void report_argument_errors(HSQUIRRELVM vm, const Argument_stream& argument_stream);
         void report_argument_errors(Module* module, const Argument_stream& argument_stream);
 
         struct Ignore_argument_t
@@ -147,6 +151,18 @@ namespace ts
 
         private:
             double& result_;
+        };
+
+        struct Boolean_reader
+        {
+            Boolean_reader(bool& result)
+                : result_(result)
+            {}
+
+            bool operator()(HSQUIRRELVM vm, SQInteger index) const;
+
+        private:
+            bool& result_;
         };
 
         struct Tostring_reader

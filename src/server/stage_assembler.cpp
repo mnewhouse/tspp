@@ -30,7 +30,7 @@ struct ts::server::Stage_assembler::Impl
     Impl(Stage_assembler* self, cup::Cup_controller* cup_controller);
     ~Impl();
 
-    std::uint32_t add_car(const resources::Player_definition& player_definition, const resources::Car_handle& car_handle,
+    std::uint32_t add_car(const resources::Player_definition& player_definition, const resources::Car_model& car_model,
                           cup::Player_handle controller = cup::Player_handle(), std::int32_t start_pos = -1);
 
     void remove_car_by_id(std::uint32_t car_id);
@@ -106,14 +106,14 @@ const ts::cup::Stage_data& ts::server::Stage_assembler::Impl::initialize_stage_d
     return stage_data_;
 }
 
-std::uint32_t ts::server::Stage_assembler::Impl::add_car(const resources::Player_definition& player_definition, const resources::Car_handle& car_handle,
+std::uint32_t ts::server::Stage_assembler::Impl::add_car(const resources::Player_definition& player_definition, const resources::Car_model& car_model,
                                                          cup::Player_handle controller, std::int32_t start_pos)
 {
     auto& cars = stage_data_.cars;
     cars.emplace_back();
     auto& car_data = cars.back();
 
-    car_data.car_def = car_handle;
+    car_data.car_def = car_model;
     car_data.controller = controller;
     car_data.player = player_definition;
     car_data.start_pos = start_pos;
@@ -166,10 +166,10 @@ ts::server::Stage_assembler::~Stage_assembler()
 {
 }
 
-std::uint32_t ts::server::Stage_assembler::add_car(const resources::Player_definition& player_definition, const resources::Car_handle& car_handle,
+std::uint32_t ts::server::Stage_assembler::add_car(const resources::Player_definition& player_definition, const resources::Car_model& car_model,
                                                    cup::Player_handle controller, std::int32_t start_pos)
 {
-    return impl_->add_car(player_definition, car_handle, controller, start_pos);
+    return impl_->add_car(player_definition, car_model, controller, start_pos);
 }
 
 void ts::server::Stage_assembler::remove_car_by_id(std::uint32_t car_id)

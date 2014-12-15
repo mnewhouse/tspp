@@ -52,17 +52,15 @@ namespace ts
 
             virtual ~Server_action_state();
 
-            virtual void on_activate() override;
             virtual void update(std::size_t frame_duration) override;
+            virtual void on_render() override;
 
-            virtual scene::Scene acquire_scene() override;
+            virtual std::shared_ptr<scene::Scene> acquire_scene() override;
+            virtual Generic_scope_exit launch_action() override;
 
         private:
             server::Server* server_;
             client::Local_client* local_client_;
-
-            struct Members;
-            std::unique_ptr<Members> members_;
         };
     }
 }

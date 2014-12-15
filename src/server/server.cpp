@@ -43,7 +43,7 @@ namespace ts
     namespace server
     {
         class Server_message_dispatcher
-            : public messages::Message_dispatcher<Client_message>
+            : public Scoped_message_dispatcher
         {
         public:
             Server_message_dispatcher(impl::Server* server, Message_center* message_center);
@@ -93,7 +93,7 @@ public:
 };
 
 ts::server::Server_message_dispatcher::Server_message_dispatcher(impl::Server* server, Message_center* message_center)
-: Message_dispatcher(message_center),
+: Scoped_message_dispatcher(message_center),
   server_(server)
 {
 }
@@ -214,26 +214,27 @@ void ts::server::impl::Server::register_script_apis(const resources::Resource_st
     auto cup_engine = script_engine_.cup_engine();
     auto stage_engine = script_engine_.stage_engine();
 
-    // APIs for Cup engine
-    script_api::register_core_api(cup_engine);
-    script_api::register_event_api(cup_engine, &script_engine_);
-    script_api::register_resource_api(cup_engine, resource_store);
-    script_api::register_message_api(cup_engine, &message_center_);
-    script_api::register_command_api(cup_engine, &command_center_);
-    script_api::register_client_api(cup_engine, &client_map_);
-    script_api::register_stage_assembler_api(cup_engine);    
+    // Common APIs (Stage as well as Cup)
+    for (auto engine = cup_engine; engine != stage_engine; engine = stage_engine)
+    {
+        script_api::register_core_api(engine);
+        script_api::register_event_api(engine, &script_engine_);
+        script_api::register_client_api(engine, &client_map_);
+        script_api::register_message_api(engine, &message_center_);
+        script_api::register_command_api(engine, &command_center_);
 
-    stage_assembler_.add_modifier(script_api::Stage_modifier(&script_engine_));
+        script_api::register_stdout_console(engine);
+    }
+
+    // APIs for Cup engine
+    script_api::register_resource_api(cup_engine, resource_store);
+    script_api::register_stage_assembler_api(cup_engine);
 
     // APIs for Stage engine
-    script_api::register_core_api(stage_engine);
-    script_api::register_event_api(stage_engine, &script_engine_);
-    script_api::register_message_api(stage_engine, &message_center_);
-    script_api::register_client_api(stage_engine, &client_map_);
     script_api::register_stage_api(stage_engine, stage_interface_.base());
 
-    script_api::register_stdout_console(cup_engine);
-    script_api::register_stdout_console(stage_engine);
+    // Register script with stage assembler
+    stage_assembler_.add_modifier(script_api::Stage_modifier(&script_engine_));
 }
 
 ts::Generic_scope_exit ts::server::Server::launch_action()

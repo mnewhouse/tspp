@@ -28,21 +28,12 @@
 #include "server/server.hpp"
 #include "action/stage.hpp"
 
-// Make sure the stage is freed in an orderly fashion.
-struct ts::states::Server_action_state::Members
-{
-    // Client action depends on server action, so client needs to be destroyed first.
-    Generic_scope_exit server_action_;
-    Generic_scope_exit client_action_;    
-};
-
 ts::states::Server_action_state::Server_action_state(server::Server* server, client::Local_client* local_client,
     state_machine_type* state_machine, gui::Context* context, resources::Resource_store* resource_store)
     : Action_state_base(local_client->make_control_interface(server->stage()), local_client->client_interface(),
                         state_machine, context, resource_store),
       server_(server),
-      local_client_(local_client),
-      members_(std::make_unique<Members>())
+      local_client_(local_client)
 {
 }
 
@@ -58,14 +49,17 @@ void ts::states::Server_action_state::update(std::size_t frame_duration)
     server_->update(frame_duration);   
 }
 
-void ts::states::Server_action_state::on_activate()
+void ts::states::Server_action_state::on_render()
 {
-    Action_state_base::on_activate();
-
-    members_->server_action_ = server_->launch_action();
+    local_client_->on_render();
 }
 
-ts::scene::Scene ts::states::Server_action_state::acquire_scene()
+std::shared_ptr<ts::scene::Scene> ts::states::Server_action_state::acquire_scene()
 {
     return local_client_->acquire_scene();
+}
+
+ts::Generic_scope_exit ts::states::Server_action_state::launch_action()
+{
+    return server_->launch_action();
 }

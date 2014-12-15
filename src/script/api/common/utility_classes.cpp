@@ -159,3 +159,33 @@ bool ts::script_api::Rect_reader::operator()(HSQUIRRELVM vm, SQInteger index) co
 
     return false;
 }
+
+
+ts::script_api::Vector2_reader::Vector2_reader(Vector2<double>& result)
+    : result_(result)
+{
+}
+
+bool ts::script_api::Vector2_reader::operator()(HSQUIRRELVM vm, SQInteger index) const
+{
+    Object_handle vector2_object;
+    Instance_reader instance_reader(classes::Vector2, vector2_object);
+    if (instance_reader(vm, index))
+    {
+        Vector2<SQFloat> vector2;
+
+        sq_pushstring(vm, members::vector2::x, -1);
+        sq_get(vm, index);
+        if (SQ_FAILED(sq_getfloat(vm, -1, &vector2.x))) return false;
+
+        sq_pushstring(vm, members::vector2::y, -1);
+        sq_get(vm, index);
+        if (SQ_FAILED(sq_getfloat(vm, -1, &vector2.y))) return false;
+
+        result_.x = static_cast<double>(vector2.x);
+        result_.y = static_cast<double>(vector2.y);
+        return true;
+    }
+
+    return false;
+}

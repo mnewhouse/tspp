@@ -67,6 +67,17 @@ namespace ts
         private:
             Double_rect& result_;
         };
+
+        struct Vector2_reader
+        {
+        public:
+            Vector2_reader(Vector2<double>& result);
+
+            bool operator()(HSQUIRRELVM vm, SQInteger index) const;
+
+        private:
+            Vector2<double>& result_;
+        };
     }
 }
 

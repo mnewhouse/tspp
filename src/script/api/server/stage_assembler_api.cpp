@@ -19,15 +19,17 @@
 
 #include "stdinc.hpp"
 #include "stage_assembler_api.hpp"
-#include "stage_api.hpp"
 
-#include "resources/car_handle.hpp"
+#include "../common/stage_api.hpp"
+
+#include "script/script_delegates.hpp"
+#include "script/argument_stream.hpp"
+
+#include "resources/car_model.hpp"
 #include "resources/player_definition.hpp"
 #include "server/stage_assembler.hpp"
 #include "cup/stage_data.hpp"
 
-#include "script/script_delegates.hpp"
-#include "script/argument_stream.hpp"
 
 namespace ts
 {
@@ -103,17 +105,17 @@ ts::script::API_definition ts::script_api::stage_assembler_api()
 SQInteger ts::script_api::stage_assembler::addCar(HSQUIRRELVM vm)
 {
     Userdata<server::Stage_assembler*> stage_assembler_udata;
-    Userdata<resources::Car_handle> car_handle_udata;
+    Userdata<resources::Car_model> car_model_udata;
     Userdata<resources::Player_color> player_color_udata;
     utf8_string_view associated_name;
     
-    Argument_stream argument_stream(vm);    
+    Argument_stream argument_stream(vm, "StageAssembler::addCar");    
     argument_stream(make_reader(stage_assembler_udata));
     argument_stream(Tostring_reader(associated_name));
-    argument_stream(make_reader(car_handle_udata));
+    argument_stream(make_reader(car_model_udata));
     argument_stream(make_reader(player_color_udata));
 
-    if (argument_stream && *car_handle_udata)
+    if (argument_stream && car_model_udata->model)
     {
         resources::Player_definition player_def;
         player_def.color = *player_color_udata;
@@ -121,8 +123,7 @@ SQInteger ts::script_api::stage_assembler::addCar(HSQUIRRELVM vm)
         player_def.id = 0;
 
         auto stage_assembler = *stage_assembler_udata;
-
-        auto car_id = stage_assembler->add_car(player_def, *car_handle_udata, cup::Player_handle());
+        auto car_id = stage_assembler->add_car(player_def, *car_model_udata, cup::Player_handle());
         stage_assembler::Car_info car_info(stage_assembler, car_id);
 
 		auto car_info_udata = make_userdata(vm, car_info);
@@ -132,7 +133,7 @@ SQInteger ts::script_api::stage_assembler::addCar(HSQUIRRELVM vm)
 
     else
     {
-        report_argument_errors(get_module_by_vm(vm), argument_stream);
+        report_argument_errors(vm, argument_stream);
         return 0;
     }    
 }
@@ -142,7 +143,7 @@ SQInteger ts::script_api::stage_assembler::removeCar(HSQUIRRELVM vm)
     Userdata<server::Stage_assembler*> stage_assembler_udata;
     Userdata<stage_assembler::Car_info> car_udata;
 
-    Argument_stream argument_stream(vm);    
+    Argument_stream argument_stream(vm, "StageAssembler::removeCar");    
     argument_stream(make_reader(stage_assembler_udata));
     argument_stream(make_reader(car_udata));
     if (argument_stream)
@@ -153,7 +154,7 @@ SQInteger ts::script_api::stage_assembler::removeCar(HSQUIRRELVM vm)
 
     else
     {
-        report_argument_errors(get_module_by_vm(vm), argument_stream);
+        report_argument_errors(vm, argument_stream);
     }
 
     return 0;
@@ -163,7 +164,7 @@ SQInteger ts::script_api::stage_assembler::carList(HSQUIRRELVM vm)
 {
     Userdata<server::Stage_assembler*> stage_assembler_udata;
     
-    Argument_stream argument_stream(vm);    
+    Argument_stream argument_stream(vm, "StageAssembler::carList");    
     argument_stream(make_reader(stage_assembler_udata));
 
     if (argument_stream)
@@ -190,7 +191,7 @@ SQInteger ts::script_api::stage_assembler::carList(HSQUIRRELVM vm)
 
     else
     {
-        report_argument_errors(get_module_by_vm(vm), argument_stream);
+        report_argument_errors(vm, argument_stream);
         return 0;
     }    
 }
@@ -199,7 +200,7 @@ SQInteger ts::script_api::stage_assembler::Car_info::getId(HSQUIRRELVM vm)
 {
     Userdata<stage_assembler::Car_info> car_info_udata;
 
-    Argument_stream argument_stream(vm);
+    Argument_stream argument_stream(vm, "CarInfo::getId");
     argument_stream(make_reader(car_info_udata));
 
     if (argument_stream)
@@ -210,7 +211,7 @@ SQInteger ts::script_api::stage_assembler::Car_info::getId(HSQUIRRELVM vm)
 
     else
     {
-        report_argument_errors(get_module_by_vm(vm), argument_stream);
+        report_argument_errors(vm, argument_stream);
         return 0;
     }
 }

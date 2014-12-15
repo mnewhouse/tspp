@@ -19,42 +19,18 @@
 
 #pragma once
 
-#ifndef CHATBOX_API_HPP
-#define CHATBOX_API_HPP
-
-#include "script/script_api.hpp"
-
-#include "server/server_messages.hpp"
+#ifndef CLIENT_CORE_EVENTS_EVENTS_HPP
+#define CLIENT_CORE_EVENTS_EVENTS_HPP
 
 namespace ts
 {
-    namespace server
+    namespace client
     {
-        class Command_center;
-    }
+        class Script_engine;
 
-    namespace script_api
-    {
-        script::API_definition server_chatbox_api(const server::Message_center* message_center);
-
-        namespace classes
+        namespace script_events
         {
-            static const char ChatMessage[] = "ChatMessage";
-            static const char ChatMessageComponent[] = "ChatMessageComponent";
-        }
-
-        namespace members
-        {
-            namespace chat_message
-            {
-                static const char components[] = "components";
-            }
-
-            namespace chat_message_component
-            {
-                static const char color[] = "color";
-                static const char sub_string[] = "sub_string";
-            }
+            void on_render(const Script_engine& engine);
         }
     }
 }

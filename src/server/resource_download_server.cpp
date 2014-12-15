@@ -90,7 +90,7 @@ struct ts::server::Resource_download_server::Concrete_resources
 };
 
 ts::server::Resource_download_server::Resource_download_server(Message_center* message_center, const resources::Resource_store* resource_store)
-: Message_listener(message_center),
+: Scoped_message_listener(message_center),
   resource_store_(resource_store),
   message_center_(message_center),
   concrete_resources_(std::make_unique<Concrete_resources>())

@@ -31,11 +31,22 @@ ts::scene::Camera::Camera(Vector2u screen_size, Vector2u world_size)
     set_zoom_level(1.0);
 }
 
-void ts::scene::Camera::set_target(const world::Entity* target)
+void ts::scene::Camera::set_target(const world::Entity* target, bool follow)
 {
     camera_target_ = target;
+    follow_target_ = follow;
 
     update_position();
+}
+
+void ts::scene::Camera::follow_target(bool follow)
+{
+    follow_target_ = follow;
+}
+
+void ts::scene::Camera::constrict_to_screen(bool constrict)
+{
+    constrict_to_screen_ = true;
 }
 
 void ts::scene::Camera::set_zoom_level(double zoom_level)
@@ -94,6 +105,16 @@ const ts::world::Entity* ts::scene::Camera::target() const
     return camera_target_;
 }
 
+bool ts::scene::Camera::is_target_followed() const
+{
+    return follow_target_;
+}
+
+bool ts::scene::Camera::is_constricted_to_screen() const
+{
+    return constrict_to_screen_;
+}
+
 bool ts::scene::Camera::is_area_visible(const Double_rect& area) const
 {
     return intersects(area, visible_area_);
@@ -106,19 +127,20 @@ double ts::scene::Camera::fit_in_screen_zoom_level() const
 
 void ts::scene::Camera::update_view(Double_rect view_port, double frame_time)
 {
-    if (camera_target_)
+    if (camera_target_ && follow_target_)
     {
-        auto position = interpolate_position(last_position_, camera_target_->position(), frame_time);
-        set_position(position);
+        position_ = camera_target_->position();
     }
 
-    if (mode_ == Mode::Rotational) 
+    if (mode_ == Mode::Rotational && follow_target_) 
     {
-        set_rotation(camera_target_->rotation());        
+        rotation_ = camera_target_->rotation();
     }
+
+    auto interpolated_position = interpolate_position(last_position_, position_, frame_time);
     
     view_.setRotation(static_cast<float>(rotation().degrees()));
-    view_.setCenter(static_cast<float>(position().x), static_cast<float>(position().y));
+    view_.setCenter(static_cast<float>(interpolated_position.x), static_cast<float>(interpolated_position.y));
 
     auto inverse_zoom = 0.5 / zoom_level_;
     
@@ -132,7 +154,10 @@ void ts::scene::Camera::update_view(Double_rect view_port, double frame_time)
 
     view_.setViewport(sf::FloatRect(left, top, width, height));
 
-    if (mode_ == Mode::Fixed) { clamp_view(); }
+    if (mode_ == Mode::Fixed && constrict_to_screen_) 
+    { 
+        constrict_view(); 
+    }
 
     update_visible_area();
 }
@@ -167,7 +192,7 @@ void ts::scene::Camera::update_visible_area()
     visible_area_.height = minmax_y.second->y - visible_area_.top;
 }
 
-void ts::scene::Camera::clamp_view()
+void ts::scene::Camera::constrict_view()
 {
     const auto& inverse_transform = view_.getInverseTransform();
 
@@ -240,8 +265,5 @@ void ts::scene::Camera::clamp_view()
 
 void ts::scene::Camera::update_position()
 {
-    if (camera_target_)
-    {
-        last_position_ = camera_target_->position();
-    }
+    last_position_ = position_;
 }

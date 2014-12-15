@@ -47,9 +47,7 @@ namespace ts
     namespace script_api
     {
         using namespace script;
-
         using Command_handle = server::Command_center::Command_handle;
-
 
         namespace commands
         {
@@ -140,11 +138,7 @@ SQInteger ts::script_api::commands::addCommandHandler(HSQUIRRELVM vm)
         return 1;
     }
 
-    else
-    {
-        report_argument_errors(get_module_by_vm(vm), argument_stream);
-        return 0;
-    }
+    return 0;
 }
 
 SQInteger ts::script_api::commands::removeCommandHandler(HSQUIRRELVM vm)
@@ -167,11 +161,6 @@ SQInteger ts::script_api::commands::removeCommandHandler(HSQUIRRELVM vm)
         {
             // Report error.
         }
-    }
-
-    else
-    {
-        report_argument_errors(get_module_by_vm(vm), argument_stream);
     }
 
     return 0;

@@ -31,4 +31,6 @@ void ts::game::Game_state::render(sf::RenderTarget& render_target, double frame_
     {
         render_scene->render_if_visible(render_target, frame_time);
     }
+
+    on_render();
 }

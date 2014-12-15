@@ -44,30 +44,38 @@ namespace ts
 
             explicit Camera(Vector2u screen_size, Vector2u world_size);
 
+            void set_target(const world::Entity* target, bool follow = true);
             const world::Entity* target() const;
-            Mode mode() const;
 
+           
+
+            Mode mode() const;
             void set_mode(Mode mode);
-            void set_target(const world::Entity* target);
+            
+            void follow_target(bool follow);
+            bool is_target_followed() const;
+
+            void constrict_to_screen(bool constrict);
+            bool is_constricted_to_screen() const;
+
             void set_position(Vector2<double> position);
             void set_rotation(Rotation<double> rotation);
-
-            const sf::View& view() const;
-            void update_view(Double_rect view_port, double frame_time);
-
-            void update_position();
-
             void set_zoom_level(double zoom_level);
 
             Vector2<double> position() const;
             Rotation<double> rotation() const;
             double zoom_level() const;
 
+            const sf::View& view() const;
+            void update_view(Double_rect view_port, double frame_time);
+
+            void update_position();                    
+
             bool is_area_visible(const Double_rect& rect) const;
             double fit_in_screen_zoom_level() const;
 
         private:            
-            void clamp_view();
+            void constrict_view();
             void update_visible_area();
 
             Mode mode_;
@@ -75,6 +83,9 @@ namespace ts
             Vector2<double> screen_size_;
 
             const world::Entity* camera_target_;
+            bool follow_target_ = false;
+            bool constrict_to_screen_ = false;
+
             Vector2<double> last_position_;
             Vector2<double> world_size_;
             Vector2<double> position_;

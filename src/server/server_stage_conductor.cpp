@@ -24,7 +24,7 @@
 #include "action/stage_conductor.hpp"
 
 ts::server::Stage_conductor::Stage_conductor(Message_center* message_center, action::Stage* stage)
-: Message_listener(message_center),
+: Scoped_message_listener(message_center),
   stage_conductor_(std::make_unique<action::Stage_conductor>(stage)),
   message_center_(message_center)
 {

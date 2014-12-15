@@ -84,7 +84,7 @@ SQInteger ts::script_api::client::getName(HSQUIRRELVM vm)
 
     else
     {
-        report_argument_errors(get_module_by_vm(vm), argument_stream);
+        report_argument_errors(vm, argument_stream);
         return 0;
     }
 }
@@ -107,7 +107,7 @@ SQInteger ts::script_api::client::getIpAddress(HSQUIRRELVM vm)
 
     else
     {
-        report_argument_errors(get_module_by_vm(vm), argument_stream);
+        report_argument_errors(vm, argument_stream);
         return 0;
     }
 }

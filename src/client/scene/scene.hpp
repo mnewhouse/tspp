@@ -22,6 +22,8 @@
 #ifndef CLIENT_SCENE_HPP
 #define CLIENT_SCENE_HPP
 
+#include "client_script_conductor.hpp"
+
 namespace ts
 {
     namespace scene
@@ -42,6 +44,7 @@ namespace ts
 
             std::unique_ptr<Action_scene> action_scene;
             std::unique_ptr<Sound_controller> sound_controller;
+            Script_conductor script_conductor;
         };
     }
 }

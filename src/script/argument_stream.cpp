@@ -31,6 +31,14 @@ ts::script::Argument_stream::Argument_stream(HSQUIRRELVM vm, utf8_string_view fu
 {
 }
 
+ts::script::Argument_stream::~Argument_stream()
+{
+    if (!*this)
+    {
+        report_argument_errors(vm_, *this);
+    }
+}
+
 void ts::script::Argument_stream::error(SQInteger arg_index, const utf8_string& type_info)
 {
     utf8_string error_string = "Bad argument [";
@@ -60,6 +68,11 @@ const std::vector<ts::utf8_string>& ts::script::Argument_stream::error_messages(
     return error_messages_;
 }
 
+const ts::utf8_string_view& ts::script::Argument_stream::function_name() const
+{
+    return function_name_;
+}
+
 namespace ts
 {
     namespace script
@@ -80,6 +93,11 @@ void ts::script::report_argument_errors(Module* module, const Argument_stream& a
     }
 }
 
+void ts::script::report_argument_errors(HSQUIRRELVM vm, const Argument_stream& argument_stream)
+{
+    report_argument_errors(get_module_by_vm(vm), argument_stream);
+}
+
 bool ts::script::Numeric_reader::operator()(HSQUIRRELVM vm, SQInteger index) const
 {
     SQFloat value;
@@ -97,6 +115,15 @@ bool ts::script::Numeric_reader::operator()(HSQUIRRELVM vm, SQInteger index) con
     }
 
     return false;
+}
+
+bool ts::script::Boolean_reader::operator()(HSQUIRRELVM vm, SQInteger index) const
+{
+    SQBool result = true;
+    sq_tobool(vm, index, &result);
+
+    result_ = result != 0;
+    return true;
 }
 
 

@@ -24,6 +24,7 @@
 
 #include "scene_loader.hpp"
 #include "audio_loader.hpp"
+#include "client_script_loader.hpp"
 
 namespace ts
 {
@@ -49,7 +50,7 @@ namespace ts
             : public resources::Loading_interface
         {
         public:
-            Loading_sequence(const resources::Resource_store* resource_store);
+            Loading_sequence(const resources::Resource_store* resource_store, script::Engine* engine);
             ~Loading_sequence() = default;
 
             void async_load(const cup::Stage_data& stage_data, action::Stage_interface* stage_interface);
@@ -75,6 +76,7 @@ namespace ts
 
             Scene_loader scene_loader_;
             Audio_loader audio_loader_;
+            Script_loader script_loader_;
 
             Scene loaded_scene_;
 

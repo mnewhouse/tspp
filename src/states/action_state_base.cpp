@@ -48,7 +48,9 @@ struct ts::states::Action_state_base::Members
     game::Event_dispatcher event_dispatcher_;
     controls::Event_processor control_event_processor_;
     hud::Chatbox chatbox_;
-    scene::Scene scene_;
+
+    Generic_scope_exit action_sentry_;
+    std::shared_ptr<scene::Scene> scene_;    
 };
 
 ts::states::Action_state_base::Action_state_base(std::unique_ptr<controls::Control_interface> control_interface, const client::Client_interface* client_interface,
@@ -97,13 +99,16 @@ void ts::states::Action_state_base::on_activate()
     members_->chatbox_.show();
 
     members_->scene_ = acquire_scene();
-    members_->scene_.start();
+    members_->scene_->start();
 
-    add_render_scene(members_->scene_.action_scene.get());
+    members_->action_sentry_ = launch_action();
+
+    add_render_scene(members_->scene_->action_scene.get());
 }
 
 void ts::states::Action_state_base::update(std::size_t frame_duration)
 {
-    members_->scene_.update(frame_duration);
+    members_->scene_->update(frame_duration);
+
     members_->chatbox_.update(frame_duration);    
 }

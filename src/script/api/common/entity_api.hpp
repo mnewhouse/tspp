@@ -24,9 +24,23 @@
 
 namespace ts
 {
+    namespace world
+    {
+        class Entity;
+    }
+
+    namespace script
+    {
+        template <typename T>
+        class Userdata;
+    }
+
     namespace script_api
     {
         script::API_definition entity_api();
+
+        using Entity_userdata = script::Userdata<const world::Entity*>;
+        Entity_userdata make_entity_userdata(HSQUIRRELVM vm, const world::Entity* entity);
     }
 }
 

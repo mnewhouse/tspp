@@ -109,7 +109,7 @@ namespace ts
 }
 
 class ts::states::impl::Cup_GUI
-    : private client::Message_listener
+    : private client::Scoped_message_listener
 {
 public:
     Cup_GUI(const client::Client_interface* client_interface, gui::Context* context, const resources::Resource_store* resource_store);
@@ -168,7 +168,7 @@ private:
 
 
 ts::states::impl::Cup_GUI::Cup_GUI(const client::Client_interface* client_interface, gui::Context* context, const resources::Resource_store* resource_store)
-: Message_listener(client_interface->message_center()), 
+: client::Scoped_message_listener(client_interface->message_center()), 
   client_interface_(client_interface),
   cup_(client_interface->cup()),
   context_(context)

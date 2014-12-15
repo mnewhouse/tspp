@@ -20,18 +20,11 @@
 #include "stdinc.hpp"
 #include "local_client.hpp"
 #include "local_players.hpp"
+#include "common_client_logic.hpp"
 
-#include "client_interface.hpp"
-#include "client_messages.hpp"
 #include "client_control_interface.hpp"
-#include "chatbox_interface.hpp"
-
-#include "scene/scene.hpp"
-#include "scene/loading_sequence.hpp"
 
 #include "server/server.hpp"
-
-#include "cup/chatbox.hpp"
 
 #include "resources/resource_store.hpp"
 
@@ -40,7 +33,7 @@ namespace ts
     namespace client
     {
         class Local_message_dispatcher
-            : public Message_dispatcher
+            : public Scoped_message_dispatcher
         {
         public:
             Local_message_dispatcher(Message_center* message_center, const server::Message_center* server_message_center);
@@ -55,33 +48,23 @@ namespace ts
 }
 
 class ts::client::Local_client::Impl
+    : public Common_logic
 {
 public:
     Impl(const server::Server* server, resources::Resource_store* resource_store);
 
-    Message_center message_center_;
     Local_message_dispatcher message_dispatcher_;
-
-    Chatbox_interface chatbox_interface_;
-    Client_interface client_interface_;
-
-    std::unique_ptr<Control_interface> control_interface_;
-
-    scene::Loading_sequence loading_sequence_;
 };
 
 ts::client::Local_client::Impl::Impl(const server::Server* server, resources::Resource_store* resource_store)
-: message_center_(),
-  message_dispatcher_(&message_center_, server->message_center()),
-  chatbox_interface_(&message_center_),
-  client_interface_(&message_center_, server->cup(), chatbox_interface_.chatbox(), resource_store),  
-  loading_sequence_(resource_store)
+    : Common_logic(server->cup(), resource_store),
+      message_dispatcher_(&message_center_, server->message_center())
 {
 }
 
 
 ts::client::Local_message_dispatcher::Local_message_dispatcher(Message_center* message_center, const server::Message_center* server_message_center)
-: Message_dispatcher(message_center),
+: Scoped_message_dispatcher(message_center),
   server_message_center_(server_message_center)
 {
 }
@@ -132,11 +115,17 @@ std::unique_ptr<ts::controls::Control_interface> ts::client::Local_client::make_
 
 void ts::client::Local_client::update(std::size_t frame_duration)
 {
-    impl_->loading_sequence_.poll();
+    impl_->update(frame_duration);
 }
 
+void ts::client::Local_client::on_render()
+{
+    impl_->on_render();
+}
+
+
 const ts::resources::Loading_interface* ts::client::Local_client::async_load_scene(const action::Stage* stage,
-                                                                                   Scene_completion_callback callback)
+                                                                                   std::function<void()> callback)
 {
     auto completion_handler = [this, callback]()
     {
@@ -152,7 +141,7 @@ const ts::resources::Loading_interface* ts::client::Local_client::async_load_sce
 }
 
 
-ts::scene::Scene ts::client::Local_client::acquire_scene()
+std::shared_ptr<ts::scene::Scene> ts::client::Local_client::acquire_scene()
 {
-    return impl_->loading_sequence_.transfer_result();
+    return impl_->acquire_scene();
 }

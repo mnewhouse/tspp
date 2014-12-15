@@ -80,7 +80,7 @@ namespace ts
                 if (callback_guard_ == 0)
                 {
                     apply_mutations();
-                }                
+                }
             }
 
         protected:

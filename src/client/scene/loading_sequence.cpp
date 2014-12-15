@@ -26,8 +26,9 @@
 #include "action/stage.hpp"
 #include "action/stage_interface.hpp"
 
-ts::scene::Loading_sequence::Loading_sequence(const resources::Resource_store* resource_store)
-: resource_store_(resource_store)
+ts::scene::Loading_sequence::Loading_sequence(const resources::Resource_store* resource_store, script::Engine* engine)
+: resource_store_(resource_store),
+  script_loader_(engine)
 {
 }
 
@@ -39,8 +40,15 @@ void ts::scene::Loading_sequence::poll()
         set_max_progress(stage_loader_->max_progress());
     }
 
+    else if (script_loader_.loading_interface())
+    {
+        set_progress(script_loader_.loading_interface()->progress());
+        set_max_progress(script_loader_.loading_interface()->max_progress());
+    }
+
     scene_loader_.poll();
     audio_loader_.poll();
+    script_loader_.poll();
 }
 
 void ts::scene::Loading_sequence::async_load(const cup::Stage_data& stage_data, action::Stage_interface* stage_interface)
@@ -90,28 +98,17 @@ void ts::scene::Loading_sequence::load_scripts_if_ready()
 {
     if (scene_loader_.finished() && audio_loader_.finished())
     {
-        set_finished(true);
-
         try
         {
             loaded_scene_.action_scene = scene_loader_.transfer_result();
             loaded_scene_.sound_controller = audio_loader_.transfer_result();
 
-            handle_completion();
-
-            /*
-            script_loader_.set_completion_handler([this]()
+            auto callback = [this]()
             {
                 handle_completion();
-            });
+            };
 
-            script_loader_.set_state_change_handler([this](Script_loader_state new_state)
-            {
-                state_change(to_string(new_state));
-            });
-
-            script_loader_.async_load(stage_->stage_data().script_resources, stage_, loaded_scene_.action_scene.get());
-            */
+            script_loader_.async_load_scripts(stage_->stage_data().script_resources, callback);
         }
 
         catch (...)
@@ -125,8 +122,11 @@ void ts::scene::Loading_sequence::handle_completion()
 {
     if (completion_handler_)
     {
+        set_finished(true);
+
         try
         {
+            loaded_scene_.script_conductor = script_loader_.transfer_result();
         }
 
         catch (...)
@@ -164,6 +164,11 @@ ts::utf8_string ts::scene::Loading_sequence::progress_string() const
     if (stage_loader_)
     {
         return stage_loader_->progress_string();
+    }
+
+    if (script_loader_.loading_interface())
+    {
+        return script_loader_.loading_interface()->progress_string();
     }
 
     return to_string(scene_loader_.state());

@@ -62,7 +62,8 @@ namespace ts
             virtual void on_state_change(cup::Cup_state old_state, cup::Cup_state new_state) override;
 
         private:
-            virtual scene::Scene acquire_scene() = 0;
+            virtual std::shared_ptr<scene::Scene> acquire_scene() = 0;
+            virtual Generic_scope_exit launch_action() = 0;
 
             struct Members;
             std::unique_ptr<Members> members_;

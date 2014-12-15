@@ -17,48 +17,52 @@
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "stdinc.hpp"
-#include "entity_api.hpp"
+#pragma once
 
-#include "script/script_delegates.hpp"
+#ifndef CLIENT_SCRIPT_LOADER_HPP
+#define CLIENT_SCRIPT_LOADER_HPP
 
-#include "world/entity.hpp"
-#include "world/car.hpp"
+
+#include "client_script_conductor.hpp"
+
+#include "resources/generic_loader.hpp"
+#include "resources/script_resource.hpp"
 
 namespace ts
 {
     namespace script
     {
-        template <>
-        struct Userdata_traits<world::Car*>
-        {
-
-        };
+        class Engine;
+        class Module_loader;
     }
 
-    namespace script_api
+    namespace scene
     {
-        using namespace script;
+        enum class Script_loader_state
+        {   
+            None,
+            Loading
+        };
 
-        namespace entity
+        class Script_loader
         {
-            SQInteger getPosition(HSQUIRRELVM vm);
-            SQInteger getVelocity(HSQUIRRELVM vm);
-            SQInteger getRotation(HSQUIRRELVM vm);
-            SQInteger getZPosition(HSQUIRRELVM vm);
-        }        
+        public:
+            Script_loader(script::Engine* engine);
+            ~Script_loader();
 
-        template <>
-        struct Delegate_traits<const world::Entity*>
-        {
+            const resources::Loading_interface* loading_interface() const;
 
+            void poll();            
+
+            void async_load_scripts(std::vector<resources::Script_handle> scripts, std::function<void()> callback);
+
+            Script_conductor transfer_result();
+
+        private:
+            struct Impl;
+            std::unique_ptr<Impl> impl_;
         };
     }
 }
 
-ts::script::API_definition ts::script_api::entity_api()
-{
-    API_definition result;
-
-    return result;    
-}
+#endif

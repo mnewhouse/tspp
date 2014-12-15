@@ -69,7 +69,10 @@ std::unique_ptr<ts::scene::Action_scene> ts::scene::Scene_loader::load_scene(con
 
     for (const auto& car_data : car_list)
     {
-        needed_engine_sounds.insert(car_data.car_def->engine_sample);
+        if (auto model = car_data.car_def.model)
+        {
+            needed_engine_sounds.insert(model->engine_sample);
+        }        
     }
 
     Track_builder track_builder(track);
@@ -99,14 +102,16 @@ std::unique_ptr<ts::scene::Action_scene> ts::scene::Scene_loader::load_scene(con
     std::size_t controlled_car_count = 0;
     for (const auto& car_data : car_list)
     {
-        const auto car_def = car_data.car_def;
-        auto image = car_image_generator(*car_def, car_data.player.color);
+        const auto car_model = car_data.car_def.model;
+        if (!car_model) continue;
+
+        auto image = car_image_generator(*car_model, car_data.player.color);
 
         Drawable_entity_definition entity_def(std::make_shared<graphics::Texture>(image));
-        entity_def.image_type = car_def->image_type;
-        entity_def.texture_rect = car_def->image_rect;
-        entity_def.scale.x = car_def->image_scale;
-        entity_def.scale.y = car_def->image_scale;
+        entity_def.image_type = car_model->image_type;
+        entity_def.texture_rect = car_model->image_rect;
+        entity_def.scale.x = car_model->image_scale;
+        entity_def.scale.y = car_model->image_scale;
 
         action_scene->add_car(car_data.car, entity_def);
         if (stage->is_car_controlled(car_data.car))

@@ -29,7 +29,7 @@ namespace ts
     namespace resources
     {
         struct Player_definition;
-        class Car_handle;
+        struct Car_model;
     }
 
     namespace cup
@@ -48,7 +48,7 @@ namespace ts
 
             const cup::Stage_data& initialize_stage_data(const cup::Cup_controller* cup_controller);
 
-            std::uint32_t add_car(const resources::Player_definition& player_definition, const resources::Car_handle& car_handle,
+            std::uint32_t add_car(const resources::Player_definition& player_definition, const resources::Car_model& car_model,
                                   cup::Player_handle controller = cup::Player_handle(), std::int32_t start_pos = -1);
 
             void remove_car_by_id(std::uint32_t car_id);

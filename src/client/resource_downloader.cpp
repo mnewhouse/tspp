@@ -31,7 +31,7 @@
 
 
 ts::client::Resource_downloader::Resource_downloader(Message_center* message_center, resources::Resource_store* resource_store)
-: Message_listener(message_center),
+: Scoped_message_listener(message_center),
   message_center_(message_center), 
   resource_store_(resource_store)
 {

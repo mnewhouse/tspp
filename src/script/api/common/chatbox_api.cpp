@@ -21,6 +21,9 @@
 #include "chatbox_api.hpp"
 #include "color_api.hpp"
 
+#include "server/generic_client.hpp"
+#include "server/server_messages.hpp"
+
 #include "script/argument_stream.hpp"
 #include "script/script_utility.hpp"
 #include "script/script_module.hpp"
@@ -75,14 +78,14 @@ namespace ts
         private:
             cup::Chat_message_component& result_;
         };
+
+        API_definition common_chatbox_api();
     }
 }
 
-ts::script::API_definition ts::script_api::server_chatbox_api(const server::Message_center* message_center)
+ts::script::API_definition ts::script_api::common_chatbox_api()
 {
     API_definition result;
-    result.interfaces.push_back(make_interface(message_center));
-    result.static_functions.assign(std::begin(chatbox_server::static_functions), std::end(chatbox_server::static_functions));
 
     Class_definition chat_message_definition;
     chat_message_definition.class_name = classes::ChatMessage;
@@ -95,6 +98,16 @@ ts::script::API_definition ts::script_api::server_chatbox_api(const server::Mess
     chat_message_component_definition.add_member(members::chat_message_component::sub_string);
     chat_message_component_definition.add_member(members::chat_message_component::color);
     result.classes.push_back(chat_message_component_definition);
+
+    return result;
+}
+
+ts::script::API_definition ts::script_api::chatbox_api(const server::Message_center* message_center)
+{
+    API_definition result = common_chatbox_api();
+    result.interfaces.push_back(make_interface(message_center));
+    result.static_functions.insert(result.static_functions.end(), std::begin(chatbox_server::static_functions), 
+                                                                  std::end(chatbox_server::static_functions));
 
     return result;
 }
@@ -127,7 +140,7 @@ SQInteger ts::script_api::chatbox_server::outputChatMessage(HSQUIRRELVM vm)
 
     else
     {
-        report_argument_errors(get_module_by_vm(vm), argument_stream);
+        report_argument_errors(vm, argument_stream);
     }
 
     return 0;
@@ -197,7 +210,7 @@ SQInteger ts::script_api::chat_message::constructor(HSQUIRRELVM vm)
     
     else
     {
-        report_argument_errors(get_module_by_vm(vm), argument_stream);
+        report_argument_errors(vm, argument_stream);
     }
 
     return 0;
@@ -248,7 +261,7 @@ SQInteger ts::script_api::chat_message::append(HSQUIRRELVM vm)
 
     else
     {
-        report_argument_errors(get_module_by_vm(vm), argument_stream);
+        report_argument_errors(vm, argument_stream);
     }
 
     object.push();

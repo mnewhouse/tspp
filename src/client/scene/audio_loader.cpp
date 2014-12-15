@@ -41,7 +41,10 @@ std::unique_ptr<ts::scene::Sound_controller> ts::scene::Audio_loader::load_audio
     std::set<utf8_string> needed_engine_sounds;
     for (const auto& car_info : stage->car_data())
     {
-        needed_engine_sounds.insert(car_info.car_def->engine_sample);
+        if (auto model = car_info.car_def.model)
+        {
+            needed_engine_sounds.insert(model->engine_sample);
+        }        
     }
 
     for (const auto& engine_sample : needed_engine_sounds)

@@ -28,12 +28,13 @@
 #include "resources/resource_store.hpp"
 #include "resources/track_store.hpp"
 #include "resources/car_store.hpp"
+#include "resources/script_manager.hpp"
 
 #include "resources/settings/track_settings.hpp"
 #include "resources/settings/car_settings.hpp"
 
 class ts::client::Interaction_interface::Impl
-    : public Message_listener
+    : public Scoped_message_listener
 {
 public:
     Impl(Message_center* message_center, cup::Cup* cup, resources::Resource_store* resource_store);
@@ -77,7 +78,7 @@ private:
 };
 
 ts::client::Interaction_interface::Impl::Impl(Message_center* message_center, cup::Cup* cup, resources::Resource_store* resource_store)
-: Message_listener(message_center),
+: Scoped_message_listener(message_center),
   message_center_(message_center),
   cup_(cup),
   resource_store_(resource_store),
@@ -244,16 +245,36 @@ void ts::client::Interaction_interface::Impl::initialize_action(const cup::Actio
 {
     const auto& track_store = resource_store_->track_store();
     const auto& car_store = resource_store_->car_store();
+    const auto& script_manager = resource_store_->script_manager();
 
     cup::Stage_data stage_data;
-    stage_data.track = track_store.get_track_by_name(action_info.track_name);
+    stage_data.track = track_store.get_track_by_name(action_info.track_identifier.track_name);
     
+    for (const auto& resource : action_info.resource_list)
+    {
+        stage_data.script_resources.push_back(script_manager.get_script_by_name(resource.resource_name));
+    }
+
     for (const auto& car_info : action_info.car_list)
     {
-        auto car_def = car_store.get_car_by_name(car_info.car_name);
+        resources::Car_model car_model;
+        if (car_info.resource_index < action_info.resource_list.size())
+        {
+            const auto& source_resource = action_info.resource_list[car_info.resource_index];
+            if (auto script = script_manager.get_script_by_name(source_resource.resource_name))
+            {
+                car_model.model = script->car_store()->get_car_by_name(car_info.car_identifier.car_name);
+                car_model.resource = script;
+            }
+        }
+
+        else
+        {
+            car_model.model = car_store.get_car_by_name(car_info.car_identifier.car_name);
+        }
            
         cup::Car_data car_data;
-        car_data.car_def = car_def;
+        car_data.car_def = car_model;
         car_data.car_id = car_info.car_id;
         car_data.start_pos = car_info.start_pos;
         car_data.player.color = car_info.color;

@@ -58,6 +58,8 @@ set(SRC src/main.cpp
 		src/client/client_stage_conductor.cpp
 		src/client/client_stage_interface.hpp
 		src/client/client_stage_interface.cpp
+		src/client/common_client_logic.hpp
+		src/client/common_client_logic.cpp
 		src/client/local_client.hpp
 		src/client/local_client.cpp
 		src/client/local_players.hpp
@@ -66,13 +68,21 @@ set(SRC src/main.cpp
 		src/client/resource_downloader.hpp
 		src/client/resource_downloader.cpp
 
-		
+		src/client/hud/chatbox_display.hpp
+		src/client/hud/chatbox_display.cpp
+		src/client/hud/hud_chatbox.hpp
+		src/client/hud/hud_chatbox.cpp
+				
         src/client/scene/action_scene.hpp
         src/client/scene/action_scene.cpp
 		src/client/scene/audio_loader.hpp
 		src/client/scene/audio_loader.cpp
         src/client/scene/camera.hpp
         src/client/scene/camera.cpp
+		src/client/scene/client_script_loader.hpp
+		src/client/scene/client_script_loader.cpp
+		src/client/scene/client_script_conductor.hpp
+		src/client/scene/client_script_conductor.cpp
 		src/client/scene/collision_sounds.hpp
 		src/client/scene/collision_sounds.cpp
         src/client/scene/drawable_entity.hpp
@@ -86,6 +96,8 @@ set(SRC src/main.cpp
         src/client/scene/particle_generator.cpp
 		src/client/scene/scene.hpp
 		src/client/scene/scene.cpp
+		src/client/scene/scene_interface.hpp
+		src/client/scene/scene_interface.cpp
 		src/client/scene/scene_loader.hpp
         src/client/scene/scene_loader.cpp
 		src/client/scene/skid_sounds.hpp
@@ -97,10 +109,12 @@ set(SRC src/main.cpp
 		src/client/scene/view_context.hpp
 		src/client/scene/view_context.cpp
 
-		src/client/hud/chatbox_display.hpp
-		src/client/hud/chatbox_display.cpp
-		src/client/hud/hud_chatbox.hpp
-		src/client/hud/hud_chatbox.cpp
+		src/client/script/client_core_events.hpp
+		src/client/script/client_core_events.cpp
+		src/client/script/client_script_api.hpp
+		src/client/script/client_script_api.cpp
+		src/client/script/client_script_engine.hpp
+		src/client/script/client_script_engine.cpp
         
         src/controls/control.hpp
         src/controls/control.cpp
@@ -209,6 +223,7 @@ set(SRC src/main.cpp
 		src/resources/car_identifier.hpp
 		src/resources/car_image_generator.hpp
 		src/resources/car_image_generator.cpp
+		src/resources/car_model.hpp
         src/resources/car_store.hpp
         src/resources/car_store.cpp
         src/resources/control_point.hpp
@@ -235,6 +250,7 @@ set(SRC src/main.cpp
 		src/resources/player_definition.hpp
         src/resources/player_store.hpp
         src/resources/player_store.cpp
+		src/resources/resource_identifier.hpp
         src/resources/resource_store.hpp
 		src/resources/resource_store.cpp
         src/resources/script_manager.hpp
@@ -331,7 +347,42 @@ set(SRC src/main.cpp
         src/script/squirrel_include.hpp
         src/script/userdata_forwarder.hpp
         src/script/userdata_impl.hpp
-        src/script/userdata_traits.hpp
+        src/script/userdata_traits.hpp		
+		src/script/api/client/view_api.hpp
+		src/script/api/client/view_api.cpp
+
+	    src/script/api/common/chatbox_api.hpp
+		src/script/api/common/chatbox_api.cpp
+		src/script/api/common/clock_api.hpp
+		src/script/api/common/clock_api.cpp
+		src/script/api/common/color_api.hpp
+		src/script/api/common/color_api.cpp
+        src/script/api/common/entity_api.hpp
+        src/script/api/common/entity_api.cpp
+		src/script/api/common/message_api.hpp
+		src/script/api/common/message_api.cpp
+        src/script/api/common/event_api.hpp
+        src/script/api/common/event_api.cpp
+		src/script/api/common/player_color_api.hpp
+		src/script/api/common/player_color_api.cpp
+		src/script/api/common/stage_api.hpp
+        src/script/api/common/stage_api.cpp
+		src/script/api/common/utility_classes.hpp
+		src/script/api/common/utility_classes.cpp
+
+	    src/script/api/server/car_store_api.hpp
+		src/script/api/server/car_store_api.cpp
+	    src/script/api/server/client_api.hpp
+		src/script/api/server/client_api.cpp
+		src/script/api/server/command_api.hpp
+		src/script/api/server/command_api.cpp
+		src/script/api/server/stage_assembler_api.hpp
+		src/script/api/server/stage_assembler_api.cpp
+
+		src/script/api/common_api_registration.hpp
+		src/script/api/common_api_registration.cpp
+		src/script/api/common_api_errors.hpp
+		src/script/api/common_api_errors.cpp
         
         src/server/client_map.hpp
 		src/server/client_map.cpp
@@ -370,32 +421,7 @@ set(SRC src/main.cpp
         src/server/script/server_script_engine.cpp
         src/server/script/server_script_events.hpp
         src/server/script/stage_module_manager.hpp
-        src/server/script/stage_module_manager.cpp
-       
-	    src/script/api_definitions/car_store_api.hpp
-		src/script/api_definitions/car_store_api.cpp
-	    src/script/api_definitions/chatbox_api.hpp
-		src/script/api_definitions/chatbox_api.cpp
-		src/script/api_definitions/client_api.hpp
-		src/script/api_definitions/client_api.cpp
-		src/script/api_definitions/color_api.hpp
-		src/script/api_definitions/color_api.cpp
-	    src/script/api_definitions/command_api.hpp
-		src/script/api_definitions/command_api.cpp
-        src/script/api_definitions/entity_api.hpp
-        src/script/api_definitions/entity_api.cpp
-        src/script/api_definitions/event_api.hpp
-        src/script/api_definitions/event_api.cpp
-		src/script/api_definitions/player_color_api.hpp
-		src/script/api_definitions/player_color_api.cpp
-		src/script/api_definitions/stage_api.hpp
-        src/script/api_definitions/stage_api.cpp
-		src/script/api_definitions/stage_assembler_api.hpp
-		src/script/api_definitions/stage_assembler_api.cpp
-		src/script/api_definitions/utility_classes.hpp
-		src/script/api_definitions/utility_classes.cpp
-		src/script/api_definitions/view_api.hpp
-		src/script/api_definitions/view_api.cpp
+        src/server/script/stage_module_manager.cpp		
 
         src/states/action_state_base.hpp
         src/states/action_state_base.cpp
@@ -493,6 +519,7 @@ SOURCE_GROUP(audio REGULAR_EXPRESSION src/audio/[^/]+)
 SOURCE_GROUP(client REGULAR_EXPRESSION src/client/[^/]+)
 SOURCE_GROUP(client\\scene REGULAR_EXPRESSION src/client/scene/[^/]+)
 SOURCE_GROUP(client\\hud REGULAR_EXPRESSION src/client/hud/[^/]+)
+SOURCE_GROUP(client\\script REGULAR_EXPRESSION src/client/script/[^/]+)
 SOURCE_GROUP(controls REGULAR_EXPRESSION src/controls/[^/]+)
 SOURCE_GROUP(core REGULAR_EXPRESSION src/core/[^/]+)
 SOURCE_GROUP(cup REGULAR_EXPRESSION src/cup/[^/]+)
@@ -508,8 +535,10 @@ SOURCE_GROUP(server\\script REGULAR_EXPRESSION src/server/script/[^/]+)
 SOURCE_GROUP(states REGULAR_EXPRESSION src/states/[^/]+)
 SOURCE_GROUP(states\\gui_definitions REGULAR_EXPRESSION src/states/gui_definitions/[^/]+)
 SOURCE_GROUP(script REGULAR_EXPRESSION src/script/[^/]+)
-SOURCE_GROUP(script\\api_definitions REGULAR_EXPRESSION src/script/api_definitions/[^/]+)
-SOURCE_GROUP(script\\interfaces REGULAR_EXPRESSION src/script/interfaces/[^/]+)
+SOURCE_GROUP(script\\api REGULAR_EXPRESSION src/script/api/[^/]+)
+SOURCE_GROUP(script\\api\\client REGULAR_EXPRESSION src/script/api/client/[^/]+)
+SOURCE_GROUP(script\\api\\common REGULAR_EXPRESSION src/script/api/common/[^/]+)
+SOURCE_GROUP(script\\api\\server REGULAR_EXPRESSION src/script/api/server/[^/]+)
 SOURCE_GROUP(user_interface REGULAR_EXPRESSION src/user_interface/[^/]+)
 SOURCE_GROUP(user_interface\\elements REGULAR_EXPRESSION src/user_interface/elements/[^/]+)
 SOURCE_GROUP(world REGULAR_EXPRESSION src/world/[^/]+)

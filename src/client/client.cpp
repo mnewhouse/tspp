@@ -19,15 +19,11 @@
 
 #include "stdinc.hpp"
 #include "client.hpp"
-#include "client_messages.hpp"
-#include "client_interface.hpp"
-#include "client_interactions.hpp"
+#include "common_client_logic.hpp"
+
 #include "client_stage_interface.hpp"
 #include "client_control_interface.hpp"
-#include "chatbox_interface.hpp"
-
-#include "scene/scene.hpp"
-#include "scene/loading_sequence.hpp"
+#include "client_interactions.hpp"
 
 #include "cup/cup.hpp"
 #include "network/client_connection.hpp"
@@ -39,7 +35,7 @@ namespace ts
     namespace client
     {
         class Client_message_dispatcher
-            : public Message_dispatcher
+            : public Scoped_message_dispatcher
         {
         public:
             Client_message_dispatcher(network::Client_connection* client_connection, Message_center* message_center);
@@ -49,11 +45,21 @@ namespace ts
         private:
             network::Client_connection* client_connection_;
         };
+
+        struct Cup_container
+        {
+            Cup_container()
+                : cup_(cup::Locality::Remote)
+            {
+            }
+
+            cup::Cup cup_;
+        };
     }
 }
 
 ts::client::Client_message_dispatcher::Client_message_dispatcher(network::Client_connection* client_connection, Message_center* message_center)
-: Message_dispatcher(message_center),
+: Scoped_message_dispatcher(message_center),
   client_connection_(client_connection)
 {
 }
@@ -72,40 +78,29 @@ void ts::client::Client_message_dispatcher::dispatch_message(const Server_messag
 }
 
 class ts::client::impl::Client
+    : public Cup_container, public Common_logic
 {
 public:
     Client(resources::Resource_store* resource_store);
 
     void poll();
 
-    network::Client_connection client_connection_;
-    cup::Cup cup_;
-    Message_center message_center_;
-    Client_message_dispatcher message_dispatcher_;
-
-    Interaction_interface interaction_interface_;
-    Chatbox_interface chatbox_interface_;
+    network::Client_connection client_connection_;   
+    
     Stage_interface stage_interface_;
+    Interaction_interface interaction_interface_;
 
-    Client_interface client_interface_;
-
-    scene::Loading_sequence loading_sequence_;
-
+    Client_message_dispatcher message_dispatcher_;
     Server_message message_buffer_;
-
-    resources::Resource_store* resource_store_;
 };
 
 ts::client::impl::Client::Client(resources::Resource_store* resource_store)
-: client_connection_(),
-  cup_(cup::Locality::Remote),
-  message_center_(),
-  message_dispatcher_(&client_connection_, &message_center_),
-  interaction_interface_(&message_center_, &cup_, resource_store),
-  chatbox_interface_(&message_center_),
+: Cup_container(),
+  Common_logic(&cup_, resource_store),
+  client_connection_(),
   stage_interface_(&message_center_, &resource_store->network_settings()),
-  client_interface_(&message_center_, &cup_, chatbox_interface_.chatbox(), resource_store),
-  loading_sequence_(resource_store)
+  interaction_interface_(&message_center_, &cup_, resource_store),
+  message_dispatcher_(&client_connection_, &message_center_)
 {
 }
 
@@ -124,7 +119,6 @@ void ts::client::impl::Client::poll()
     }
 
     interaction_interface_.poll();
-    loading_sequence_.poll();
 
     try
     {
@@ -161,8 +155,14 @@ void ts::client::Client::end_action()
 void ts::client::Client::update(std::size_t frame_duration)
 {
     impl_->poll();
+    impl_->update(frame_duration);
 
     impl_->stage_interface_.update(frame_duration);
+}
+
+void ts::client::Client::on_render()
+{
+    impl_->on_render();
 }
 
 std::unique_ptr<ts::controls::Control_interface> ts::client::Client::make_control_interface() const
@@ -193,16 +193,6 @@ const ts::utf8_string& ts::client::Client::registration_error() const
     return impl_->interaction_interface_.registration_error();
 }
 
-const ts::cup::Chatbox* ts::client::Client::chatbox() const
-{
-    return impl_->chatbox_interface_.chatbox();
-}
-
-const ts::cup::Cup* ts::client::Client::cup() const
-{
-    return &impl_->cup_;
-}
-
 void ts::client::Client::async_connect(utf8_string remote_address, std::uint16_t remote_port)
 {
     impl_->client_connection_.async_connect(std::move(remote_address), remote_port);
@@ -226,10 +216,12 @@ std::pair<std::size_t, std::size_t> ts::client::Client::download_progress() cons
 const ts::resources::Loading_interface* ts::client::Client::async_load_stage(const cup::Stage_data& stage_data, 
                                                                              std::function<void()> completion_callback)
 {
-    // Hook the callback, so that we can acquire the result when it's ready
+    // Hook the callback, so that we can inform the server that we are ready
     auto completion_hook = [this, completion_callback]()
     {
-        completion_callback();
+        impl_->client_interface_.signal_ready();
+
+        completion_callback();       
     };
 
     auto loading_sequence = &impl_->loading_sequence_;
@@ -246,7 +238,9 @@ const ts::action::Stage* ts::client::Client::stage() const
     return impl_->stage_interface_.stage();
 }
 
-ts::scene::Scene ts::client::Client::acquire_scene()
+std::shared_ptr<ts::scene::Scene> ts::client::Client::acquire_scene()
 {
-    return impl_->loading_sequence_.transfer_result();
+    auto shared_scene = std::make_shared<scene::Scene>(impl_->loading_sequence_.transfer_result());
+    impl_->scene_interface_.reset(shared_scene);
+    return shared_scene;
 }

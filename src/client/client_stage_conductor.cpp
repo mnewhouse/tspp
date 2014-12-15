@@ -25,7 +25,7 @@
 
 ts::client::Stage_conductor::Stage_conductor(Message_center* message_center, action::Stage* stage,
                                              resources::Network_settings* network_settings)
-: Message_listener(message_center),
+: Scoped_message_listener(message_center),
   stage_conductor_(std::make_unique<action::Stage_conductor>(stage)),
   network_settings_(network_settings)
 {

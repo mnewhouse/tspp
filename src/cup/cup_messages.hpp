@@ -29,6 +29,7 @@
 
 #include "resources/track_identifier.hpp"
 #include "resources/car_identifier.hpp"
+#include "resources/resource_identifier.hpp"
 
 #include "resources/settings/player_settings.hpp"
 #include "resources/settings/track_settings.hpp"
@@ -178,12 +179,14 @@ namespace ts
                 std::uint16_t start_pos;
                 std::uint16_t player;
                 resources::Player_color color;
+                resources::Car_identifier car_identifier;
 
-                utf8_string car_name;
+                std::size_t resource_index = std::numeric_limits<std::size_t>::max();
             };
 
-            utf8_string track_name;
-            std::vector<Car> car_list;
+            resources::Track_identifier track_identifier;
+            std::vector<resources::Resource_identifier> resource_list;
+            std::vector<Car> car_list;            
         };
 
         struct Load_error_message

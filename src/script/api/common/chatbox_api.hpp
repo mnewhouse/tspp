@@ -19,21 +19,40 @@
 
 #pragma once
 
-#ifndef SCRIPT_VIEW_API_HPP
-#define SCRIPT_VIEW_API_HPP
+#ifndef CHATBOX_API_HPP
+#define CHATBOX_API_HPP
 
 #include "script/script_api.hpp"
 
+#include "server/server_messages.hpp"
+#include "client/client_messages.hpp"
+
 namespace ts
 {
-    namespace scene
-    {
-        class Action_scene;
-    }
-
     namespace script_api
     {
-        script::API_definition view_api(scene::Action_scene* action_scene);
+        namespace classes
+        {
+            static const char ChatMessage[] = "ChatMessage";
+            static const char ChatMessageComponent[] = "ChatMessageComponent";
+        }
+
+        namespace members
+        {
+            namespace chat_message
+            {
+                static const char components[] = "components";
+            }
+
+            namespace chat_message_component
+            {
+                static const char color[] = "color";
+                static const char sub_string[] = "sub_string";
+            }
+        }
+
+        script::API_definition chatbox_api(const server::Message_center* message_center);
+        script::API_definition chatbox_api(const client::Message_center* message_center);
     }
 }
 

@@ -29,7 +29,7 @@ namespace ts
     {
         template <typename MessageType>
         class Message_center
-            : public Listener_set<MessageType>, public Dispatcher_set<MessageType>
+            : public Message_listener_host<MessageType>, public Message_dispatcher_host<MessageType>
         {
         };
     }

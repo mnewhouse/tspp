@@ -46,17 +46,22 @@ ts::states::Client_action_state::~Client_action_state()
 
 void ts::states::Client_action_state::update(std::size_t frame_duration)
 {
+    Action_state_base::update(frame_duration);
+
     client_->update(frame_duration);
 }
 
-void ts::states::Client_action_state::on_activate()
+void ts::states::Client_action_state::on_render()
 {
-    Action_state_base::on_activate();
-
-    members_->action_ = client_->launch_action();
+    client_->on_render();
 }
 
-ts::scene::Scene ts::states::Client_action_state::acquire_scene()
+std::shared_ptr<ts::scene::Scene> ts::states::Client_action_state::acquire_scene()
 {
     return client_->acquire_scene();
+}
+
+ts::Generic_scope_exit ts::states::Client_action_state::launch_action()
+{
+    return client_->launch_action();
 }

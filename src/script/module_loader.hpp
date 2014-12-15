@@ -24,6 +24,8 @@
 
 #include "module_handle.hpp"
 
+#include "resources/loading_interface.hpp"
+
 namespace ts
 {
     namespace script
@@ -44,17 +46,33 @@ namespace ts
 
             using Completion_callback = std::function<void(std::vector<Unique_module_handle>)>;
 
-            void async_load_modules(std::vector<Module_definition> modules, Completion_callback callback);
+            // Asynchronously load a set of modules. It creates the modules synchronously, loads and compiles
+            // the scripts asynchronously, and then executes them in the caller's thread again.
+            //
+            // The returned pointer is invalidated after the completion callback has been called.
+            const resources::Loading_interface* async_load_modules(std::vector<Module_definition> modules, Completion_callback callback);
 
             void poll();
 
         private:
+            struct Loading_interface
+                : public resources::Loading_interface
+            {
+                using resources::Loading_interface::set_progress;
+                using resources::Loading_interface::set_max_progress;
+                using resources::Loading_interface::set_finished;
+                using resources::Loading_interface::set_loading;
+
+                virtual utf8_string progress_string() const;
+            };
+
             struct Loading_state
             {
                 std::future<void> future;
                 std::vector<Unique_module_handle> modules;
                 std::vector<Module_definition> definitions;
                 Completion_callback completion_callback;
+                Loading_interface interface;
             };
 
             std::vector<Unique_module_handle> execute_modules(std::vector<Unique_module_handle> modules);

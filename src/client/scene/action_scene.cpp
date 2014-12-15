@@ -282,7 +282,7 @@ void ts::scene::Action_scene::update_entity_positions()
         view.camera.update_position();
 
         auto camera_position = view.camera.position();
-        sf::Listener::setPosition(camera_position.x, camera_position.y, 0.0);
+        sf::Listener::setPosition(static_cast<float>(camera_position.x), static_cast<float>(camera_position.y), 0.0f);
     }
 }
 

@@ -22,6 +22,8 @@
 #ifndef SERVER_SCRIPT_API_HPP
 #define SERVER_SCRIPT_API_HPP
 
+#include "script/api/common_api_registration.hpp"
+
 #include "server/server_messages.hpp"
 
 namespace ts
@@ -45,22 +47,19 @@ namespace ts
     namespace server
     {
         class Client_map;
-        class Command_center;
         class Stage_assembler;
+        class Command_center;
 
         namespace script_api
         {
-            void register_core_api(script::Engine* engine);
+            using namespace ts::script_api;
 
-            void register_event_api(script::Engine* engine, const script::Event_interface* event_interface);
             void register_resource_api(script::Engine* engine, const resources::Resource_store* resource_store);
-            void register_message_api(script::Engine* engine, const Message_center* message_center);
             void register_client_api(script::Engine* engine, const Client_map* client_map);
-            void register_command_api(script::Engine* engine, Command_center* command_center);
-            void register_stage_api(script::Engine* engine, const action::Stage_interface* stage_interface);
-            void register_stage_assembler_api(script::Engine* engine);
+            void register_message_api(script::Engine* engine, const Message_center* message_center);
 
-            void register_stdout_console(script::Engine* engine);
+            void register_command_api(script::Engine* engine, Command_center* command_center);
+            void register_stage_assembler_api(script::Engine* engine);
         }
     }
 }

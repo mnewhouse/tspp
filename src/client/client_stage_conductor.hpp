@@ -39,7 +39,7 @@ namespace ts
     namespace client
     {
         class Stage_conductor
-            : public Message_listener
+            : public Scoped_message_listener
         {
         public:
             Stage_conductor(Message_center* message_center, action::Stage* stage, 
